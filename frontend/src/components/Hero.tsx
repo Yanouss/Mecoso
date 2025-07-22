@@ -57,7 +57,7 @@ const Hero = ({
 
           <div className="flex w-full flex-col justify-center gap-2 sm:flex-row max-w-md">
             <div className="text-center mt-16">
-              <button className="px-8 py-4 bg-[#fcbd0f] text-white rounded-2xl font-semibold hover:bg-orange-400 transform hover:scale-105 transition-all duration-700 shadow-lg hover:shadow-xl cursor-pointer">
+              <button className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-700 shadow-lg hover:shadow-xl cursor-pointer">
                 Start Your Project
               </button>
             </div>
