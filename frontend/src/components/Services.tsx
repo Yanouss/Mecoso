@@ -185,10 +185,9 @@ const ServicesCarousel = ({
                   </div>
 
                   {/* Visual Elements */}
-                  <div className="hidden lg:block">
+                  {/* <div className="hidden lg:block">
                     <div className="relative">
                       
-                      {/* Floating Cards Preview */}
                       <div className="absolute -top-8 -right-8 grid grid-cols-2 gap-4">
                         {features.slice(0, 4).map((feature, index) => (
                           <div
@@ -209,7 +208,6 @@ const ServicesCarousel = ({
                         ))}
                       </div>
 
-                      {/* Progress Circle */}
                       <div className="relative w-32 h-32 mx-auto">
                         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                           <circle
@@ -238,7 +236,7 @@ const ServicesCarousel = ({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -264,14 +262,14 @@ const ServicesCarousel = ({
           </div>
 
           {/* Play/Pause Control */}
-          <div className="absolute bottom-6 left-6 z-30">
+          {/* <div className="absolute bottom-6 left-6 z-30">
             <button
               onClick={togglePlayPause}
               className="p-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl border border-white/30 text-white transition-all duration-300 hover:scale-110"
             >
               {isPlaying ? <Pause className="size-5" /> : <Play className="size-5" />}
             </button>
-          </div>
+          </div> */}
 
           {/* Slide Indicators */}
           <div className="absolute bottom-6 right-6 z-30 flex gap-2">
