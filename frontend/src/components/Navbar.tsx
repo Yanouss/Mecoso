@@ -1,4 +1,5 @@
 import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { Link } from "react-router";
 
 import {
   Accordion,
@@ -39,7 +40,6 @@ interface Navbar1Props {
     title: string;
   };
   menu?: MenuItem[];
- 
 }
 
 const Navbar = ({
@@ -50,7 +50,7 @@ const Navbar = ({
     title: "Mecoso",
   },
   menu = [
-    { title: "Home", url: "#" },
+    { title: "Home", url: "/" },
     {
       title: "Products",
       url: "#",
@@ -96,7 +96,7 @@ const Navbar = ({
           title: "Contact Us",
           description: "We are here to help you with any questions you have",
           icon: <Sunset className="size-5 shrink-0" />,
-          url: "#",
+          url: "/contact", // Updated to use React Router path
         },
         {
           title: "Status",
@@ -113,30 +113,25 @@ const Navbar = ({
       ],
     },
     {
-      title: "Pricing",
-      url: "#",
+      title: "About Us",
+      url: "/about",
     },
     {
-      title: "Blog",
-      url: "#",
+      title: "Services",
+      url: "/services",
     },
   ],
-
 }: Navbar1Props) => {
   return (
     <section className="py-8">
       <div className="mx-auto container">
         {/* Desktop Menu */}
-        
         <nav className="hidden justify-between items-center lg:flex">
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
+            <Link to={logo.url} className="flex items-center gap-2">
               <img src={logo.src} className="max-h-24" alt={logo.alt} />
-              {/* <span className="text-lg font-semibold tracking-tighter">
-                {logo.title}
-              </span> */}
-            </a>
+            </Link>
           </div>
           <div className="flex items-center">
             <NavigationMenu>
@@ -146,7 +141,13 @@ const Navbar = ({
             </NavigationMenu>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="quote">Get a quote</Button>
+            <Link
+              to="/contact"
+              className="px-6 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-500 transition-all duration-300 shadow-md hover:shadow-lg"
+            >
+              Get a quote
+            </Link>
+
           </div>
         </nav>
 
@@ -154,9 +155,9 @@ const Navbar = ({
         <div className="block lg:hidden">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <a href={logo.url} className="flex items-center gap-2">
+            <Link to={logo.url} className="flex items-center gap-2">
               <img src={logo.src} className="max-h-8" alt={logo.alt} />
-            </a>
+            </Link>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -166,9 +167,9 @@ const Navbar = ({
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>
-                    <a href={logo.url} className="flex items-center gap-2">
+                    <Link to={logo.url} className="flex items-center gap-2">
                       <img src={logo.src} className="max-h-8" alt={logo.alt} />
-                    </a>
+                    </Link>
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col gap-6 p-4">
@@ -181,9 +182,12 @@ const Navbar = ({
                   </Accordion>
 
                   <div className="flex flex-col gap-3">
-                    
-                    <Button variant="quote">Get a quote</Button>
-
+                      <Link
+                        to="/contact"
+                        className="px-6 py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-500 transition-all duration-300 shadow-md hover:shadow-lg"
+                      >
+                        Get a quote
+                      </Link>
                   </div>
                 </div>
               </SheetContent>
@@ -213,11 +217,13 @@ const renderMenuItem = (item: MenuItem) => {
 
   return (
     <NavigationMenuItem key={item.title}>
-      <NavigationMenuLink
-        href={item.url}
-        className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-lg font-medium transition-colors hover:bg-muted hover:text-accent-foreground"
-      >
-        {item.title}
+      <NavigationMenuLink asChild>
+        <Link
+          to={item.url}
+          className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-lg font-medium transition-colors hover:bg-muted hover:text-accent-foreground"
+        >
+          {item.title}
+        </Link>
       </NavigationMenuLink>
     </NavigationMenuItem>
   );
@@ -240,13 +246,35 @@ const renderMobileMenuItem = (item: MenuItem) => {
   }
 
   return (
-    <a key={item.title} href={item.url} className="text-lg font-semibold">
+    <Link key={item.title} to={item.url} className="text-lg font-semibold">
       {item.title}
-    </a>
+    </Link>
   );
 };
 
 const SubMenuLink = ({ item }: { item: MenuItem }) => {
+  // Check if it's a router link or external/hash link
+  const isRouterLink = item.url.startsWith('/') && !item.url.startsWith('/#');
+  
+  if (isRouterLink) {
+    return (
+      <Link
+        className="flex flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none hover:bg-muted hover:text-accent-foreground"
+        to={item.url}
+      >
+        <div className="text-foreground">{item.icon}</div>
+        <div>
+          <div className="text-sm font-semibold">{item.title}</div>
+          {item.description && (
+            <p className="text-sm leading-snug text-muted-foreground">
+              {item.description}
+            </p>
+          )}
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <a
       className="flex flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none hover:bg-muted hover:text-accent-foreground"

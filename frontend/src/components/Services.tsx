@@ -261,15 +261,6 @@ const ServicesCarousel = ({
             </button>
           </div>
 
-          {/* Play/Pause Control */}
-          {/* <div className="absolute bottom-6 left-6 z-30">
-            <button
-              onClick={togglePlayPause}
-              className="p-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl border border-white/30 text-white transition-all duration-300 hover:scale-110"
-            >
-              {isPlaying ? <Pause className="size-5" /> : <Play className="size-5" />}
-            </button>
-          </div> */}
 
           {/* Slide Indicators */}
           <div className="absolute bottom-6 right-6 z-30 flex gap-2">

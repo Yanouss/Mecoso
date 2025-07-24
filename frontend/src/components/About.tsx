@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Users, Award, Clock, Target, ArrowRight, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router';
 
 interface Stat {
   number: string;
@@ -242,46 +243,6 @@ const About = ({
           </div>
         </div>
 
-        {/* Team Section */}
-        {/* <div className="mb-24">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Meet Our Leadership
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              The visionary minds behind our success, bringing decades of expertise and passion to every project.
-            </p>
-          </div>
-          
-          <div className="grid lg:grid-cols-3 gap-8">
-            {team.map((member, index) => (
-              <div key={index} className="group cursor-pointer">
-                <div className="bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                  <div className="relative overflow-hidden">
-                    <img 
-                      src={member.image} 
-                      alt={member.name}
-                      className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  </div>
-                  <div className="p-8">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      {member.name}
-                    </h3>
-                    <div className="text-blue-600 font-semibold mb-4">
-                      {member.role}
-                    </div>
-                    <p className="text-gray-600 leading-relaxed">
-                      {member.bio}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div> */}
-
         {/* CTA Section */}
         <div className="text-center bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-12 shadow-2xl">
           <h2 className="text-4xl font-bold text-white mb-6">
@@ -291,10 +252,10 @@ const About = ({
             Let's turn your vision into reality. Get in touch with our team to discuss your next project.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group">
+            <Link to="/contact" className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group">
               Get Started Today
               <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
-            </button>
+            </Link>
             <button className="px-8 py-4 bg-white/10 text-white rounded-2xl font-semibold hover:bg-white/20 backdrop-blur-sm transition-all duration-300 border border-white/20">
               View Our Portfolio
             </button>

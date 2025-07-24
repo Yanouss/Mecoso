@@ -1,7 +1,6 @@
-import { ArrowRight, ArrowUpRight } from "lucide-react";
-
+import {  ArrowUpRight } from "lucide-react";
+import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 interface Hero1Props {
   badge?: string;
@@ -57,9 +56,13 @@ const Hero = ({
 
           <div className="flex w-full flex-col justify-center gap-2 sm:flex-row max-w-md">
             <div className="text-center mt-16">
-              <button className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-700 shadow-lg hover:shadow-xl cursor-pointer">
+              <Link
+                to="/contact"
+                className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-700 shadow-lg hover:shadow-xl cursor-pointer"
+              >
                 Start Your Project
-              </button>
+              </Link>
+
             </div>
           </div>
           
