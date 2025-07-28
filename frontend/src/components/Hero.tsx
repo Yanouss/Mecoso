@@ -23,7 +23,6 @@ interface Hero1Props {
 }
 
 const Hero = ({
-  badge = "✨ Your Website Builder",
   heading = "Blocks Built With Shadcn & Tailwind",
   description = "Finely crafted components built with React, Tailwind and Shadcn UI. Developers can copy and paste these blocks directly into their project.",
   image = {
@@ -41,16 +40,11 @@ const Hero = ({
       
       <div className="mx-auto container relative z-10">
         <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-          {badge && (
-            <Badge variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
-              {badge}
-              <ArrowUpRight className="ml-2 size-4" />
-            </Badge>
-          )}
+          
           <h1 className="my-6 text-pretty text-4xl font-bold lg:text-6xl text-white">
             {heading}
           </h1>
-          <p className="text-white/90 mb-8 max-w-xl lg:text-xl">
+          <p className="text-white/90 mb-8 max-w-xl lg:text-xl text-justify">
             {description}
           </p>
 

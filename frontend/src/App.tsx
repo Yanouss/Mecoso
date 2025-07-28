@@ -12,9 +12,10 @@ function Home() {
   return (
     <>
       <Hero
-        badge="Construction & Building Solutions"
-        heading="BUILDING ROBUST LASTING SOLUTIONS."
-        description="Combining modern techniques with industry expertise to craft structures that are safe, sustainable, and built to last."
+        heading="Leading Industrial Solutions in Morocco"
+        description="MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions.
+        Since 2005, we've been delivering excellence in metal structure design, manufacturing, and assembly
+        across all industries."
         buttons={{
           primary: {
             text: "Our Services",

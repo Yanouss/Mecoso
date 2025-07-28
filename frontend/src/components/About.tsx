@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Award, Clock, Target, ArrowRight, CheckCircle } from 'lucide-react';
+import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Download } from 'lucide-react';
 import { Link } from 'react-router';
 
 interface Stat {
@@ -19,6 +19,7 @@ interface Value {
   title: string;
   description: string;
   icon: React.ReactNode;
+  videoUrl: string;
 }
 
 interface AboutProps {
@@ -31,16 +32,19 @@ interface AboutProps {
   team?: TeamMember[];
   mission?: string;
   image?: string;
+  portfolioFileName?: string;
 }
 
 const About = ({
   badge = "About Our Company",
   heading = "Building Tomorrow's Infrastructure Today",
-  description = "With over two decades of excellence in construction, we've transformed skylines and communities across the region through innovative engineering and unwavering commitment to quality.",
-  story = "Founded in 2003 by a team of visionary engineers, our company began with a simple belief: that great construction goes beyond buildings—it builds communities, dreams, and lasting legacies. What started as a small firm with big ambitions has grown into one of the region's most trusted construction partners.",
+  description = "Our commitment to quality, safety, and innovation has made us a leader in the industrial metalwork sector in Morocco.",
+  story = "Founded in 2005 by KACEMY Abderahman, MECOSO has grown from a specialized boilermaking workshop into Morocco's leading provider of comprehensive industrial metalwork solutions. With two decades of experience, we've built our reputation on delivering quality, safety, and innovation to clients across diverse industries",
+
+   
   stats = [
     {
-      number: "500+",
+      number: "50+",
       label: "Projects Completed",
       icon: <Target className="size-6" />
     },
@@ -50,57 +54,86 @@ const About = ({
       icon: <Clock className="size-6" />
     },
     {
-      number: "50+",
-      label: "Expert Team",
-      icon: <Users className="size-6" />
+      number: "2,000 m²",
+      label: "Advanced manufacturing facility",
+      icon: <Award className="size-6" />
     },
     {
-      number: "25+",
-      label: "Industry Awards",
+      number: "ISO 9001",
+      label: "2015 certified",
       icon: <Award className="size-6" />
     }
   ],
   values = [
     {
-      title: "Innovation",
-      description: "Embracing cutting-edge technology and sustainable practices to deliver future-ready solutions.",
-      icon: <Target className="size-6" />
+      title: " Complete Solutions",
+      description: "From initial design to final commissioning and ongoing maintenance, MECOSO delivers seamless, end-to-end industrial solutions tailored to your needs.",
+      icon: <Target className="size-6" />,
+      videoUrl: "/videos/values/value1.mp4" // Industrial design/engineering video
     },
     {
-      title: "Quality Excellence",
-      description: "Every project reflects our commitment to superior craftsmanship and attention to detail.",
-      icon: <Award className="size-6" />
+      title: "Advanced Technology",
+      description: "We leverage state-of-the-art machinery and cutting-edge processes to ensure efficiency, precision, and innovation at every stage.",
+      icon: <Award className="size-6" />,
+      videoUrl: "/videos/values/value4.mp4" // Modern manufacturing/machinery video
+    },
+    {
+      title: "Quality Assurance",
+      description: "Certified to ISO 9001:2015 standards, our rigorous quality control systems guarantee consistent excellence across all operations.",
+      icon: <Users className="size-6" />,
+      videoUrl: "/videos/values/value3.mp4" // Quality control/inspection video
+    },
+    {
+      title: "Safety First",
+      description: "We prioritize safety above all, adhering to the highest industry standards to protect our people, partners, and projects.",
+      icon: <Users className="size-6" />,
+      videoUrl: "/videos/values/value6.mp4" // Safety equipment/workers video
+    },
+    {
+      title: "Experienced Team",
+      description: "Our multidisciplinary team brings deep expertise and hands-on experience, ensuring professional execution and reliable support every step of the way.",
+      icon: <Users className="size-6" />,
+      videoUrl: "/videos/values/value2.mp4" // Team of workers/professionals
     },
     {
       title: "Client Partnership",
-      description: "Building lasting relationships through transparent communication and collaborative approach.",
-      icon: <Users className="size-6" />
+      description: "Building lasting relationships through collaborative approach.",
+      icon: <Users className="size-6" />,
+      videoUrl: "/videos/values/value5.mp4" // Business meeting/handshake video
     }
   ],
-  team = [
-    {
-      name: "Sarah Mitchell",
-      role: "CEO & Founder",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
-      bio: "Visionary leader with 25+ years in construction and architecture."
-    },
-    {
-      name: "David Chen",
-      role: "Chief Engineer",
-      image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-      bio: "Structural engineering expert specializing in sustainable design."
-    },
-    {
-      name: "Maria Rodriguez",
-      role: "Project Director",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face",
-      bio: "Award-winning project manager known for delivering complex builds on time."
-    }
-  ],
-  mission = "To create exceptional spaces that inspire communities, drive economic growth, and stand as testaments to human ingenuity and craftsmanship.",
-  image = "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop"
+  mission = "To provide comprehensive, high-quality metalwork solutions that meet the evolving needs of modern industry while maintaining the highest standards of safety, quality, and customer satisfaction",
+  image = "/images/team.jpg",
+  portfolioFileName = "MECOSO-Portfolio.pptx"
 }: AboutProps) => {
   const [activeValue, setActiveValue] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handlePortfolioDownload = async () => {
+    try {
+      setIsDownloading(true);
+      
+      // Create the download URL
+      const portfolioUrl = `/portfolio/${portfolioFileName}`;
+      
+      // Create a temporary anchor element for download
+      const link = document.createElement('a');
+      link.href = portfolioUrl;
+      link.download = portfolioFileName;
+      link.target = '_blank';
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+    } catch (error) {
+      console.error('Error downloading portfolio:', error);
+      // You could add a toast notification here for error handling
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 relative overflow-hidden">
@@ -120,7 +153,7 @@ const About = ({
           <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent mb-6 leading-tight">
             {heading}
           </h1>
-          <p className="text-xl text-gray-600 leading-relaxed">
+          <p className="text-xl text-justify text-gray-600 leading-relaxed">
             {description}
           </p>
         </div>
@@ -135,23 +168,12 @@ const About = ({
                 className="w-full h-[500px] object-cover group-hover:scale-110 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-              
-              {/* Floating Stats Cards */}
-              {/* <div className="absolute -bottom-6 -right-6 bg-white rounded-2xl p-6 shadow-xl border border-gray-100">
-                <div className="text-3xl font-bold text-gray-900">{stats[0]?.number}</div>
-                <div className="text-sm text-gray-600">{stats[0]?.label}</div>
-              </div> */}
-              
-              {/* <div className="absolute top-6 -left-6 bg-white rounded-2xl p-4 shadow-xl border border-gray-100">
-                <div className="text-2xl font-bold text-gray-900">{stats[1]?.number}</div>
-                <div className="text-xs text-gray-600">{stats[1]?.label}</div>
-              </div> */}
             </div>
           </div>
           
           <div className="space-y-8">
             <div className="prose prose-lg max-w-none">
-              <p className="text-gray-700 leading-relaxed text-lg">
+              <p className="text-gray-700 text-justify leading-relaxed text-lg">
                 {story}
               </p>
             </div>
@@ -172,20 +194,7 @@ const About = ({
           </div>
         </div>
 
-        
-
-        {/* Values Section */}
-        <div className="mb-24">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Our Core Values
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              The principles that guide every decision we make and every project we undertake.
-            </p>
-          </div>
-          
-          {/* Interactive Stats Grid */}
+        {/* Interactive Stats Grid */}
         <div className="mb-24 grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, index) => (
             <div 
@@ -210,6 +219,17 @@ const About = ({
           ))}
         </div>
 
+        {/* Values Section with Video Backgrounds */}
+        <div className="mb-24">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Why Choose MECOSO?
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              The principles that guide every decision we make and every project we undertake.
+            </p>
+          </div>
+          
           <div className="grid lg:grid-cols-3 gap-8">
             {values.map((value, index) => (
               <div 
@@ -219,24 +239,45 @@ const About = ({
                 }`}
                 onMouseEnter={() => setActiveValue(index)}
               >
-                <div className={`bg-white rounded-3xl p-8 shadow-lg border transition-all duration-500 ${
+                <div className={`relative overflow-hidden rounded-3xl shadow-lg border transition-all duration-500 h-80 ${
                   activeValue === index 
-                    ? 'shadow-2xl border-blue-200 bg-gradient-to-br from-blue-50/50 to-purple-50/50' 
+                    ? 'shadow-2xl border-blue-200' 
                     : 'border-gray-100 hover:shadow-xl'
                 }`}>
-                  <div className={`inline-flex p-4 mb-6 rounded-2xl transition-all duration-500 ${
+                  {/* Video Background */}
+                  <video 
+                    className="absolute inset-0 w-full h-full object-cover"
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                  >
+                    <source src={value.videoUrl} type="video/mp4" />
+                  </video>
+                  
+                  {/* Overlay */}
+                  <div className={`absolute inset-0 transition-all duration-500 ${
                     activeValue === index 
-                      ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg' 
-                      : 'bg-gray-100 text-gray-600 group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-purple-100'
-                  }`}>
-                    {value.icon}
+                      ? 'bg-gradient-to-t from-black/80 via-black/40 to-black/20' 
+                      : 'bg-gradient-to-t from-black/70 via-black/30 to-black/10 group-hover:from-black/75 group-hover:via-black/35'
+                  }`} />
+                  
+                  {/* Content */}
+                  <div className="relative z-10 p-8 h-full flex flex-col justify-end">
+                    <h3 className="text-2xl font-bold text-white mb-4">
+                      {value.title}
+                    </h3>
+                    <p className="text-gray-200 leading-relaxed">
+                      {value.description}
+                    </p>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    {value.title}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {value.description}
-                  </p>
+                  
+                  {/* Hover Effect */}
+                  <div className={`absolute inset-0 transition-all duration-500 ${
+                    activeValue === index 
+                      ? 'bg-blue-500/20' 
+                      : 'bg-transparent group-hover:bg-blue-500/10'
+                  }`} />
                 </div>
               </div>
             ))}
@@ -249,15 +290,29 @@ const About = ({
             Ready to Build Something Amazing?
           </h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Let's turn your vision into reality. Get in touch with our team to discuss your next project.
+            From concept to commissioning, we're ready to deliver industrial excellence. Reach out to discuss your next project.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/contact" className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group">
-              Get Started Today
+              Get Started Now
               <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
             </Link>
-            <button className="px-8 py-4 bg-white/10 text-white rounded-2xl font-semibold hover:bg-white/20 backdrop-blur-sm transition-all duration-300 border border-white/20">
-              View Our Portfolio
+            <button 
+              onClick={handlePortfolioDownload}
+              disabled={isDownloading}
+              className="px-8 py-4 bg-white/10 text-white rounded-2xl font-semibold hover:bg-white/20 backdrop-blur-sm transition-all duration-300 border border-white/20 inline-flex items-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isDownloading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <Download className="size-5 group-hover:translate-y-1 transition-transform duration-300" />
+                  Download Our Portfolio
+                </>
+              )}
             </button>
           </div>
         </div>

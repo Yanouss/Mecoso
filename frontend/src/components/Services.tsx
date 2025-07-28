@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Feature {
   title: string;
@@ -16,75 +16,107 @@ interface ServicesCarouselProps {
   feature4?: Feature;
   feature5?: Feature;
   feature6?: Feature;
+  feature7?: Feature;
+  feature8?: Feature;
+  feature9?: Feature;
+  feature10?: Feature;
+  feature11?: Feature;
 }
 
 const ServicesCarousel = ({
-  heading = "Our Construction Services",
-  description = "We deliver reliable, innovative, and tailored construction solutions across every stage of your project.",
+  heading = "Our Core Services",
+  description = "MECOSO delivers complete industrial solutions. From design and fabrication to installation and maintenance. Serving the mining, energy, and heavy industry sectors with a focus on quality, safety, and innovation.",
   feature1 = {
-    title: "Architectural Design",
-    description: "Bringing your vision to life with modern, sustainable, and client-focused architectural plans that blend functionality with aesthetic excellence.",
-    image: "images/service6.jpg",
-  },
-  feature2 = {
-    title: "Project Management",
-    description: "Ensuring timely delivery and cost efficiency through effective planning, coordination, and supervision of all construction phases.",
+    title: "Thickener Manufacturing & Assembly",
+    description: "Designing and assembling high-performance thickeners for efficient solid-liquid separation in industrial and mining applications.",
     image: "images/service1.jpg",
   },
-  feature3 = {
-    title: "Structural Engineering",
-    description: "Designing robust, safe, and code-compliant structures that stand the test of time with innovative engineering solutions.",
+  feature2 = {
+    title: "Tank Manufacturing & Assembly",
+    description: "Expert fabrication and on-site assembly of storage tanks and cement silos, ensuring durability, safety, and compliance.",
     image: "images/service2.jpg",
   },
-  feature4 = {
-    title: "Heavy Machinery & Logistics",
-    description: "Utilizing state-of-the-art equipment and expert logistics coordination to streamline construction operations efficiently.",
+  feature3 = {
+    title: "Room Bin & Storage Hopper Manufacturing",
+    description: "Custom-engineered bins and hoppers for optimal material storage and flow, tailored to your operational needs.",
     image: "images/service3.jpg",
   },
-  feature5 = {
-    title: "Quality Assurance",
-    description: "Rigorous testing and inspection protocols ensuring excellence and compliance at every project phase and milestone.",
+  feature4 = {
+    title: "Steel Structure Fabrication & Erection",
+    description: "Precision fabrication and erection of steel frameworks for industrial facilities, built to endure and perform.",
     image: "images/service4.jpg",
   },
-  feature6 = {
-    title: "Green Building Solutions",
-    description: "Sustainable construction practices and eco-friendly materials creating environmentally responsible structures for a better future.",
+  feature5 = {
+    title: "Industrial Equipment Installation & Commissioning",
+    description: "Professional setup and calibration of industrial machinery, ensuring seamless startup and optimal performance.",
     image: "images/service5.jpg",
   },
+  feature6 = {
+    title: "Pipeline & Piping Work",
+    description: "Comprehensive pipeline services for gas, steam, and fluid systems, including standard and high-pressure pipelines.",
+    image: "images/service6.jpg",
+  },
+  feature7 = {
+    title: "Equipment Design & Manufacturing",
+    description: "Custom-built industrial equipment designed for performance, efficiency, and reliability in demanding environments.",
+    image: "images/service7.png",
+  },
+  feature8 = {
+    title: "Mining Equipment Rehabilitation & Maintenance",
+    description: "Extending the life of mining assets with expert refurbishment, repairs, and preventive maintenance strategies.",
+    image: "images/service8.jpg",
+  },
+  feature9 = {
+    title: "Photovoltaic Structure Manufacturing",
+    description: "Manufacturing robust support structures for solar installations, engineered for efficiency and durability.",
+    image: "images/service9.jpg",
+  },
+  feature10 = {
+    title: "Lubrication Station Systems",
+    description: "Design and integration of centralized lubrication systems that enhance equipment lifespan and reliability.",
+    image: "images/service10.jpg",
+  },
+  feature11 = {
+    title: "Industrial Maintenance Support & Training",
+    description: "Providing on-site technical support and staff training to maintain high operational standards and reduce downtime.",
+    image: "images/service11.png",
+  },
 }: ServicesCarouselProps) => {
-  const features = [feature1, feature2, feature3, feature4, feature5, feature6];
+  const features = [
+    feature1,
+    feature2,
+    feature3,
+    feature4,
+    feature5,
+    feature6,
+    feature7,
+    feature8,
+    feature9,
+    feature10,
+    feature11,
+  ];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [direction, setDirection] = useState(0);
+  // Removed unused direction state
 
   useEffect(() => {
     if (!isPlaying) return;
-    
     const interval = setInterval(() => {
-      setDirection(1);
       setCurrentIndex((prev) => (prev + 1) % features.length);
     }, 4500);
-
     return () => clearInterval(interval);
   }, [isPlaying, features.length]);
 
   const goToSlide = (index: number) => {
-    setDirection(index > currentIndex ? 1 : -1);
     setCurrentIndex(index);
   };
 
   const goToPrevious = () => {
-    setDirection(-1);
     setCurrentIndex((prev) => (prev - 1 + features.length) % features.length);
   };
 
   const goToNext = () => {
-    setDirection(1);
     setCurrentIndex((prev) => (prev + 1) % features.length);
-  };
-
-  const togglePlayPause = () => {
-    setIsPlaying(!isPlaying);
   };
 
   return (
@@ -300,7 +332,7 @@ const ServicesCarousel = ({
         </div> */}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes slide-up {
           from {
             opacity: 0;
