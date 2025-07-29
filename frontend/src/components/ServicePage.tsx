@@ -50,105 +50,155 @@ interface ServicePageProps {
 
 const ServicePage = ({
   badge = "Our Services",
-  heading = "Comprehensive Construction Solutions",
-  description = "From concept to completion, we deliver exceptional construction services that transform your vision into reality with precision, quality, and innovation.",
+  heading = "Our Core Services",
+  description = "MECOSO delivers complete industrial solutions. From design and fabrication to installation and maintenance. Serving the mining, energy, and heavy industry sectors with a focus on quality, safety, and innovation.",
   services = [
     {
       id: '1',
-      title: "Architectural Design",
-      description: "Bringing your vision to life with modern, sustainable, and client-focused architectural plans that blend functionality with aesthetic excellence.",
-      image: "images/service6.jpg",
-      features: ["3D Modeling", "Sustainable Design", "Code Compliance", "Client Collaboration"],
-      duration: "4-8 weeks",
-      price: "Starting at $5,000",
-      category: "Design"
+      title: "Thickener Manufacturing & Assembly",
+      description: "Designing and assembling high-performance thickeners for efficient solid-liquid separation in industrial and mining applications.",
+      image: "images/service1.jpg",
+      features: ["High-Performance Design", "Solid-Liquid Separation", "Industrial Applications", "Mining Solutions"],
+      duration: "6-12 weeks",
+      price: "Custom quotes",
+      category: "Manufacturing"
     },
     {
       id: '2',
-      title: "Project Management",
-      description: "Ensuring timely delivery and cost efficiency through effective planning, coordination, and supervision of all construction phases.",
-      image: "images/service1.jpg",
-      features: ["Timeline Management", "Budget Control", "Quality Assurance", "Risk Management"],
-      duration: "Project Duration",
-      price: "8-12% of project cost",
-      category: "Management"
+      title: "Tank Manufacturing & Assembly",
+      description: "Expert fabrication and on-site assembly of storage tanks and cement silos, ensuring durability, safety, and compliance.",
+      image: "images/service2.jpg",
+      features: ["Storage Solutions", "Cement Silos", "On-site Assembly", "Safety Compliance"],
+      duration: "4-10 weeks",
+      price: "Starting at $15,000",
+      category: "Manufacturing"
     },
     {
       id: '3',
-      title: "Structural Engineering",
-      description: "Designing robust, safe, and code-compliant structures that stand the test of time with innovative engineering solutions.",
-      image: "images/service2.jpg",
-      features: ["Load Analysis", "Safety Compliance", "Material Optimization", "Seismic Design"],
-      duration: "6-10 weeks",
+      title: "Room Bin & Storage Hopper Manufacturing",
+      description: "Custom-engineered bins and hoppers for optimal material storage and flow, tailored to your operational needs.",
+      image: "images/service3.jpg",
+      features: ["Custom Engineering", "Optimal Flow Design", "Material Storage", "Operational Efficiency"],
+      duration: "3-8 weeks",
       price: "Starting at $8,000",
-      category: "Engineering"
+      category: "Manufacturing"
     },
     {
       id: '4',
-      title: "Heavy Machinery & Logistics",
-      description: "Utilizing state-of-the-art equipment and expert logistics coordination to streamline construction operations efficiently.",
-      image: "images/service3.jpg",
-      features: ["Equipment Rental", "Operator Training", "Maintenance Support", "Logistics Planning"],
-      duration: "As needed",
+      title: "Steel Structure Fabrication & Erection",
+      description: "Precision fabrication and erection of steel frameworks for industrial facilities, built to endure and perform.",
+      image: "images/service4.jpg",
+      features: ["Precision Fabrication", "Steel Frameworks", "Industrial Facilities", "Structural Engineering"],
+      duration: "8-16 weeks",
       price: "Custom quotes",
-      category: "Operations"
+      category: "Construction"
     },
     {
       id: '5',
-      title: "Quality Assurance",
-      description: "Rigorous testing and inspection protocols ensuring excellence and compliance at every project phase and milestone.",
-      image: "images/service4.jpg",
-      features: ["Material Testing", "Progress Inspections", "Compliance Verification", "Final Audits"],
-      duration: "Throughout project",
-      price: "3-5% of project cost",
-      category: "Quality"
+      title: "Industrial Equipment Installation & Commissioning",
+      description: "Professional setup and calibration of industrial machinery, ensuring seamless startup and optimal performance.",
+      image: "images/service5.jpg",
+      features: ["Professional Setup", "Equipment Calibration", "Seamless Startup", "Performance Optimization"],
+      duration: "2-6 weeks",
+      price: "Starting at $5,000",
+      category: "Installation"
     },
     {
       id: '6',
-      title: "Green Building Solutions",
-      description: "Sustainable construction practices and eco-friendly materials creating environmentally responsible structures for a better future.",
-      image: "images/service5.jpg",
-      features: ["LEED Certification", "Energy Efficiency", "Sustainable Materials", "Waste Reduction"],
-      duration: "Integrated process",
-      price: "Premium pricing",
-      category: "Sustainability"
+      title: "Pipeline & Piping Work",
+      description: "Comprehensive pipeline services for gas, steam, and fluid systems, including standard and high-pressure pipelines.",
+      image: "images/service6.jpg",
+      features: ["Gas Systems", "Steam Pipelines", "Fluid Systems", "High-Pressure Solutions"],
+      duration: "4-12 weeks",
+      price: "Starting at $10,000",
+      category: "Installation"
+    },
+    {
+      id: '7',
+      title: "Equipment Design & Manufacturing",
+      description: "Custom-built industrial equipment designed for performance, efficiency, and reliability in demanding environments.",
+      image: "images/service7.png",
+      features: ["Custom Design", "Performance Focused", "High Efficiency", "Reliable Operations"],
+      duration: "6-14 weeks",
+      price: "Custom quotes",
+      category: "Design"
+    },
+    {
+      id: '8',
+      title: "Mining Equipment Rehabilitation & Maintenance",
+      description: "Extending the life of mining assets with expert refurbishment, repairs, and preventive maintenance strategies.",
+      image: "images/service8.jpg",
+      features: ["Asset Extension", "Expert Refurbishment", "Preventive Maintenance", "Cost Optimization"],
+      duration: "Ongoing",
+      price: "Maintenance contracts",
+      category: "Maintenance"
+    },
+    {
+      id: '9',
+      title: "Photovoltaic Structure Manufacturing",
+      description: "Manufacturing robust support structures for solar installations, engineered for efficiency and durability.",
+      image: "images/service9.jpg",
+      features: ["Solar Support", "Robust Design", "High Efficiency", "Long-term Durability"],
+      duration: "4-8 weeks",
+      price: "Starting at $12,000",
+      category: "Manufacturing"
+    },
+    {
+      id: '10',
+      title: "Lubrication Station Systems",
+      description: "Design and integration of centralized lubrication systems that enhance equipment lifespan and reliability.",
+      image: "images/service10.jpg",
+      features: ["Centralized Systems", "Equipment Protection", "Enhanced Lifespan", "Automated Solutions"],
+      duration: "3-6 weeks",
+      price: "Starting at $7,000",
+      category: "Systems"
+    },
+    {
+      id: '11',
+      title: "Industrial Maintenance Support & Training",
+      description: "Providing on-site technical support and staff training to maintain high operational standards and reduce downtime.",
+      image: "images/service11.png",
+      features: ["On-site Support", "Staff Training", "Operational Standards", "Downtime Reduction"],
+      duration: "Ongoing",
+      price: "Training packages",
+      category: "Support"
     }
   ],
   testimonials = [
     {
-      name: "Sarah Johnson",
-      role: "Property Developer",
-      company: "Urban Spaces LLC",
-      content: "Their architectural design service exceeded our expectations. The team delivered innovative solutions that perfectly balanced our vision with practical requirements.",
+      name: "Ahmed Hassan",
+      role: "Operations Manager",
+      company: "Morocco Mining Corp",
+      content: "MECOSO's thickener manufacturing service exceeded our expectations. Their expertise in solid-liquid separation technology significantly improved our mining operations efficiency.",
+      rating: 5,
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+    },
+    {
+      name: "Fatima Benali",
+      role: "Project Director",
+      company: "Atlas Energy Solutions",
+      content: "Outstanding steel structure fabrication and erection services. MECOSO delivered our industrial facility framework on time and with exceptional quality standards.",
       rating: 5,
       image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
     },
     {
-      name: "Michael Chen",
-      role: "Facilities Manager",
-      company: "TechCorp Industries",
-      content: "Outstanding project management from start to finish. They kept everything on schedule and within budget while maintaining exceptional quality standards.",
+      name: "Omar Alami",
+      role: "Maintenance Chief",
+      company: "Casablanca Industrial Complex",
+      content: "Their mining equipment rehabilitation service has extended our machinery life significantly. Professional team with deep industrial expertise and reliable support.",
       rating: 5,
       image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
-    },
-    {
-      name: "Emma Rodriguez",
-      role: "Homeowner",
-      company: "Private Client",
-      content: "The structural engineering team provided innovative solutions that transformed our renovation project. Professional, reliable, and highly skilled.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face"
     }
   ],
   stats = [
     {
-      number: "500+",
+      number: "50+",
       label: "Projects Completed",
       icon: <Target className="size-6" />
     },
     {
-      number: "98%",
-      label: "Client Satisfaction",
+      number: "ISO 9001",
+      label: "2015 certified",
       icon: <Award className="size-6" />
     },
     {
@@ -337,10 +387,10 @@ const ServicePage = ({
 
           <div className="grid lg:grid-cols-4 gap-8">
             {[
-              { step: "01", title: "Consultation", desc: "Understanding your needs and vision" },
-              { step: "02", title: "Planning", desc: "Detailed project planning and design" },
-              { step: "03", title: "Execution", desc: "Professional construction and management" },
-              { step: "04", title: "Delivery", desc: "Final inspection and project handover" }
+              { step: "01", title: "Consultation", desc: "Understanding your industrial needs and project requirements" },
+              { step: "02", title: "Design & Planning", desc: "Detailed engineering design and comprehensive project planning" },
+              { step: "03", title: "Manufacturing & Installation", desc: "Expert fabrication and professional on-site installation" },
+              { step: "04", title: "Commissioning & Support", desc: "System commissioning and ongoing maintenance support" }
             ].map((item, index) => (
               <div key={index} className="relative group">
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300">
