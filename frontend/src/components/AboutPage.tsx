@@ -44,55 +44,75 @@ interface AboutPageProps {
 
 const AboutPage = ({
   badge = "About Our Company",
-  heading = "Building Tomorrow's Infrastructure Today",
-  description = "With over two decades of excellence in construction, we've transformed skylines and communities across the region through innovative engineering and unwavering commitment to quality.",
-  story = "Founded in 2003 by a team of visionary engineers, our company began with a simple belief: that great construction goes beyond buildings—it builds communities, dreams, and lasting legacies. What started as a small firm with big ambitions has grown into one of the region's most trusted construction partners, delivering exceptional projects that stand as testaments to our commitment to excellence.",
+  heading = "Leading Industrial Solutions in Morocco",
+  story = "Founded in 2005 by KACEMY Abderahman, MECOSO has grown from a specialized boilermaking workshop into Morocco's leading provider of comprehensive industrial metalwork solutions. With two decades of experience, we've built our reputation on delivering quality, safety, and innovation to clients across diverse industries.",
+  description = "MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we've been delivering excellence in metal structure design, manufacturing, and assemblyacross all industries",
+  
   stats = [
-    {
-      number: "500+",
-      label: "Projects Completed",
-      icon: <Building className="size-6" />
-    },
-    {
-      number: "20+",
-      label: "Years Experience",
-      icon: <Clock className="size-6" />
-    },
-    {
-      number: "50+",
-      label: "Expert Team",
-      icon: <Users className="size-6" />
-    },
-    {
-      number: "25+",
-      label: "Industry Awards",
-      icon: <Award className="size-6" />
-    }
+      {
+        number: "50+",
+        label: "Projects Completed",
+        icon: <Target className="size-6" />
+      },
+      {
+        number: "20+",
+        label: "Years Experience",
+        icon: <Clock className="size-6" />
+      },
+      {
+        number: "2,000 m²",
+        label: "Advanced manufacturing facility",
+        icon: <Award className="size-6" />
+      },
+      {
+        number: "ISO 9001",
+        label: "2015 certified",
+        icon: <Award className="size-6" />
+      }
   ],
+  
   values = [
-    {
-      title: "Innovation",
-      description: "Embracing cutting-edge technology and sustainable practices to deliver future-ready solutions that exceed expectations.",
-      icon: <Lightbulb className="size-6" />
-    },
-    {
-      title: "Quality Excellence",
-      description: "Every project reflects our commitment to superior craftsmanship and meticulous attention to detail.",
-      icon: <Star className="size-6" />
-    },
-    {
-      title: "Client Partnership",
-      description: "Building lasting relationships through transparent communication and collaborative approach to every project.",
-      icon: <Heart className="size-6" />
-    },
-    {
-      title: "Safety First",
-      description: "Maintaining the highest safety standards to protect our team and ensure secure work environments.",
-      icon: <Shield className="size-6" />
-    }
+      {
+        title: " Complete Solutions",
+        description: "From initial design to final commissioning and ongoing maintenance, MECOSO delivers seamless, end-to-end industrial solutions tailored to your needs.",
+        icon: <Target className="size-6" />,
+        videoUrl: "/videos/values/value1.mp4" // Industrial design/engineering video
+      },
+      {
+        title: "Advanced Technology",
+        description: "We leverage state-of-the-art machinery and cutting-edge processes to ensure efficiency, precision, and innovation at every stage.",
+        icon: <Award className="size-6" />,
+        videoUrl: "/videos/values/value4.mp4" // Modern manufacturing/machinery video
+      },
+      {
+        title: "Quality Assurance",
+        description: "Certified to ISO 9001:2015 standards, our rigorous quality control systems guarantee consistent excellence across all operations.",
+        icon: <Users className="size-6" />,
+        videoUrl: "/videos/values/value3.mp4" // Quality control/inspection video
+      },
+      {
+        title: "Safety First",
+        description: "We prioritize safety above all, adhering to the highest industry standards to protect our people, partners, and projects.",
+        icon: <Users className="size-6" />,
+        videoUrl: "/videos/values/value6.mp4" // Safety equipment/workers video
+      },
+      {
+        title: "Experienced Team",
+        description: "Our multidisciplinary team brings deep expertise and hands-on experience, ensuring professional execution and reliable support every step of the way.",
+        icon: <Users className="size-6" />,
+        videoUrl: "/videos/values/value2.mp4" // Team of workers/professionals
+      },
+      {
+        title: "Client Partnership",
+        description: "Building lasting relationships through collaborative approach.",
+        icon: <Users className="size-6" />,
+        videoUrl: "/videos/values/value5.mp4" // Business meeting/handshake video
+      }
   ],
-  mission = "To create exceptional spaces that inspire communities, drive economic growth, and stand as testaments to human ingenuity and craftsmanship.",
+  mission = "To provide comprehensive, high-quality metalwork solutions that meet the evolving needs of modern industry while maintaining the highest standards of safety, quality, and customer satisfaction",
+  
   vision = "To be the leading construction company that shapes the future of our cities through sustainable, innovative, and transformative building solutions.",
+
   milestones = [
     {
       year: "2003",
@@ -339,86 +359,94 @@ const AboutPage = ({
         </div>
       </section>
 
-      {/* Timeline Section */}
-      <section className="py-24 bg-white">
-        <div className="container px-6 mx-auto">
-          <div className="text-center mb-16 max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 bg-blue-100/80 backdrop-blur-sm rounded-full border border-blue-200/50">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-              Our Journey
+      {/* Enhanced Partners Section */}
+      <section className="py-32 bg-white relative overflow-hidden">
+        {/* Animated Background Elements */}
+        <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-indigo-500/5 to-pink-500/5 rounded-full blur-2xl" />
+        
+        <div className="container px-6 mx-auto relative z-10">
+          {/* Header */}
+          <div className="text-center mb-20 max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-6 py-3 mb-8 text-sm font-medium text-blue-700 bg-gradient-to-r from-blue-100/80 to-purple-100/80 backdrop-blur-sm rounded-full border border-blue-200/50 shadow-lg">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse delay-200" />
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse delay-400" />
+              </div>
+              <span className="ml-2">Trusted Partnerships</span>
             </div>
             
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Milestones That Define Us
+            <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-8 leading-tight">
+              <span className="bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
+                Industry Leaders
+              </span>
+              <br />
+              <span className="text-gray-900">Choose Us</span>
             </h2>
             
-            <p className="text-xl text-gray-600 leading-relaxed">
-              From humble beginnings to industry leadership, here's our journey of growth and innovation.
+            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+              We proudly collaborate with Morocco's most prestigious organizations and international companies who trust us to deliver excellence in every project.
             </p>
           </div>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="relative">
-              {/* Timeline line */}
-              <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 to-purple-500" />
-              
-              {milestones.map((milestone, index) => (
-                <div key={index} className="relative flex items-start gap-8 mb-12 group">
-                  {/* Timeline dot */}
-                  <div className="relative z-10 flex-shrink-0">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      <span className="text-white font-bold text-sm">{milestone.year}</span>
+          {/* Single Partners Grid with Uniform Cards */}
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+              {[
+                { src: "/images/partners/Partner1.jpg", name: "Partner 1" },
+                { src: "/images/partners/Partner2.jpg", name: "Partner 2" },
+                { src: "/images/partners/Partner3.jpg", name: "Partner 3" },
+                { src: "/images/partners/Partner4.jpg", name: "Partner 4" },
+                { src: "/images/partners/Partner5.jpg", name: "Partner 5" },
+                { src: "/images/partners/Partner5.png", name: "Partner 6" },
+                { src: "/images/partners/Partner6.webp", name: "Partner 7" },
+                { src: "/images/partners/Partner7.png", name: "Partner 8" },
+                { src: "/images/partners/Partner8.jpg", name: "Partner 9" },
+                { src: "/images/partners/Partner9.png", name: "Partner 10" },
+                { src: "/images/partners/Partner10.jpg", name: "Partner 11" },
+                { src: "/images/partners/Partner11.png", name: "Partner 12" },
+                { src: "/images/partners/Partner12.png", name: "Partner 13" },
+                { src: "/images/partners/Partner13.jpg", name: "Partner 14" }
+              ].map((partner, idx) => (
+                <div key={idx} className="group relative">
+                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 relative overflow-hidden h-32 flex items-center justify-center">
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    {/* Shimmer effect */}
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    
+                    {/* Animated border */}
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-[1px]">
+                      <div className="w-full h-full bg-white rounded-2xl" />
                     </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="flex-1 bg-white rounded-2xl p-6 shadow-lg border border-gray-100 group-hover:shadow-xl transition-all duration-300 transform group-hover:-translate-y-1">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                      {milestone.title}
-                    </h3>
-                    <p className="text-gray-600 leading-relaxed">
-                      {milestone.description}
-                    </p>
+                    
+                    <div className="relative z-10 flex items-center justify-center w-full h-full">
+                      <img 
+                        src={partner.src} 
+                        alt={partner.name}
+                        className="max-h-16 max-w-[80%] object-contain grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110"
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
-      </section>
 
-
-      {/* CTA Section */}
-      <section className="py-24 bg-white">
-        <div className="container px-6 mx-auto">
-          <div className="text-center bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-16 shadow-2xl relative overflow-hidden">
-            {/* Background elements */}
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full blur-3xl" />
-            
-            <div className="relative z-10">
-              <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-                Ready to Build Something Amazing?
-              </h2>
-              
-              <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
-                Let's turn your vision into reality. Partner with us to create exceptional spaces that inspire and endure.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/contact" className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-semibold transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl inline-flex items-center gap-2 group">
-                  <span>Start Your Project</span>
-                  <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </Link>
-                
-                <button className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-semibold backdrop-blur-sm transition-all duration-300 border border-white/20">
-                  View Our Portfolio
-                </button>
-              </div>
+          {/* Bottom CTA */}
+          <div className="text-center mt-20">
+            <div className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group cursor-pointer">
+              <Building className="size-5" />
+              <span>Join Our Network of Partners</span>
+              <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
             </div>
           </div>
         </div>
       </section>
+
     </div>
   );
 };
