@@ -15,7 +15,8 @@ import {
   Zap,
   Cog,
   Gauge,
-  Settings
+  Settings,
+  ChevronDown
 } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -230,12 +231,18 @@ const MachinesPage = ({
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [showAllMachines, setShowAllMachines] = useState(false);
   const testimonialRef = useRef<HTMLDivElement>(null);
 
   const categories = ['All', ...Array.from(new Set(machines.map(m => m.category)))];
   const filteredMachines = selectedCategory === 'All' 
     ? machines 
     : machines.filter(m => m.category === selectedCategory);
+  
+  // Show initial 6 machines, then all when showAllMachines is true
+  const initialMachineCount = 6;
+  const visibleMachines = showAllMachines ? filteredMachines : filteredMachines.slice(0, initialMachineCount);
+  const hasMoreMachines = filteredMachines.length > initialMachineCount;
 
   // Auto-scroll testimonials
   useEffect(() => {
@@ -244,6 +251,11 @@ const MachinesPage = ({
     }, 5000);
     return () => clearInterval(interval);
   }, [testimonials.length]);
+
+  // Reset showAllMachines when category changes
+  useEffect(() => {
+    setShowAllMachines(false);
+  }, [selectedCategory]);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -325,102 +337,134 @@ const MachinesPage = ({
             ))}
           </div>
 
-          {/* Machines Grid */}
-          <div className="grid lg:grid-cols-2 gap-8">
-            {filteredMachines.map((machine, index) => (
-              <div 
-                key={machine.id}
-                className="group relative bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
-              >
-                {/* Machine Image */}
-                <div className="relative h-64 overflow-hidden">
-                  <img 
-                    src={machine.image} 
-                    alt={machine.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                  
-                  {/* Category Badge */}
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-medium rounded-full">
-                      {machine.category}
-                    </span>
-                  </div>
-
-                  {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
-                    <span className={`px-3 py-1 backdrop-blur-sm text-sm font-medium rounded-full ${getStatusColor(machine.status)}`}>
-                      {machine.status}
-                    </span>
-                  </div>
-
-                  {/* Model Badge */}
-                  <div className="absolute bottom-4 left-4">
-                    <span className="px-3 py-1 bg-black/70 backdrop-blur-sm text-white text-xs font-medium rounded-full">
-                      {machine.model}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Machine Content */}
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
-                    {machine.title}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed mb-6">
-                    {machine.description}
-                  </p>
-
-                  {/* Key Specifications */}
-                  <div className="space-y-2 mb-6">
-                    {machine.specifications.slice(0, 3).map((spec, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <CheckCircle className="size-4 text-green-500" />
-                        <span className="text-gray-700 text-sm">{spec}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Capacity & Power */}
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Target className="size-4" />
-                      <div>
-                        <div className="text-xs text-gray-500">Capacity</div>
-                        <div className="text-sm font-medium">{machine.capacity}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Zap className="size-4" />
-                      <div>
-                        <div className="text-xs text-gray-500">Power</div>
-                        <div className="text-sm font-medium">{machine.powerRequirement}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Year */}
-                  <div className="flex items-center gap-2 mb-6 text-gray-600">
-                    <Calendar className="size-4" />
-                    <span className="text-sm">Manufactured: {machine.yearManufactured}</span>
-                  </div>
-
-                  {/* CTA Button */}
-                  <button 
-                    onClick={() => setSelectedMachine(machine)}
-                    className="w-full py-3 bg-gray-900 hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 group-hover:shadow-lg flex items-center justify-center gap-2"
+          {/* Machines Grid with full width */}
+          <div className="w-full">
+            <div className="grid lg:grid-cols-2 gap-8 relative">
+              {visibleMachines.map((machine, index) => {
+                const isNearShowMore = !showAllMachines && hasMoreMachines && index >= initialMachineCount - 2;
+                return (
+                  <div 
+                    key={machine.id}
+                    className={`group relative bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 ${
+                      isNearShowMore ? 'opacity-60' : 'opacity-100'
+                    }`}
                   >
-                    View Details
-                    <ArrowUpRight className="size-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                  </button>
-                </div>
+                    {/* Machine Image - 70% of card height */}
+                    <div className="relative h-80 overflow-hidden">
+                      <img 
+                        src={machine.image} 
+                        alt={machine.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                      
+                      {/* Category Badge */}
+                      <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-medium rounded-full">
+                          {machine.category}
+                        </span>
+                      </div>
+
+                      {/* Status Badge */}
+                      <div className="absolute top-4 right-4">
+                        <span className={`px-3 py-1 backdrop-blur-sm text-sm font-medium rounded-full ${getStatusColor(machine.status)}`}>
+                          {machine.status}
+                        </span>
+                      </div>
+
+                      {/* Model Badge */}
+                      <div className="absolute bottom-4 left-4">
+                        <span className="px-3 py-1 bg-black/70 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                          {machine.model}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Machine Content - 30% of card height */}
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
+                        {machine.title}
+                      </h3>
+                      <p className="text-gray-600 leading-relaxed mb-4 text-sm">
+                        {machine.description}
+                      </p>
+
+                      {/* Key Specifications - Limited to 2 */}
+                      <div className="space-y-1 mb-4">
+                        {machine.specifications.slice(0, 2).map((spec, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <CheckCircle className="size-3 text-green-500" />
+                            <span className="text-gray-700 text-xs">{spec}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Capacity & Power */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Target className="size-3" />
+                          <div>
+                            <div className="text-xs text-gray-500">Capacity</div>
+                            <div className="text-xs font-medium">{machine.capacity}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Zap className="size-3" />
+                          <div>
+                            <div className="text-xs text-gray-500">Power</div>
+                            <div className="text-xs font-medium">{machine.powerRequirement}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CTA Button */}
+                      <button 
+                        onClick={() => setSelectedMachine(machine)}
+                        className="w-full py-2 bg-gray-900 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 group-hover:shadow-lg flex items-center justify-center gap-2 text-sm"
+                      >
+                        View Details
+                        <ArrowUpRight className="size-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Show More Button */}
+            {hasMoreMachines && !showAllMachines && (
+              <div className="flex justify-center mt-12 relative">
+                {/* Fade overlay */}
+                <div className="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none z-10" />
+                
+                <button
+                  onClick={() => setShowAllMachines(true)}
+                  className="relative z-20 px-8 py-4 bg-white border-2 border-blue-600 text-blue-600 rounded-2xl font-semibold hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3"
+                >
+                  Show More Machines
+                  <ChevronDown className="size-5 animate-bounce" />
+                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                    +{filteredMachines.length - initialMachineCount}
+                  </span>
+                </button>
               </div>
-            ))}
+            )}
+
+            {/* Show Less Button */}
+            {showAllMachines && hasMoreMachines && (
+              <div className="flex justify-center mt-12">
+                <button
+                  onClick={() => setShowAllMachines(false)}
+                  className="px-8 py-4 bg-gray-100 border-2 border-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-3"
+                >
+                  Show Less
+                  <ChevronRight className="size-5 rotate-90 transform" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </section>
-
 
       {/* Machine Detail Modal */}
       {selectedMachine && (
