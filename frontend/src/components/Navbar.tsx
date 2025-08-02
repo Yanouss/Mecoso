@@ -117,14 +117,14 @@ const Navbar = ({
   ],
 }: Navbar1Props) => {
   return (
-    <section className="py-8">
+    <section className="py-1">
       <div className="mx-auto container">
         {/* Desktop Menu */}
         <nav className="hidden justify-between items-center lg:flex">
           <div className="flex items-center gap-6">
             {/* Logo */}
             <Link to={logo.url} className="flex items-center gap-2">
-              <img src={logo.src} className="max-h-32" alt={logo.alt} />
+              <img src={logo.src} className="max-h-40" alt={logo.alt} />
             </Link>
           </div>
           <div className="flex items-center">
