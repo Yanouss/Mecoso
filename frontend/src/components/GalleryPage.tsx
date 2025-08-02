@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ArrowUpRight, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowUpRight, Eye, Filter, X } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 interface GalleryItem {
   id: string;
@@ -122,22 +123,30 @@ const GalleryPage = ({
 }: GalleryPageProps) => {
   const [visibleItems, setVisibleItems] = useState(8);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Extract unique categories
+  const categories = Array.from(new Set(galleryItems.map(item => item.category)));
+
+  // Filter items based on active filter
+  const filteredItems = activeFilter 
+    ? galleryItems.filter(item => item.category === activeFilter)
+    : galleryItems;
 
   const showMoreItems = () => {
-    setVisibleItems(prev => Math.min(prev + 4, galleryItems.length));
+    setVisibleItems(prev => Math.min(prev + 4, filteredItems.length));
   };
 
   const getItemWidth = (index: number, totalInRow: number) => {
-    // Define width patterns for different row configurations
     const patterns = {
       4: ['25%', '25%', '25%', '25%'],
       5: ['20%', '20%', '20%', '20%', '20%'],
-      // Mixed patterns to avoid empty spaces
       mixed4: ['30%', '25%', '22%', '23%'],
       mixed5: ['22%', '18%', '20%', '20%', '20%']
     };
     
-    // Use mixed patterns for visual variety
     if (totalInRow === 4) {
       return patterns.mixed4[index % 4];
     } else if (totalInRow === 5) {
@@ -165,15 +174,14 @@ const GalleryPage = ({
     const rows = [];
     let currentRow = [];
     
-    for (let i = 0; i < visibleItems; i++) {
-      currentRow.push(galleryItems[i]);
+    for (let i = 0; i < Math.min(visibleItems, filteredItems.length); i++) {
+      currentRow.push(filteredItems[i]);
       
-      // Alternate between 4 and 5 items per row, or when we have enough items
       const shouldEndRow = (currentRow.length === 4 && i % 2 === 0) || 
                            (currentRow.length === 5 && i % 2 === 1) ||
                            currentRow.length === 5;
       
-      if (shouldEndRow || i === visibleItems - 1) {
+      if (shouldEndRow || i === Math.min(visibleItems, filteredItems.length) - 1) {
         rows.push([...currentRow]);
         currentRow = [];
       }
@@ -182,9 +190,31 @@ const GalleryPage = ({
     return rows;
   };
 
+  // Fire confetti when a project is selected
+  useEffect(() => {
+    if (selectedItem) {
+      const fireConfetti = () => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b']
+        });
+      };
+
+      const timer = setTimeout(fireConfetti, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedItem]);
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
-      
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden">
         {/* Background Elements */}
@@ -211,75 +241,138 @@ const GalleryPage = ({
       {/* Gallery Section */}
       <section className="py-20">
         <div className="container px-6 mx-auto">
+          {/* Filter Controls */}
+          <div className="mb-8 flex flex-col items-center">
+            <div className="relative w-full max-w-2xl">
+              <button 
+                onClick={() => setShowFilters(!showFilters)}
+                className="px-6 py-3 bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2 mx-auto"
+              >
+                <Filter className="size-5" />
+                <span>{activeFilter ? `Filter: ${activeFilter}` : 'Filter Projects'}</span>
+                {activeFilter && (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveFilter(null);
+                    }}
+                    className="ml-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </button>
+              
+              {showFilters && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-lg p-4 z-20 animate-fadeIn">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {categories.map(category => (
+                      <button
+                        key={category}
+                        onClick={() => {
+                          setActiveFilter(category);
+                          setShowFilters(false);
+                          setVisibleItems(8);
+                        }}
+                        className={`px-4 py-2 text-sm rounded-full transition-all ${activeFilter === category ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
           
           {/* Gallery Grid - Full Width Rows */}
           <div className="space-y-4">
-            {groupItemsIntoRows().map((row, rowIndex) => (
-              <div key={rowIndex} className="flex gap-4 w-full">
-                {row.map((item, itemIndex) => {
-                  const itemWidth = getItemWidth(itemIndex, row.length);
-                  return (
-                    <div 
-                      key={item.id}
-                      className={`group relative overflow-hidden rounded-2xl md:rounded-3xl cursor-pointer transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] ${getImageHeight(item.size)}`}
-                      style={{ width: itemWidth, flexShrink: 0 }}
-                      onClick={() => setSelectedItem(item)}
-                    >
-                      {/* Background Image */}
-                      <div className="absolute inset-0">
-                        <img 
-                          src={item.image} 
-                          alt={item.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-                      </div>
-
-                      {/* Content Overlay */}
-                      <div className="relative z-10 p-4 md:p-6 h-full flex flex-col justify-end">
-                        <div className="transform translate-y-6 md:translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
-                          <div className="inline-block px-2 md:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs md:text-sm font-medium rounded-full mb-2 md:mb-3">
-                            {item.category}
-                          </div>
-                          <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-2 md:mb-3 leading-tight">
-                            {item.title}
-                          </h3>
-                          <p className="text-gray-200 leading-relaxed mb-3 md:mb-4 text-xs md:text-sm lg:text-base line-clamp-3">
-                            {item.description}
-                          </p>
-                          <div className="flex items-center gap-2 text-white font-medium">
-                            <Eye className="size-3 md:size-4" />
-                            <span className="text-xs md:text-sm">View Details</span>
-                            <ArrowUpRight className="size-3 md:size-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                          </div>
-                        </div>
-
-                        {/* Always visible title for mobile */}
-                        <div className="md:hidden absolute bottom-3 left-3 right-3">
-                          <h3 className="text-base font-bold text-white mb-1 line-clamp-2">
-                            {item.title}
-                          </h3>
-                          <div className="text-xs text-gray-300">
-                            {item.category}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Hover indicator */}
-                      <div className="absolute top-3 md:top-4 right-3 md:right-4 transform scale-0 group-hover:scale-100 transition-transform duration-300 delay-200">
-                        <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                          <ArrowUpRight className="size-4 md:size-5 text-white" />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+            {isLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[...Array(8)].map((_, index) => (
+                  <div 
+                    key={index}
+                    className="bg-gray-200/50 animate-pulse rounded-2xl h-64 md:h-72"
+                  />
+                ))}
               </div>
-            ))}
+            ) : (
+              groupItemsIntoRows().map((row, rowIndex) => (
+                <div key={rowIndex} className="flex gap-4 w-full">
+                  {row.map((item, itemIndex) => {
+                    const itemWidth = getItemWidth(itemIndex, row.length);
+                    return (
+                      <div 
+                        key={item.id}
+                        className={`group relative overflow-hidden rounded-2xl md:rounded-3xl cursor-pointer transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] ${getImageHeight(item.size)}`}
+                        style={{ 
+                          width: itemWidth, 
+                          flexShrink: 0,
+                          transformStyle: 'preserve-3d',
+                          perspective: '1000px'
+                        }}
+                        onClick={() => setSelectedItem(item)}
+                      >
+                        {/* 3D Tilt Effect */}
+                        <div className="absolute inset-0 group-hover:rotate-x-[5deg] group-hover:rotate-y-[5deg] transition-transform duration-500 ease-out">
+                          {/* Background Image with Blur-Up Effect */}
+                          <div className="absolute inset-0">
+                            <img 
+                              src={item.image} 
+                              alt={item.title}
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              loading="lazy"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+                          </div>
+
+                          {/* Content Overlay */}
+                          <div className="relative z-10 p-4 md:p-6 h-full flex flex-col justify-end">
+                            <div className="transform translate-y-6 md:translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
+                              <div className="inline-block px-2 md:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs md:text-sm font-medium rounded-full mb-2 md:mb-3">
+                                {item.category}
+                              </div>
+                              <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-2 md:mb-3 leading-tight">
+                                {item.title}
+                              </h3>
+                              <p className="text-gray-200 leading-relaxed mb-3 md:mb-4 text-xs md:text-sm lg:text-base line-clamp-3">
+                                {item.description}
+                              </p>
+                              <div className="flex items-center gap-2 text-white font-medium">
+                                <Eye className="size-3 md:size-4" />
+                                <span className="text-xs md:text-sm">View Details</span>
+                                <ArrowUpRight className="size-3 md:size-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
+                              </div>
+                            </div>
+
+                            {/* Always visible title for mobile */}
+                            <div className="md:hidden absolute bottom-3 left-3 right-3">
+                              <h3 className="text-base font-bold text-white mb-1 line-clamp-2">
+                                {item.title}
+                              </h3>
+                              <div className="text-xs text-gray-300">
+                                {item.category}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Hover indicator */}
+                          <div className="absolute top-3 md:top-4 right-3 md:right-4 transform scale-0 group-hover:scale-100 transition-transform duration-300 delay-200">
+                            <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                              <ArrowUpRight className="size-4 md:size-5 text-white" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))
+            )}
           </div>
 
           {/* Fade Effect and Show More Button */}
-          {visibleItems < galleryItems.length && (
+          {visibleItems < filteredItems.length && (
             <div className="relative mt-16">
               {/* Fade Gradient */}
               <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
@@ -294,7 +387,8 @@ const GalleryPage = ({
                   <ArrowUpRight className="size-5 transform transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </button>
                 <p className="text-gray-500 text-sm mt-4">
-                  Showing {visibleItems} of {galleryItems.length} projects
+                  Showing {Math.min(visibleItems, filteredItems.length)} of {filteredItems.length} projects
+                  {activeFilter && ` in ${activeFilter}`}
                 </p>
               </div>
             </div>
@@ -305,7 +399,12 @@ const GalleryPage = ({
       {/* Project Detail Modal */}
       {selectedItem && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+          <div 
+            className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn"
+            style={{
+              animation: 'scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
+            }}
+          >
             <div className="relative">
               <img 
                 src={selectedItem.image} 
@@ -314,7 +413,7 @@ const GalleryPage = ({
               />
               <button 
                 onClick={() => setSelectedItem(null)}
-                className="absolute top-6 right-6 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors duration-300 flex items-center justify-center text-gray-800 font-bold"
+                className="absolute top-6 right-6 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors duration-300 flex items-center justify-center text-gray-800 font-bold hover:rotate-90 transform transition-transform duration-300"
               >
                 ✕
               </button>
@@ -354,6 +453,33 @@ const GalleryPage = ({
           </div>
         </div>
       )}
+
+      {/* Global Styles for Animations */}
+      <style jsx global>{`
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
