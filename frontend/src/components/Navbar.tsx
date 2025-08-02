@@ -99,10 +99,10 @@ const Navbar = ({
           url: "/contact", // Updated to use React Router path
         },
         {
-          title: "Status",
+          title: "Gallery",
           description: "Check the current status of our services and APIs",
           icon: <Trees className="size-5 shrink-0" />,
-          url: "#",
+          url: "/gallery", 
         },
         {
           title: "Terms of Service",

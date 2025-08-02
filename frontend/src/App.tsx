@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 import Contact from "./components/Contact";
 import AboutPage from "./components/AboutPage";
 import ServicePage from "./components/ServicePage";
+import GalleryPage from "./components/GalleryPage";
 
 function Home() {
   return (
@@ -43,6 +44,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<ServicePage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
           {/* Add more routes as needed */}
         </Routes>
         <Footer />
