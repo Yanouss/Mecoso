@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Download } from 'lucide-react';
+import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Download, X } from 'lucide-react';
 import { Link } from 'react-router';
 
 interface Stat {
   number: string;
   label: string;
   icon: React.ReactNode;
+  backgroundImage?: string;
+  popupImage?: string;
+  popupTitle?: string;
+  popupDescription?: string;
 }
 
 interface TeamMember {
@@ -41,27 +45,42 @@ const About = ({
   description = "Our commitment to quality, safety, and innovation has made us a leader in the industrial metalwork sector in Morocco.",
   story = "Founded in 2005 by KACEMY Abderahman, MECOSO has grown from a specialized boilermaking workshop into Morocco's leading provider of comprehensive industrial metalwork solutions. With two decades of experience, we've built our reputation on delivering quality, safety, and innovation to clients across diverse industries",
 
-   
   stats = [
     {
       number: "50+",
       label: "Projects Completed",
-      icon: <Target className="size-6" />
+      icon: <Target className="size-6" />,
+      backgroundImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop",
+      popupImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop",
+      popupTitle: "50+ Projects Completed",
+      popupDescription: "Over the years, we have successfully completed more than 50 major industrial projects across Morocco, ranging from manufacturing facilities to complex structural installations. Each project showcases our commitment to excellence and innovation."
     },
     {
       number: "20+",
       label: "Years Experience",
-      icon: <Clock className="size-6" />
+      icon: <Clock className="size-6" />,
+      backgroundImage: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&h=300&fit=crop",
+      popupImage: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=600&fit=crop",
+      popupTitle: "20+ Years of Excellence",
+      popupDescription: "Since 2005, MECOSO has been at the forefront of industrial metalwork solutions in Morocco. Our two decades of experience have shaped us into the trusted partner that industries rely on for quality and innovation."
     },
     {
       number: "2,000 m²",
       label: "Advanced manufacturing facility",
-      icon: <Award className="size-6" />
+      icon: <Award className="size-6" />,
+      backgroundImage: "https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=400&h=300&fit=crop",
+      popupImage: "https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=800&h=600&fit=crop",
+      popupTitle: "2,000 m² Manufacturing Facility",
+      popupDescription: "Our state-of-the-art 2,000 square meter manufacturing facility is equipped with the latest technology and machinery, enabling us to handle projects of any scale with precision and efficiency."
     },
     {
       number: "ISO 9001",
       label: "2015 certified",
-      icon: <Award className="size-6" />
+      icon: <Award className="size-6" />,
+      backgroundImage: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
+      popupImage: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop",
+      popupTitle: "ISO 9001:2015 Certified",
+      popupDescription: "Our commitment to quality is validated by our ISO 9001:2015 certification. This international standard ensures that our quality management systems meet the highest global standards for customer satisfaction and continuous improvement."
     }
   ],
   values = [
@@ -108,6 +127,7 @@ const About = ({
 }: AboutProps) => {
   const [activeValue, setActiveValue] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [selectedStat, setSelectedStat] = useState<Stat | null>(null);
 
   const handlePortfolioDownload = async () => {
     try {
@@ -133,6 +153,10 @@ const About = ({
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  const closePopup = () => {
+    setSelectedStat(null);
   };
 
   return (
@@ -195,29 +219,114 @@ const About = ({
         </div>
 
         {/* Interactive Stats Grid */}
-        <div className="mb-24 grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="mb-24 grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {stats.map((stat, index) => (
             <div 
               key={index}
-              className="relative group cursor-pointer"
+              className="group cursor-pointer"
+              onClick={() => setSelectedStat(stat)}
             >
-              <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden">
+              <div className="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 text-center overflow-hidden h-60">
+                {/* Background Image */}
+                {stat.backgroundImage && (
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 group-hover:opacity-30 transition-opacity duration-500"
+                    style={{ backgroundImage: `url(${stat.backgroundImage})` }}
+                  />
+                )}
+                
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-purple-50/80 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                
+                {/* Hover Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative z-10 text-center">
-                  <div className="inline-flex p-4 mb-4 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl group-hover:scale-110 transition-transform duration-500">
-                    {stat.icon}
+                
+                <div className="relative z-10 h-full flex flex-col justify-center">
+                  <div className="inline-flex p-4 mb-4 bg-gradient-to-br from-blue-100/90 to-purple-100/90 rounded-2xl group-hover:scale-110 transition-transform duration-500 mx-auto backdrop-blur-sm">
+                    <div className="text-blue-600 group-hover:text-purple-600 transition-colors duration-500">
+                      {stat.icon}
+                    </div>
                   </div>
+                  
                   <div className="text-4xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-500">
                     {stat.number}
                   </div>
-                  <div className="text-gray-600 font-medium">
+                  
+                  <div className="text-gray-700 font-medium text-sm">
                     {stat.label}
+                  </div>
+                  
+                  {/* Click indicator */}
+                  <div className="mt-3 text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    Click to learn more
                   </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
+
+        {/* Popup Modal */}
+        {selectedStat && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300">
+              {/* Close Button */}
+              <button
+                onClick={closePopup}
+                className="absolute top-6 right-6 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200 z-10"
+              >
+                <X className="size-6 text-gray-600" />
+              </button>
+              
+              {/* Popup Content */}
+              <div className="p-8">
+                {/* Header */}
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-4 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl">
+                    <div className="text-blue-600">
+                      {selectedStat.icon}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-3xl font-bold text-gray-900">
+                      {selectedStat.popupTitle || `${selectedStat.number} ${selectedStat.label}`}
+                    </h3>
+                  </div>
+                </div>
+                
+                {/* Main Image */}
+                {selectedStat.popupImage && (
+                  <div className="mb-6 rounded-2xl overflow-hidden shadow-xl">
+                    <img 
+                      src={selectedStat.popupImage} 
+                      alt={selectedStat.popupTitle || selectedStat.label}
+                      className="w-full h-64 md:h-80 object-cover"
+                    />
+                  </div>
+                )}
+                
+                {/* Description */}
+                {selectedStat.popupDescription && (
+                  <div className="text-lg text-gray-700 leading-relaxed">
+                    {selectedStat.popupDescription}
+                  </div>
+                )}
+                
+                {/* Stats Display */}
+                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-gray-200/50">
+                  <div className="text-center">
+                    <div className="text-5xl font-bold text-blue-600 mb-2">
+                      {selectedStat.number}
+                    </div>
+                    <div className="text-gray-700 font-semibold">
+                      {selectedStat.label}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Values Section with Video Backgrounds */}
         <div className="mb-24">
@@ -316,7 +425,6 @@ const About = ({
             </button>
           </div>
         </div>
-
       </div>
     </section>
   );
