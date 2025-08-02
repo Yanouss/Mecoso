@@ -87,12 +87,6 @@ const Navbar = ({
       url: "#",
       items: [
         {
-          title: "Help Center",
-          description: "Get all the answers you need right here",
-          icon: <Zap className="size-5 shrink-0" />,
-          url: "#",
-        },
-        {
           title: "Contact Us",
           description: "We are here to help you with any questions you have",
           icon: <Sunset className="size-5 shrink-0" />,
@@ -105,10 +99,10 @@ const Navbar = ({
           url: "/gallery", 
         },
         {
-          title: "Terms of Service",
+          title: "Machines",
           description: "Our terms and conditions for using our services",
           icon: <Book className="size-5 shrink-0" />,
-          url: "#",
+          url: "/machines",
         },
       ],
     },

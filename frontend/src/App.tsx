@@ -8,6 +8,7 @@ import Contact from "./components/Contact";
 import AboutPage from "./components/AboutPage";
 import ServicePage from "./components/ServicePage";
 import GalleryPage from "./components/GalleryPage";
+import MachinesPage from "./components/MachinesPage";
 
 function Home() {
   return (
@@ -45,6 +46,7 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<ServicePage />} />
           <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/machines" element={<MachinesPage />} />
           {/* Add more routes as needed */}
         </Routes>
         <Footer />
