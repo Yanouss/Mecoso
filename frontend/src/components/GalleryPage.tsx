@@ -127,17 +127,59 @@ const GalleryPage = ({
     setVisibleItems(prev => Math.min(prev + 4, galleryItems.length));
   };
 
-  const getSizeClasses = (size: string) => {
+  const getItemWidth = (index: number, totalInRow: number) => {
+    // Define width patterns for different row configurations
+    const patterns = {
+      4: ['25%', '25%', '25%', '25%'],
+      5: ['20%', '20%', '20%', '20%', '20%'],
+      // Mixed patterns to avoid empty spaces
+      mixed4: ['30%', '25%', '22%', '23%'],
+      mixed5: ['22%', '18%', '20%', '20%', '20%']
+    };
+    
+    // Use mixed patterns for visual variety
+    if (totalInRow === 4) {
+      return patterns.mixed4[index % 4];
+    } else if (totalInRow === 5) {
+      return patterns.mixed5[index % 5];
+    }
+    
+    return patterns[totalInRow as keyof typeof patterns]?.[index] || '20%';
+  };
+
+  const getImageHeight = (size: string) => {
     switch (size) {
       case 'large':
-        return 'lg:col-span-2 lg:row-span-2 h-96 lg:h-auto';
+        return 'h-80 md:h-96';
       case 'medium':
-        return 'lg:col-span-1 lg:row-span-2 h-80';
+        return 'h-72 md:h-80';
       case 'small':
-        return 'lg:col-span-1 lg:row-span-1 h-64';
+        return 'h-64 md:h-72';
       default:
-        return 'lg:col-span-1 lg:row-span-1 h-64';
+        return 'h-64 md:h-72';
     }
+  };
+
+  // Group items into rows with 4-5 items each
+  const groupItemsIntoRows = () => {
+    const rows = [];
+    let currentRow = [];
+    
+    for (let i = 0; i < visibleItems; i++) {
+      currentRow.push(galleryItems[i]);
+      
+      // Alternate between 4 and 5 items per row, or when we have enough items
+      const shouldEndRow = (currentRow.length === 4 && i % 2 === 0) || 
+                           (currentRow.length === 5 && i % 2 === 1) ||
+                           currentRow.length === 5;
+      
+      if (shouldEndRow || i === visibleItems - 1) {
+        rows.push([...currentRow]);
+        currentRow = [];
+      }
+    }
+    
+    return rows;
   };
 
   return (
@@ -170,60 +212,68 @@ const GalleryPage = ({
       <section className="py-20">
         <div className="container px-6 mx-auto">
           
-          {/* Gallery Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-max">
-            {galleryItems.slice(0, visibleItems).map((item, index) => (
-              <div 
-                key={item.id}
-                className={`group relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] ${getSizeClasses(item.size)}`}
-                onClick={() => setSelectedItem(item)}
-              >
-                {/* Background Image */}
-                <div className="absolute inset-0">
-                  <img 
-                    src={item.image} 
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-                </div>
+          {/* Gallery Grid - Full Width Rows */}
+          <div className="space-y-4">
+            {groupItemsIntoRows().map((row, rowIndex) => (
+              <div key={rowIndex} className="flex gap-4 w-full">
+                {row.map((item, itemIndex) => {
+                  const itemWidth = getItemWidth(itemIndex, row.length);
+                  return (
+                    <div 
+                      key={item.id}
+                      className={`group relative overflow-hidden rounded-2xl md:rounded-3xl cursor-pointer transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] ${getImageHeight(item.size)}`}
+                      style={{ width: itemWidth, flexShrink: 0 }}
+                      onClick={() => setSelectedItem(item)}
+                    >
+                      {/* Background Image */}
+                      <div className="absolute inset-0">
+                        <img 
+                          src={item.image} 
+                          alt={item.title}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+                      </div>
 
-                {/* Content Overlay */}
-                <div className="relative z-10 p-6 h-full flex flex-col justify-end">
-                  <div className="transform translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
-                    <div className="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-sm font-medium rounded-full mb-3">
-                      {item.category}
-                    </div>
-                    <h3 className="text-2xl font-bold text-white mb-3 leading-tight">
-                      {item.title}
-                    </h3>
-                    <p className="text-gray-200 leading-relaxed mb-4 text-sm lg:text-base">
-                      {item.description}
-                    </p>
-                    <div className="flex items-center gap-2 text-white font-medium">
-                      <Eye className="size-4" />
-                      <span className="text-sm">View Details</span>
-                      <ArrowUpRight className="size-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                    </div>
-                  </div>
+                      {/* Content Overlay */}
+                      <div className="relative z-10 p-4 md:p-6 h-full flex flex-col justify-end">
+                        <div className="transform translate-y-6 md:translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
+                          <div className="inline-block px-2 md:px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs md:text-sm font-medium rounded-full mb-2 md:mb-3">
+                            {item.category}
+                          </div>
+                          <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-2 md:mb-3 leading-tight">
+                            {item.title}
+                          </h3>
+                          <p className="text-gray-200 leading-relaxed mb-3 md:mb-4 text-xs md:text-sm lg:text-base line-clamp-3">
+                            {item.description}
+                          </p>
+                          <div className="flex items-center gap-2 text-white font-medium">
+                            <Eye className="size-3 md:size-4" />
+                            <span className="text-xs md:text-sm">View Details</span>
+                            <ArrowUpRight className="size-3 md:size-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
+                          </div>
+                        </div>
 
-                  {/* Always visible title for mobile */}
-                  <div className="lg:hidden absolute bottom-4 left-4 right-4">
-                    <h3 className="text-xl font-bold text-white mb-1">
-                      {item.title}
-                    </h3>
-                    <div className="text-sm text-gray-300">
-                      {item.category}
-                    </div>
-                  </div>
-                </div>
+                        {/* Always visible title for mobile */}
+                        <div className="md:hidden absolute bottom-3 left-3 right-3">
+                          <h3 className="text-base font-bold text-white mb-1 line-clamp-2">
+                            {item.title}
+                          </h3>
+                          <div className="text-xs text-gray-300">
+                            {item.category}
+                          </div>
+                        </div>
+                      </div>
 
-                {/* Hover indicator */}
-                <div className="absolute top-4 right-4 transform scale-0 group-hover:scale-100 transition-transform duration-300 delay-200">
-                  <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                    <ArrowUpRight className="size-5 text-white" />
-                  </div>
-                </div>
+                      {/* Hover indicator */}
+                      <div className="absolute top-3 md:top-4 right-3 md:right-4 transform scale-0 group-hover:scale-100 transition-transform duration-300 delay-200">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                          <ArrowUpRight className="size-4 md:size-5 text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
