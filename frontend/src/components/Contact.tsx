@@ -35,24 +35,24 @@ const Contact = ({
   contactInfo = [
     {
       icon: <MapPin className="size-6" />,
-      title: "Visit Our Office",
-      details: ["Avenue Mohammed V", "Gueliz, Marrakech 40000", "Morocco"],
+      title: "Visit Our Atelier",
+      details: ["Zone industrielle siege aprt 2 imm H 465 op raja", "Massira II, Marrakech 40000", "Morocco"],
       accent: true
     },
     {
       icon: <Phone className="size-6" />,
       title: "Call Us",
-      details: ["+212 524-123-456", "+212 661-234-567", "Toll Free: 0800-BUILD"]
+      details: ["+212 603301313", "+212 808612536"]
     },
     {
       icon: <Mail className="size-6" />,
       title: "Email Us",
-      details: ["info@construction.ma", "projects@construction.ma", "support@construction.ma"]
+      details: ["entreprisemecoso@gmail.com"]
     },
     {
       icon: <Clock className="size-6" />,
       title: "Business Hours",
-      details: ["Mon - Fri: 8:00 AM - 6:00 PM", "Saturday: 9:00 AM - 4:00 PM", "Sunday: Closed"]
+      details: ["Mon - Sat: 9:00 AM - 6:00 PM", "Sunday: Closed"]
     }
   ]
 }: ContactProps) => {
@@ -108,7 +108,7 @@ const Contact = ({
     setTimeout(() => {
       if (window.L && document.getElementById('map')) {
         // Marrakech coordinates
-        const marrakechCoords = [31.6295, -7.9811];
+        const marrakechCoords = [31.632695987129228, -8.062983332507335];
         
         const map = window.L.map('map').setView(marrakechCoords, 13);
 
@@ -162,8 +162,9 @@ const Contact = ({
         marker.bindPopup(`
           <div style="text-align: center; padding: 10px; min-width: 200px;">
             <h4 style="margin: 0 0 8px 0; color: #1f2937; font-weight: bold;">Our Headquarters</h4>
-            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">Avenue Mohammed V</p>
-            <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">Gueliz, Marrakech</p>
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">Zone Industrielle Harbil Marrakech</p>
+            <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 14px;">Siege appt 2 IMM H 465 OP RAJA</p>
+            <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px;">Massira II, Marrakech</p>
             <div style="padding: 6px 12px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; border-radius: 6px; font-size: 12px; font-weight: 500;">
               📍 Main Office
             </div>
@@ -679,7 +680,7 @@ const Contact = ({
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <button 
               className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold hover:from-blue-500 hover:to-purple-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group"
-              onClick={() => window.open('https://maps.google.com/?q=31.6295,-7.9811', '_blank')}
+              onClick={() => window.open('https://maps.google.com/?q=31.632695987129228,-8.062983332507335', '_blank')}
             >
               <MapPin className="size-5" />
               Get Directions
@@ -701,7 +702,7 @@ const Contact = ({
                 <MapPin className="size-5 text-blue-600" />
               </div>
               <h4 className="font-semibold text-gray-900 mb-2">Prime Location</h4>
-              <p className="text-sm text-gray-600">Located in Gueliz, the modern business district of Marrakech</p>
+              <p className="text-sm text-gray-600">Located in Massira II, the modern business district of Marrakech</p>
             </div>
             
             <div className="text-center p-4 bg-gray-50 rounded-2xl hover:bg-green-50 transition-colors duration-300">

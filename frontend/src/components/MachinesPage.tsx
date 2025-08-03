@@ -18,7 +18,6 @@ import {
   Settings,
   ChevronDown
 } from 'lucide-react';
-import { Link } from 'react-router';
 
 interface Machine {
   id: string;
@@ -261,54 +260,54 @@ const MachinesPage = ({
     return Array.from({ length: 5 }, (_, i) => (
       <Star 
         key={i} 
-        className={`size-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+        className={`size-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-blue-300'}`} 
       />
     ));
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Available': return 'bg-green-100 text-green-800';
-      case 'In Use': return 'bg-blue-100 text-blue-800';
-      case 'Maintenance': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Available': return 'bg-green-500/20 text-green-300 border border-green-500/30';
+      case 'In Use': return 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';
+      case 'Maintenance': return 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30';
+      default: return 'bg-blue-500/20 text-blue-300 border border-blue-500/30';
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-slate-900">
       
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden">
         {/* Background Elements */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)]" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.1),transparent_50%)]" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-purple-400/15 rounded-full blur-3xl animate-pulse" />
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 bg-blue-100/80 backdrop-blur-sm rounded-full border border-blue-200/50">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-300 bg-blue-500/20 backdrop-blur-sm rounded-full border border-blue-400/30">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
               {badge}
             </div>
-            <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-white via-blue-100 to-blue-200 bg-clip-text text-transparent mb-6 leading-tight">
               {heading}
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-12">
+            <p className="text-xl text-blue-100 leading-relaxed mb-12">
               {description}
             </p>
             
             {/* Quick Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-3xl mx-auto">
               {stats.map((stat, index) => (
-                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div key={index} className="bg-blue-800/40 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-700/50">
                   <div className="flex items-center justify-center mb-3">
-                    <div className="p-2 bg-blue-100 rounded-xl">
+                    <div className="p-2 bg-blue-600/30 rounded-xl text-blue-300">
                       {stat.icon}
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">{stat.number}</div>
-                  <div className="text-gray-600 text-sm">{stat.label}</div>
+                  <div className="text-2xl font-bold text-white mb-1">{stat.number}</div>
+                  <div className="text-blue-200 text-sm">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -328,8 +327,8 @@ const MachinesPage = ({
                 onClick={() => setSelectedCategory(category)}
                 className={`px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
                   selectedCategory === category
-                    ? 'bg-blue-600 text-white shadow-lg transform scale-105'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                    ? 'bg-cyan-500 text-white shadow-lg transform scale-105 shadow-cyan-500/25'
+                    : 'bg-blue-800/50 text-blue-100 hover:bg-blue-700/50 border border-blue-600/50'
                 }`}
               >
                 {category}
@@ -345,7 +344,7 @@ const MachinesPage = ({
                 return (
                   <div 
                     key={machine.id}
-                    className={`group relative bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 ${
+                    className={`group relative bg-blue-900/50 backdrop-blur-sm rounded-3xl shadow-lg border border-blue-700/50 overflow-hidden hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-2 ${
                       isNearShowMore ? 'opacity-60' : 'opacity-100'
                     }`}
                   >
@@ -356,11 +355,11 @@ const MachinesPage = ({
                         alt={machine.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-blue-900/80 via-transparent to-transparent" />
                       
                       {/* Category Badge */}
                       <div className="absolute top-4 left-4">
-                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-medium rounded-full">
+                        <span className="px-3 py-1 bg-blue-800/90 backdrop-blur-sm text-blue-100 text-sm font-medium rounded-full border border-blue-600/50">
                           {machine.category}
                         </span>
                       </div>
@@ -374,7 +373,7 @@ const MachinesPage = ({
 
                       {/* Model Badge */}
                       <div className="absolute bottom-4 left-4">
-                        <span className="px-3 py-1 bg-black/70 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                        <span className="px-3 py-1 bg-black/70 backdrop-blur-sm text-blue-100 text-xs font-medium rounded-full border border-blue-500/30">
                           {machine.model}
                         </span>
                       </div>
@@ -382,10 +381,10 @@ const MachinesPage = ({
 
                     {/* Machine Content - 30% of card height */}
                     <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
+                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors duration-300">
                         {machine.title}
                       </h3>
-                      <p className="text-gray-600 leading-relaxed mb-4 text-sm">
+                      <p className="text-blue-200 leading-relaxed mb-4 text-sm">
                         {machine.description}
                       </p>
 
@@ -393,26 +392,26 @@ const MachinesPage = ({
                       <div className="space-y-1 mb-4">
                         {machine.specifications.slice(0, 2).map((spec, idx) => (
                           <div key={idx} className="flex items-center gap-2">
-                            <CheckCircle className="size-3 text-green-500" />
-                            <span className="text-gray-700 text-xs">{spec}</span>
+                            <CheckCircle className="size-3 text-green-400" />
+                            <span className="text-blue-100 text-xs">{spec}</span>
                           </div>
                         ))}
                       </div>
 
                       {/* Capacity & Power */}
                       <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Target className="size-3" />
+                        <div className="flex items-center gap-2 text-blue-200">
+                          <Target className="size-3 text-cyan-400" />
                           <div>
-                            <div className="text-xs text-gray-500">Capacity</div>
-                            <div className="text-xs font-medium">{machine.capacity}</div>
+                            <div className="text-xs text-blue-300">Capacity</div>
+                            <div className="text-xs font-medium text-white">{machine.capacity}</div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Zap className="size-3" />
+                        <div className="flex items-center gap-2 text-blue-200">
+                          <Zap className="size-3 text-cyan-400" />
                           <div>
-                            <div className="text-xs text-gray-500">Power</div>
-                            <div className="text-xs font-medium">{machine.powerRequirement}</div>
+                            <div className="text-xs text-blue-300">Power</div>
+                            <div className="text-xs font-medium text-white">{machine.powerRequirement}</div>
                           </div>
                         </div>
                       </div>
@@ -420,7 +419,7 @@ const MachinesPage = ({
                       {/* CTA Button */}
                       <button 
                         onClick={() => setSelectedMachine(machine)}
-                        className="w-full py-2 bg-gray-900 hover:bg-blue-600 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 group-hover:shadow-lg flex items-center justify-center gap-2 text-sm"
+                        className="w-full py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 group-hover:shadow-lg group-hover:shadow-cyan-500/25 flex items-center justify-center gap-2 text-sm"
                       >
                         View Details
                         <ArrowUpRight className="size-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
@@ -435,15 +434,15 @@ const MachinesPage = ({
             {hasMoreMachines && !showAllMachines && (
               <div className="flex justify-center mt-12 relative">
                 {/* Fade overlay */}
-                <div className="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 to-transparent pointer-events-none z-10" />
+                <div className="absolute -top-20 left-0 right-0 h-20 bg-gradient-to-t from-blue-950 to-transparent pointer-events-none z-10" />
                 
                 <button
                   onClick={() => setShowAllMachines(true)}
-                  className="relative z-20 px-8 py-4 bg-white border-2 border-blue-600 text-blue-600 rounded-2xl font-semibold hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-3"
+                  className="relative z-20 px-8 py-4 bg-blue-800/50 border-2 border-cyan-500 text-cyan-300 rounded-2xl font-semibold hover:bg-cyan-600 hover:text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-cyan-500/25 flex items-center gap-3 backdrop-blur-sm"
                 >
                   Show More Machines
                   <ChevronDown className="size-5 animate-bounce" />
-                  <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                  <span className="ml-2 px-2 py-1 bg-cyan-500/20 text-cyan-300 text-xs rounded-full border border-cyan-500/30">
                     +{filteredMachines.length - initialMachineCount}
                   </span>
                 </button>
@@ -455,7 +454,7 @@ const MachinesPage = ({
               <div className="flex justify-center mt-12">
                 <button
                   onClick={() => setShowAllMachines(false)}
-                  className="px-8 py-4 bg-gray-100 border-2 border-gray-300 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-3"
+                  className="px-8 py-4 bg-blue-800/50 border-2 border-blue-600 text-blue-200 rounded-2xl font-semibold hover:bg-blue-700/50 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-3 backdrop-blur-sm"
                 >
                   Show Less
                   <ChevronRight className="size-5 rotate-90 transform" />
@@ -468,17 +467,18 @@ const MachinesPage = ({
 
       {/* Machine Detail Modal */}
       {selectedMachine && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-blue-900/95 backdrop-blur-md rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-blue-700/50">
             <div className="relative">
               <img 
                 src={selectedMachine.image} 
                 alt={selectedMachine.title}
                 className="w-full h-64 object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/50 to-transparent" />
               <button 
                 onClick={() => setSelectedMachine(null)}
-                className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors duration-300"
+                className="absolute top-4 right-4 p-2 bg-blue-800/90 backdrop-blur-sm rounded-full hover:bg-blue-700 transition-colors duration-300 text-white border border-blue-600/50"
               >
                 ✕
               </button>
@@ -486,55 +486,55 @@ const MachinesPage = ({
             
             <div className="p-8">
               <div className="flex items-center gap-4 mb-6">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-blue-600/30 text-blue-200 text-sm font-medium rounded-full border border-blue-500/50">
                   {selectedMachine.category}
                 </span>
                 <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(selectedMachine.status)}`}>
                   {selectedMachine.status}
                 </span>
-                <span className="px-3 py-1 bg-gray-100 text-gray-800 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-blue-700/50 text-blue-200 text-sm font-medium rounded-full border border-blue-600/50">
                   {selectedMachine.model}
                 </span>
               </div>
               
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">{selectedMachine.title}</h2>
-              <p className="text-gray-600 text-lg leading-relaxed mb-8">{selectedMachine.description}</p>
+              <h2 className="text-3xl font-bold text-white mb-4">{selectedMachine.title}</h2>
+              <p className="text-blue-100 text-lg leading-relaxed mb-8">{selectedMachine.description}</p>
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Technical Specifications</h3>
+                  <h3 className="text-xl font-bold text-white mb-4">Technical Specifications</h3>
                   <div className="space-y-3">
                     {selectedMachine.specifications.map((spec, idx) => (
                       <div key={idx} className="flex items-center gap-3">
-                        <CheckCircle className="size-5 text-green-500" />
-                        <span className="text-gray-700">{spec}</span>
+                        <CheckCircle className="size-5 text-green-400" />
+                        <span className="text-blue-100">{spec}</span>
                       </div>
                     ))}
                   </div>
                 </div>
                 
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Machine Details</h3>
+                  <h3 className="text-xl font-bold text-white mb-4">Machine Details</h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <Target className="size-5 text-blue-600" />
+                      <Target className="size-5 text-cyan-400" />
                       <div>
-                        <div className="font-medium">Capacity</div>
-                        <div className="text-gray-600">{selectedMachine.capacity}</div>
+                        <div className="font-medium text-white">Capacity</div>
+                        <div className="text-blue-200">{selectedMachine.capacity}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Zap className="size-5 text-blue-600" />
+                      <Zap className="size-5 text-cyan-400" />
                       <div>
-                        <div className="font-medium">Power Requirement</div>
-                        <div className="text-gray-600">{selectedMachine.powerRequirement}</div>
+                        <div className="font-medium text-white">Power Requirement</div>
+                        <div className="text-blue-200">{selectedMachine.powerRequirement}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Calendar className="size-5 text-blue-600" />
+                      <Calendar className="size-5 text-cyan-400" />
                       <div>
-                        <div className="font-medium">Year Manufactured</div>
-                        <div className="text-gray-600">{selectedMachine.yearManufactured}</div>
+                        <div className="font-medium text-white">Year Manufactured</div>
+                        <div className="text-blue-200">{selectedMachine.yearManufactured}</div>
                       </div>
                     </div>
                   </div>
@@ -542,16 +542,13 @@ const MachinesPage = ({
               </div>
               
               <div className="flex gap-4 mt-8">
-                <Link 
-                  to="/contact"
-                  className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
-                >
+                <button className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-2xl font-semibold hover:from-cyan-500 hover:to-blue-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-cyan-500/25 flex items-center gap-2">
                   Request Access
                   <ChevronRight className="size-5" />
-                </Link>
+                </button>
                 <button 
                   onClick={() => setSelectedMachine(null)}
-                  className="px-8 py-4 bg-gray-100 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-300"
+                  className="px-8 py-4 bg-blue-800/50 text-blue-200 rounded-2xl font-semibold hover:bg-blue-700/50 transition-all duration-300 border border-blue-600/50"
                 >
                   Close
                 </button>
