@@ -235,45 +235,45 @@ const ServicePage = ({
     return Array.from({ length: 5 }, (_, i) => (
       <Star 
         key={i} 
-        className={`size-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+        className={`size-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`} 
       />
     ));
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden">
         {/* Background Elements */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)]" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.15),transparent_50%)]" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-3xl animate-pulse" />
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 bg-blue-100/80 backdrop-blur-sm rounded-full border border-blue-200/50">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/30 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-700/50">
+              <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
               {badge}
             </div>
-            <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 bg-clip-text text-transparent mb-6 leading-tight">
               {heading}
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-12">
+            <p className="text-xl text-gray-600 dark:text-slate-300 leading-relaxed mb-12">
               {description}
             </p>
             
             {/* Quick Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-3xl mx-auto">
               {stats.map((stat, index) => (
-                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
+                <div key={index} className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-slate-700">
                   <div className="flex items-center justify-center mb-3">
-                    <div className="p-2 bg-blue-100 rounded-xl">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-xl text-blue-600 dark:text-blue-400">
                       {stat.icon}
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">{stat.number}</div>
-                  <div className="text-gray-600 text-sm">{stat.label}</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-1">{stat.number}</div>
+                  <div className="text-gray-600 dark:text-slate-400 text-sm">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -293,8 +293,8 @@ const ServicePage = ({
                 onClick={() => setSelectedCategory(category)}
                 className={`px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
                   selectedCategory === category
-                    ? 'bg-blue-600 text-white shadow-lg transform scale-105'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg transform scale-105'
+                    : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600'
                 }`}
               >
                 {category}
@@ -307,7 +307,7 @@ const ServicePage = ({
             {filteredServices.map((service, index) => (
               <div 
                 key={service.id}
-                className="group relative bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+                className="group relative bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-2"
               >
                 {/* Service Image */}
                 <div className="relative h-64 overflow-hidden">
@@ -320,14 +320,14 @@ const ServicePage = ({
                   
                   {/* Category Badge */}
                   <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-medium rounded-full">
+                    <span className="px-3 py-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-gray-800 dark:text-slate-200 text-sm font-medium rounded-full">
                       {service.category}
                     </span>
                   </div>
 
                   {/* Price Badge */}
                   <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1 bg-blue-600/90 backdrop-blur-sm text-white text-sm font-medium rounded-full">
+                    <span className="px-3 py-1 bg-blue-600/90 dark:bg-blue-500/90 backdrop-blur-sm text-white text-sm font-medium rounded-full">
                       {service.price}
                     </span>
                   </div>
@@ -335,10 +335,10 @@ const ServicePage = ({
 
                 {/* Service Content */}
                 <div className="p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                     {service.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed mb-6">
+                  <p className="text-gray-600 dark:text-slate-400 leading-relaxed mb-6">
                     {service.description}
                   </p>
 
@@ -346,14 +346,14 @@ const ServicePage = ({
                   <div className="space-y-2 mb-6">
                     {service.features.slice(0, 3).map((feature, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <CheckCircle className="size-4 text-green-500" />
-                        <span className="text-gray-700 text-sm">{feature}</span>
+                        <CheckCircle className="size-4 text-green-500 dark:text-green-400" />
+                        <span className="text-gray-700 dark:text-slate-300 text-sm">{feature}</span>
                       </div>
                     ))}
                   </div>
 
                   {/* Duration */}
-                  <div className="flex items-center gap-2 mb-6 text-gray-600">
+                  <div className="flex items-center gap-2 mb-6 text-gray-600 dark:text-slate-400">
                     <Clock className="size-4" />
                     <span className="text-sm">{service.duration}</span>
                   </div>
@@ -361,7 +361,7 @@ const ServicePage = ({
                   {/* CTA Button */}
                   <button 
                     onClick={() => setSelectedService(service)}
-                    className="w-full py-3 bg-gray-900 hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 group-hover:shadow-lg flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-gray-900 dark:bg-slate-700 hover:bg-blue-600 dark:hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 group-hover:shadow-lg flex items-center justify-center gap-2"
                   >
                     Learn More
                     <ArrowUpRight className="size-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
@@ -374,13 +374,13 @@ const ServicePage = ({
       </section>
 
       {/* Process Section */}
-      <section className="py-20 bg-gray-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(59,130,246,0.1),transparent_50%)]" />
+      <section className="py-20 bg-gray-900 dark:bg-slate-900 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(59,130,246,0.1),transparent_50%)] dark:bg-[radial-gradient(circle_at_30%_40%,rgba(59,130,246,0.2),transparent_50%)]" />
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-4xl lg:text-5xl font-bold mb-6">Our Process</h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-300 dark:text-slate-400 max-w-2xl mx-auto">
               A streamlined approach that ensures quality, efficiency, and client satisfaction at every step.
             </p>
           </div>
@@ -393,13 +393,13 @@ const ServicePage = ({
               { step: "04", title: "Commissioning & Support", desc: "System commissioning and ongoing maintenance support" }
             ].map((item, index) => (
               <div key={index} className="relative group">
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300">
-                  <div className="text-4xl font-bold text-blue-400 mb-4">{item.step}</div>
+                <div className="bg-white/10 dark:bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-white/20 dark:border-slate-600/30 hover:bg-white/20 dark:hover:bg-slate-700/40 transition-all duration-300">
+                  <div className="text-4xl font-bold text-blue-400 dark:text-blue-300 mb-4">{item.step}</div>
                   <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                  <p className="text-gray-300">{item.desc}</p>
+                  <p className="text-gray-300 dark:text-slate-400">{item.desc}</p>
                 </div>
                 {index < 3 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-px bg-gradient-to-r from-blue-400 to-purple-400" />
+                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-px bg-gradient-to-r from-blue-400 to-purple-400 dark:from-blue-300 dark:to-purple-300" />
                 )}
               </div>
             ))}
@@ -411,19 +411,19 @@ const ServicePage = ({
       <section className="py-20">
         <div className="container px-6 mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Client Success Stories</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-slate-100 mb-6">Client Success Stories</h2>
+            <p className="text-xl text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
               Hear what our clients say about working with us and the results we've delivered.
             </p>
           </div>
 
           <div className="relative max-w-4xl mx-auto">
-            <div className="bg-white rounded-3xl shadow-2xl p-12 border border-gray-100">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl dark:shadow-2xl dark:shadow-blue-500/5 p-12 border border-gray-100 dark:border-slate-700">
               <div className="flex items-center gap-2 mb-6">
                 {renderStars(testimonials[currentTestimonial].rating)}
               </div>
               
-              <blockquote className="text-2xl text-gray-800 leading-relaxed mb-8 italic">
+              <blockquote className="text-2xl text-gray-800 dark:text-slate-200 leading-relaxed mb-8 italic">
                 "{testimonials[currentTestimonial].content}"
               </blockquote>
               
@@ -434,9 +434,9 @@ const ServicePage = ({
                   className="w-16 h-16 rounded-full object-cover"
                 />
                 <div>
-                  <div className="font-bold text-gray-900">{testimonials[currentTestimonial].name}</div>
-                  <div className="text-gray-600">{testimonials[currentTestimonial].role}</div>
-                  <div className="text-blue-600 text-sm">{testimonials[currentTestimonial].company}</div>
+                  <div className="font-bold text-gray-900 dark:text-slate-100">{testimonials[currentTestimonial].name}</div>
+                  <div className="text-gray-600 dark:text-slate-400">{testimonials[currentTestimonial].role}</div>
+                  <div className="text-blue-600 dark:text-blue-400 text-sm">{testimonials[currentTestimonial].company}</div>
                 </div>
               </div>
             </div>
@@ -449,8 +449,8 @@ const ServicePage = ({
                   onClick={() => setCurrentTestimonial(index)}
                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
                     index === currentTestimonial
-                      ? 'bg-blue-600 scale-125'
-                      : 'bg-gray-300 hover:bg-gray-400 hover:scale-110'
+                      ? 'bg-blue-600 dark:bg-blue-500 scale-125'
+                      : 'bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500 hover:scale-110'
                   }`}
                 />
               ))}
@@ -459,12 +459,10 @@ const ServicePage = ({
         </div>
       </section>
 
-      
-
       {/* Service Detail Modal */}
       {selectedService && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="relative">
               <img 
                 src={selectedService.image} 
@@ -473,7 +471,7 @@ const ServicePage = ({
               />
               <button 
                 onClick={() => setSelectedService(null)}
-                className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors duration-300"
+                className="absolute top-4 right-4 p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full hover:bg-white dark:hover:bg-slate-700 transition-colors duration-300 text-gray-800 dark:text-slate-200"
               >
                 ✕
               </button>
@@ -481,45 +479,45 @@ const ServicePage = ({
             
             <div className="p-8">
               <div className="flex items-center gap-4 mb-6">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium rounded-full">
                   {selectedService.category}
                 </span>
-                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-sm font-medium rounded-full">
                   {selectedService.price}
                 </span>
               </div>
               
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">{selectedService.title}</h2>
-              <p className="text-gray-600 text-lg leading-relaxed mb-8">{selectedService.description}</p>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100 mb-4">{selectedService.title}</h2>
+              <p className="text-gray-600 dark:text-slate-400 text-lg leading-relaxed mb-8">{selectedService.description}</p>
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Key Features</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Key Features</h3>
                   <div className="space-y-3">
                     {selectedService.features.map((feature, idx) => (
                       <div key={idx} className="flex items-center gap-3">
-                        <CheckCircle className="size-5 text-green-500" />
-                        <span className="text-gray-700">{feature}</span>
+                        <CheckCircle className="size-5 text-green-500 dark:text-green-400" />
+                        <span className="text-gray-700 dark:text-slate-300">{feature}</span>
                       </div>
                     ))}
                   </div>
                 </div>
                 
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Project Details</h3>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Project Details</h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <Clock className="size-5 text-blue-600" />
+                      <Clock className="size-5 text-blue-600 dark:text-blue-400" />
                       <div>
-                        <div className="font-medium">Duration</div>
-                        <div className="text-gray-600">{selectedService.duration}</div>
+                        <div className="font-medium text-gray-900 dark:text-slate-200">Duration</div>
+                        <div className="text-gray-600 dark:text-slate-400">{selectedService.duration}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Target className="size-5 text-blue-600" />
+                      <Target className="size-5 text-blue-600 dark:text-blue-400" />
                       <div>
-                        <div className="font-medium">Investment</div>
-                        <div className="text-gray-600">{selectedService.price}</div>
+                        <div className="font-medium text-gray-900 dark:text-slate-200">Investment</div>
+                        <div className="text-gray-600 dark:text-slate-400">{selectedService.price}</div>
                       </div>
                     </div>
                   </div>
@@ -529,14 +527,14 @@ const ServicePage = ({
               <div className="flex gap-4 mt-8">
                 <Link 
                   to="/contact"
-                  className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
+                  className="px-8 py-4 bg-blue-600 dark:bg-blue-500 text-white rounded-2xl font-semibold hover:bg-blue-500 dark:hover:bg-blue-400 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
                 >
                   Get Started
                   <ChevronRight className="size-5" />
                 </Link>
                 <button 
                   onClick={() => setSelectedService(null)}
-                  className="px-8 py-4 bg-gray-100 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-300"
+                  className="px-8 py-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-2xl font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition-all duration-300"
                 >
                   Close
                 </button>

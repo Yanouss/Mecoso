@@ -112,7 +112,12 @@ const Contact = ({
         
         const map = window.L.map('map').setView(marrakechCoords, 13);
 
-        // Add modern tile layer
+        // Add modern tile layer with dark mode support
+        const isDarkMode = document.documentElement.classList.contains('dark');
+        const tileLayer = isDarkMode 
+          ? 'https://{s}.tile.jawg.io/jawg-dark/{z}/{x}/{y}{r}.png?access-token=YOUR_ACCESS_TOKEN'
+          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19,
@@ -268,7 +273,7 @@ const Contact = ({
       return 'bg-gradient-to-br from-blue-600 to-purple-600 text-white border-transparent shadow-2xl';
     }
     
-    return 'bg-white border-gray-100 hover:shadow-xl hover:border-blue-200';
+    return 'bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-400';
   };
 
   const getIconStyles = (index: number, isAccent: boolean) => {
@@ -279,7 +284,7 @@ const Contact = ({
       return 'bg-white/20 backdrop-blur-sm scale-110';
     }
     
-    return 'bg-gray-100 group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-purple-100 group-hover:scale-110';
+    return 'bg-gray-100 dark:bg-slate-700 group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-purple-100 dark:group-hover:from-blue-900/50 dark:group-hover:to-purple-900/50 group-hover:scale-110';
   };
 
   const getTextStyles = (index: number, isAccent: boolean) => {
@@ -290,7 +295,7 @@ const Contact = ({
       return 'text-white';
     }
     
-    return 'text-gray-900';
+    return 'text-gray-900 dark:text-slate-100';
   };
 
   const getDetailStyles = (index: number, isAccent: boolean) => {
@@ -301,28 +306,28 @@ const Contact = ({
       return 'text-white/90';
     }
     
-    return 'text-gray-600';
+    return 'text-gray-600 dark:text-slate-400';
   };
 
   return (
-    <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 relative overflow-hidden min-h-screen">
+    <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden min-h-screen transition-all duration-500">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)]" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.15),transparent_50%)]" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-3xl animate-pulse" />
       
       <div className="container px-6 mx-auto relative z-10">
         
         {/* Header */}
         <div className="mb-20 text-center max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 bg-blue-100/80 backdrop-blur-sm rounded-full border border-blue-200/50">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/50 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-600/50">
+            <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
             {badge}
           </div>
-          <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent mb-6 leading-tight">
+          <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 bg-clip-text text-transparent mb-6 leading-tight">
             {heading}
           </h1>
-          <p className="text-xl text-gray-600 leading-relaxed">
+          <p className="text-xl text-gray-600 dark:text-slate-300 leading-relaxed">
             {description}
           </p>
         </div>
@@ -332,8 +337,8 @@ const Contact = ({
           
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-3xl p-8 lg:p-12 shadow-2xl border border-gray-100 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-purple-100/50 rounded-full blur-2xl" />
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 lg:p-12 shadow-2xl border border-gray-100 dark:border-slate-700 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-purple-100/50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full blur-2xl" />
               
               <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-8">
@@ -341,8 +346,8 @@ const Contact = ({
                     <MessageSquare className="size-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-900">Start Your Project</h2>
-                    <p className="text-gray-600">Fill out the form and we'll get back to you within 24 hours</p>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Start Your Project</h2>
+                    <p className="text-gray-600 dark:text-slate-400">Fill out the form and we'll get back to you within 24 hours</p>
                   </div>
                 </div>
 
@@ -351,11 +356,11 @@ const Contact = ({
                     {/* Personal Information */}
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="relative">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                           Full Name *
                         </label>
                         <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
                           <input
                             type="text"
                             name="name"
@@ -364,10 +369,10 @@ const Contact = ({
                             onFocus={() => setFocusedField('name')}
                             onBlur={() => setFocusedField(null)}
                             required
-                            className={`w-full pl-12 pr-4 py-4 bg-gray-50 border-2 rounded-2xl focus:outline-none transition-all duration-300 ${
+                            className={`w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-slate-700 border-2 rounded-2xl focus:outline-none transition-all duration-300 text-gray-900 dark:text-slate-100 placeholder:text-gray-500 dark:placeholder:text-slate-400 ${
                               focusedField === 'name' 
-                                ? 'border-blue-500 bg-blue-50/50 shadow-lg transform scale-[1.02]' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
+                                : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                             }`}
                             placeholder="Enter your full name"
                           />
@@ -375,11 +380,11 @@ const Contact = ({
                       </div>
 
                       <div className="relative">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                           Email Address *
                         </label>
                         <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
                           <input
                             type="email"
                             name="email"
@@ -388,10 +393,10 @@ const Contact = ({
                             onFocus={() => setFocusedField('email')}
                             onBlur={() => setFocusedField(null)}
                             required
-                            className={`w-full pl-12 pr-4 py-4 bg-gray-50 border-2 rounded-2xl focus:outline-none transition-all duration-300 ${
+                            className={`w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-slate-700 border-2 rounded-2xl focus:outline-none transition-all duration-300 text-gray-900 dark:text-slate-100 placeholder:text-gray-500 dark:placeholder:text-slate-400 ${
                               focusedField === 'email' 
-                                ? 'border-blue-500 bg-blue-50/50 shadow-lg transform scale-[1.02]' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
+                                : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                             }`}
                             placeholder="your.email@example.com"
                           />
@@ -401,11 +406,11 @@ const Contact = ({
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="relative">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                           Company/Organization
                         </label>
                         <div className="relative">
-                          <Building className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                          <Building className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
                           <input
                             type="text"
                             name="company"
@@ -413,10 +418,10 @@ const Contact = ({
                             onChange={handleInputChange}
                             onFocus={() => setFocusedField('company')}
                             onBlur={() => setFocusedField(null)}
-                            className={`w-full pl-12 pr-4 py-4 bg-gray-50 border-2 rounded-2xl focus:outline-none transition-all duration-300 ${
+                            className={`w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-slate-700 border-2 rounded-2xl focus:outline-none transition-all duration-300 text-gray-900 dark:text-slate-100 placeholder:text-gray-500 dark:placeholder:text-slate-400 ${
                               focusedField === 'company' 
-                                ? 'border-blue-500 bg-blue-50/50 shadow-lg transform scale-[1.02]' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
+                                : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                             }`}
                             placeholder="Your company name"
                           />
@@ -424,11 +429,11 @@ const Contact = ({
                       </div>
 
                       <div className="relative">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                           Phone Number
                         </label>
                         <div className="relative">
-                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
                           <input
                             type="tel"
                             name="phone"
@@ -436,10 +441,10 @@ const Contact = ({
                             onChange={handleInputChange}
                             onFocus={() => setFocusedField('phone')}
                             onBlur={() => setFocusedField(null)}
-                            className={`w-full pl-12 pr-4 py-4 bg-gray-50 border-2 rounded-2xl focus:outline-none transition-all duration-300 ${
+                            className={`w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-slate-700 border-2 rounded-2xl focus:outline-none transition-all duration-300 text-gray-900 dark:text-slate-100 placeholder:text-gray-500 dark:placeholder:text-slate-400 ${
                               focusedField === 'phone' 
-                                ? 'border-blue-500 bg-blue-50/50 shadow-lg transform scale-[1.02]' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
+                                : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                             }`}
                             placeholder="+212 661-234-567"
                           />
@@ -448,12 +453,12 @@ const Contact = ({
                     </div>
 
                     {/* Project Details */}
-                    <div className="pt-6 border-t border-gray-200">
-                      <h3 className="text-xl font-bold text-gray-900 mb-4">Project Details</h3>
+                    <div className="pt-6 border-t border-gray-200 dark:border-slate-600">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Project Details</h3>
                       
                       <div className="grid md:grid-cols-2 gap-6 mb-6">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                             Service Interested In *
                           </label>
                           <select
@@ -463,10 +468,10 @@ const Contact = ({
                             onFocus={() => setFocusedField('service')}
                             onBlur={() => setFocusedField(null)}
                             required
-                            className={`w-full px-4 py-4 bg-gray-50 border-2 rounded-2xl focus:outline-none transition-all duration-300 ${
+                            className={`w-full px-4 py-4 bg-gray-50 dark:bg-slate-700 border-2 rounded-2xl focus:outline-none transition-all duration-300 text-gray-900 dark:text-slate-100 ${
                               focusedField === 'service' 
-                                ? 'border-blue-500 bg-blue-50/50 shadow-lg transform scale-[1.02]' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
+                                : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                             }`}
                           >
                             <option value="">Select a service</option>
@@ -480,7 +485,7 @@ const Contact = ({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                             Project Type
                           </label>
                           <select
@@ -489,10 +494,10 @@ const Contact = ({
                             onChange={handleInputChange}
                             onFocus={() => setFocusedField('projectType')}
                             onBlur={() => setFocusedField(null)}
-                            className={`w-full px-4 py-4 bg-gray-50 border-2 rounded-2xl focus:outline-none transition-all duration-300 ${
+                            className={`w-full px-4 py-4 bg-gray-50 dark:bg-slate-700 border-2 rounded-2xl focus:outline-none transition-all duration-300 text-gray-900 dark:text-slate-100 ${
                               focusedField === 'projectType' 
-                                ? 'border-blue-500 bg-blue-50/50 shadow-lg transform scale-[1.02]' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
+                                : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                             }`}
                           >
                             <option value="">Select project type</option>
@@ -506,7 +511,7 @@ const Contact = ({
 
                       <div className="grid md:grid-cols-2 gap-6 mb-6">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                             Estimated Budget
                           </label>
                           <select
@@ -515,10 +520,10 @@ const Contact = ({
                             onChange={handleInputChange}
                             onFocus={() => setFocusedField('budget')}
                             onBlur={() => setFocusedField(null)}
-                            className={`w-full px-4 py-4 bg-gray-50 border-2 rounded-2xl focus:outline-none transition-all duration-300 ${
+                            className={`w-full px-4 py-4 bg-gray-50 dark:bg-slate-700 border-2 rounded-2xl focus:outline-none transition-all duration-300 text-gray-900 dark:text-slate-100 ${
                               focusedField === 'budget' 
-                                ? 'border-blue-500 bg-blue-50/50 shadow-lg transform scale-[1.02]' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
+                                : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                             }`}
                           >
                             <option value="">Select budget range</option>
@@ -531,21 +536,21 @@ const Contact = ({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                             Timeline
                           </label>
                           <div className="relative">
-                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
                             <select
                               name="timeline"
                               value={formData.timeline}
                               onChange={handleInputChange}
                               onFocus={() => setFocusedField('timeline')}
                               onBlur={() => setFocusedField(null)}
-                              className={`w-full pl-12 pr-4 py-4 bg-gray-50 border-2 rounded-2xl focus:outline-none transition-all duration-300 ${
+                              className={`w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-slate-700 border-2 rounded-2xl focus:outline-none transition-all duration-300 text-gray-900 dark:text-slate-100 ${
                                 focusedField === 'timeline' 
-                                  ? 'border-blue-500 bg-blue-50/50 shadow-lg transform scale-[1.02]' 
-                                  : 'border-gray-200 hover:border-gray-300'
+                                  ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
+                                  : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                               }`}
                             >
                               <option value="">Select timeline</option>
@@ -562,7 +567,7 @@ const Contact = ({
 
                     {/* Message */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
                         Project Description
                       </label>
                       <textarea
@@ -572,10 +577,10 @@ const Contact = ({
                         onFocus={() => setFocusedField('message')}
                         onBlur={() => setFocusedField(null)}
                         rows={6}
-                        className={`w-full px-4 py-4 bg-gray-50 border-2 rounded-2xl focus:outline-none resize-none transition-all duration-300 ${
+                        className={`w-full px-4 py-4 bg-gray-50 dark:bg-slate-700 border-2 rounded-2xl focus:outline-none resize-none transition-all duration-300 text-gray-900 dark:text-slate-100 placeholder:text-gray-500 dark:placeholder:text-slate-400 ${
                           focusedField === 'message' 
-                            ? 'border-blue-500 bg-blue-50/50 shadow-lg transform scale-[1.02]' 
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
+                            : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                         }`}
                         placeholder="Tell us more about your project requirements, goals, and any specific details that would help us provide you with the best solution..."
                       />
@@ -595,16 +600,16 @@ const Contact = ({
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <div className="inline-flex p-6 bg-green-100 rounded-full mb-6">
-                      <CheckCircle className="size-12 text-green-600" />
+                    <div className="inline-flex p-6 bg-green-100 dark:bg-green-900/50 rounded-full mb-6">
+                      <CheckCircle className="size-12 text-green-600 dark:text-green-400" />
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4">
                       Message Sent Successfully! 🎉
                     </h3>
-                    <p className="text-gray-600 text-lg mb-6">
+                    <p className="text-gray-600 dark:text-slate-400 text-lg mb-6">
                       Thank you for reaching out! Our team will review your project details and get back to you within 24 hours.
                     </p>
-                    <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-100 text-blue-800 rounded-xl font-medium">
+                    <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 rounded-xl font-medium">
                       <Clock className="size-4" />
                       Expected response: Within 24 hours
                     </div>
@@ -648,28 +653,28 @@ const Contact = ({
         </div>
 
         {/* Interactive Map Section with Leaflet */}
-        <div className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
           <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-4">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-4">
               Find Our Office in Marrakech
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
               Visit us at our modern headquarters in the heart of Marrakech. We're located in the vibrant Gueliz district.
             </p>
           </div>
 
           {/* Leaflet Map Container */}
-          <div className="relative h-96 rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+          <div className="relative h-96 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-600">
             <div 
               id="map" 
               className="w-full h-full"
               style={{ minHeight: '400px' }}
             >
               {!mapLoaded && (
-                <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading interactive map...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-slate-400">Loading interactive map...</p>
                   </div>
                 </div>
               )}
@@ -687,7 +692,7 @@ const Contact = ({
               <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
             </button>
             <button 
-              className="px-8 py-4 bg-gray-100 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-300 border border-gray-200 inline-flex items-center gap-2"
+              className="px-8 py-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-2xl font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition-all duration-300 border border-gray-200 dark:border-slate-600 inline-flex items-center gap-2"
               onClick={() => window.open('tel:+212524123456', '_self')}
             >
               <Phone className="size-5" />
@@ -696,29 +701,29 @@ const Contact = ({
           </div>
 
           {/* Additional Info Cards */}
-          <div className="grid md:grid-cols-3 gap-6 mt-8 pt-8 border-t border-gray-200">
-            <div className="text-center p-4 bg-gray-50 rounded-2xl hover:bg-blue-50 transition-colors duration-300">
-              <div className="inline-flex p-3 bg-blue-100 rounded-full mb-3">
-                <MapPin className="size-5 text-blue-600" />
+          <div className="grid md:grid-cols-3 gap-6 mt-8 pt-8 border-t border-gray-200 dark:border-slate-600">
+            <div className="text-center p-4 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-300">
+              <div className="inline-flex p-3 bg-blue-100 dark:bg-blue-900/50 rounded-full mb-3">
+                <MapPin className="size-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Prime Location</h4>
-              <p className="text-sm text-gray-600">Located in Massira II, the modern business district of Marrakech</p>
+              <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">Prime Location</h4>
+              <p className="text-sm text-gray-600 dark:text-slate-400">Located in Massira II, the modern business district of Marrakech</p>
             </div>
             
-            <div className="text-center p-4 bg-gray-50 rounded-2xl hover:bg-green-50 transition-colors duration-300">
-              <div className="inline-flex p-3 bg-green-100 rounded-full mb-3">
-                <Clock className="size-5 text-green-600" />
+            <div className="text-center p-4 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-300">
+              <div className="inline-flex p-3 bg-green-100 dark:bg-green-900/50 rounded-full mb-3">
+                <Clock className="size-5 text-green-600 dark:text-green-400" />
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Easy Access</h4>
-              <p className="text-sm text-gray-600">5 minutes from Marrakech Railway Station and main transport hubs</p>
+              <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">Easy Access</h4>
+              <p className="text-sm text-gray-600 dark:text-slate-400">5 minutes from Marrakech Railway Station and main transport hubs</p>
             </div>
             
-            <div className="text-center p-4 bg-gray-50 rounded-2xl hover:bg-purple-50 transition-colors duration-300">
-              <div className="inline-flex p-3 bg-purple-100 rounded-full mb-3">
-                <Building className="size-5 text-purple-600" />
+            <div className="text-center p-4 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-300">
+              <div className="inline-flex p-3 bg-purple-100 dark:bg-purple-900/50 rounded-full mb-3">
+                <Building className="size-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Modern Facilities</h4>
-              <p className="text-sm text-gray-600">State-of-the-art office with meeting rooms and project showcase area</p>
+              <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">Modern Facilities</h4>
+              <p className="text-sm text-gray-600 dark:text-slate-400">State-of-the-art office with meeting rooms and project showcase area</p>
             </div>
           </div>
         </div>

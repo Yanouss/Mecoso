@@ -49,7 +49,7 @@ const AboutPage = ({
   badge = "About Our Company",
   heading = "Leading Industrial Solutions in Morocco",
   story = "Founded in 2005 by KACEMY Abderahman, MECOSO has grown from a specialized boilermaking workshop into Morocco's leading provider of comprehensive industrial metalwork solutions. With two decades of experience, we've built our reputation on delivering quality, safety, and innovation to clients across diverse industries.",
-  description = "MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we've been delivering excellence in metal structure design, manufacturing, and assemblyacross all industries",
+  description = "MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we've been delivering excellence in metal structure design, manufacturing, and assembly across all industries",
   
   stats = [
       {
@@ -112,7 +112,7 @@ const AboutPage = ({
       {
         title: "Safety First",
         description: "We prioritize safety above all, adhering to the highest industry standards to protect our people, partners, and projects.",
-        icon: <Users className="size-6" />,
+        icon: <Shield className="size-6" />,
         videoUrl: "/videos/values/value6.mp4"
       },
       {
@@ -124,7 +124,7 @@ const AboutPage = ({
       {
         title: "Client Partnership",
         description: "Building lasting relationships through collaborative approach.",
-        icon: <Users className="size-6" />,
+        icon: <Heart className="size-6" />,
         videoUrl: "/videos/values/value5.mp4"
       }
   ],
@@ -188,7 +188,7 @@ const AboutPage = ({
   }, [selectedStat]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-slate-900">
       {/* Hero Section */}
       <section 
         className="relative py-32 lg:py-44 bg-cover bg-center bg-no-repeat overflow-hidden"
@@ -201,28 +201,28 @@ const AboutPage = ({
           }}
         />
         
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30 dark:from-slate-900/80 dark:via-slate-800/60 dark:to-blue-900/40" />
         
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-48 h-48 bg-purple-500/20 rounded-full blur-xl animate-pulse delay-1000" />
+        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/20 dark:bg-blue-400/30 rounded-full blur-xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-48 h-48 bg-purple-500/20 dark:bg-purple-400/30 rounded-full blur-xl animate-pulse delay-1000" />
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-300 bg-blue-900/30 backdrop-blur-sm rounded-full border border-blue-500/30">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-300 dark:text-blue-200 bg-blue-900/30 dark:bg-blue-800/40 backdrop-blur-sm rounded-full border border-blue-500/30 dark:border-blue-400/40">
+              <div className="w-2 h-2 bg-blue-400 dark:bg-blue-300 rounded-full animate-pulse" />
               {badge}
             </div>
             
-            <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-7xl font-bold text-white dark:text-slate-100 mb-6 leading-tight">
               {heading}
             </h1>
             
-            <p className="text-xl text-white/90 leading-relaxed max-w-3xl mb-8">
+            <p className="text-xl text-white/90 dark:text-slate-200/90 leading-relaxed max-w-3xl mb-8">
               {description}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <button className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-semibold transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl inline-flex items-center gap-2 group">
+              <button className="px-8 py-4 bg-blue-600 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-400 text-white rounded-2xl font-semibold transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl inline-flex items-center gap-2 group">
                 <span>Learn Our Story</span>
                 <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
@@ -232,8 +232,8 @@ const AboutPage = ({
       </section>
 
       {/* Stats Section with Image Backgrounds and Popups */}
-      <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
+      <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
@@ -243,38 +243,38 @@ const AboutPage = ({
                 className="group cursor-pointer"
                 onClick={() => setSelectedStat(stat)}
               >
-                <div className="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 text-center overflow-hidden h-60">
+                <div className="relative bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border border-gray-100 dark:border-slate-700 hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 text-center overflow-hidden h-60">
                   {/* Background Image */}
                   {stat.backgroundImage && (
                     <div 
-                      className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 group-hover:opacity-30 transition-opacity duration-500"
+                      className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 group-hover:opacity-30 dark:opacity-30 dark:group-hover:opacity-40 transition-opacity duration-500"
                       style={{ backgroundImage: `url(${stat.backgroundImage})` }}
                     />
                   )}
                   
                   {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-purple-50/80 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-purple-50/80 dark:from-blue-900/40 dark:to-purple-900/40 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
                   
                   {/* Hover Effects */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-800/30 dark:to-purple-800/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
                   <div className="relative z-10 h-full flex flex-col justify-center">
-                    <div className="inline-flex p-4 mb-4 bg-gradient-to-br from-blue-100/90 to-purple-100/90 rounded-2xl group-hover:scale-110 transition-transform duration-500 mx-auto backdrop-blur-sm">
-                      <div className="text-blue-600 group-hover:text-purple-600 transition-colors duration-500">
+                    <div className="inline-flex p-4 mb-4 bg-gradient-to-br from-blue-100/90 to-purple-100/90 dark:from-blue-800/90 dark:to-purple-800/90 rounded-2xl group-hover:scale-110 transition-transform duration-500 mx-auto backdrop-blur-sm">
+                      <div className="text-blue-600 dark:text-blue-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-500">
                         {stat.icon}
                       </div>
                     </div>
                     
-                    <div className="text-4xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-500">
+                    <div className="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-500">
                       {stat.number}
                     </div>
                     
-                    <div className="text-gray-700 font-medium text-sm">
+                    <div className="text-gray-700 dark:text-slate-300 font-medium text-sm">
                       {stat.label}
                     </div>
                     
                     {/* Click indicator */}
-                    <div className="mt-3 text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="mt-3 text-xs text-gray-500 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       Click to learn more
                     </div>
                   </div>
@@ -288,26 +288,26 @@ const AboutPage = ({
       {/* Popup Modal */}
       {selectedStat && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300">
             {/* Close Button */}
             <button
               onClick={closePopup}
-              className="absolute top-6 right-6 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200 z-10"
+              className="absolute top-6 right-6 p-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full transition-colors duration-200 z-10"
             >
-              <X className="size-6 text-gray-600" />
+              <X className="size-6 text-gray-600 dark:text-slate-400" />
             </button>
             
             {/* Popup Content */}
             <div className="p-8">
               {/* Header */}
               <div className="flex items-center gap-4 mb-6">
-                <div className="p-4 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl">
-                  <div className="text-blue-600">
+                <div className="p-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-800 dark:to-purple-800 rounded-2xl">
+                  <div className="text-blue-600 dark:text-blue-400">
                     {selectedStat.icon}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-3xl font-bold text-gray-900">
+                  <h3 className="text-3xl font-bold text-gray-900 dark:text-slate-100">
                     {selectedStat.popupTitle || `${selectedStat.number} ${selectedStat.label}`}
                   </h3>
                 </div>
@@ -326,18 +326,18 @@ const AboutPage = ({
               
               {/* Description */}
               {selectedStat.popupDescription && (
-                <div className="text-lg text-gray-700 leading-relaxed">
+                <div className="text-lg text-gray-700 dark:text-slate-300 leading-relaxed">
                   {selectedStat.popupDescription}
                 </div>
               )}
               
               {/* Stats Display */}
-              <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-gray-200/50">
+              <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl border border-gray-200/50 dark:border-slate-600/50">
                 <div className="text-center">
-                  <div className="text-5xl font-bold text-blue-600 mb-2">
+                  <div className="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                     {selectedStat.number}
                   </div>
-                  <div className="text-gray-700 font-semibold">
+                  <div className="text-gray-700 dark:text-slate-300 font-semibold">
                     {selectedStat.label}
                   </div>
                 </div>
@@ -348,7 +348,7 @@ const AboutPage = ({
       )}
 
       {/* Story Section */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-white dark:bg-slate-900">
         <div className="container px-6 mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
             <div className="relative order-2 lg:order-1">
@@ -364,43 +364,43 @@ const AboutPage = ({
             
             <div className="space-y-8 order-1 lg:order-2">
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 bg-blue-100/80 backdrop-blur-sm rounded-full border border-blue-200/50">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-800/40 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-600/50">
+                  <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
                   Our Story
                 </div>
                 
-                <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-slate-100 mb-6 leading-tight">
                   Two Decades of Excellence
                 </h2>
                 
-                <p className="text-lg text-gray-700 leading-relaxed mb-8">
+                <p className="text-lg text-gray-700 dark:text-slate-300 leading-relaxed mb-8">
                   {story}
                 </p>
               </div>
 
               <div className="space-y-6">
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-gray-200/50">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl p-6 border border-gray-200/50 dark:border-slate-600/50">
                   <div className="flex items-start gap-4">
-                    <div className="p-3 bg-blue-100 rounded-xl">
-                      <Target className="size-6 text-blue-600" />
+                    <div className="p-3 bg-blue-100 dark:bg-blue-800 rounded-xl">
+                      <Target className="size-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Our Mission</h3>
-                      <p className="text-gray-700 leading-relaxed">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Our Mission</h3>
+                      <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
                         {mission}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border border-gray-200/50">
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 rounded-2xl p-6 border border-gray-200/50 dark:border-slate-600/50">
                   <div className="flex items-start gap-4">
-                    <div className="p-3 bg-purple-100 rounded-xl">
-                      <Lightbulb className="size-6 text-purple-600" />
+                    <div className="p-3 bg-purple-100 dark:bg-purple-800 rounded-xl">
+                      <Lightbulb className="size-6 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2">Our Vision</h3>
-                      <p className="text-gray-700 leading-relaxed">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Our Vision</h3>
+                      <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
                         {vision}
                       </p>
                     </div>
@@ -413,21 +413,21 @@ const AboutPage = ({
       </section>
 
       {/* Values Section */}
-      <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.08),transparent_50%)]" />
+      <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.15),transparent_50%)]" />
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="text-center mb-16 max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 bg-blue-100/80 backdrop-blur-sm rounded-full border border-blue-200/50">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-800/40 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-600/50">
+              <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
               Our Values
             </div>
             
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-slate-100 mb-6">
               The Principles That Guide Us
             </h2>
             
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-slate-400 leading-relaxed">
               Every decision we make and every project we undertake is guided by these core values that define who we are.
             </p>
           </div>
@@ -441,24 +441,24 @@ const AboutPage = ({
                 }`}
                 onMouseEnter={() => setActiveValue(index)}
               >
-                <div className={`bg-white rounded-3xl p-8 shadow-lg border transition-all duration-500 h-full ${
+                <div className={`bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border transition-all duration-500 h-full ${
                   activeValue === index 
-                    ? 'shadow-2xl border-blue-200 bg-gradient-to-br from-blue-50/50 to-purple-50/50' 
-                    : 'border-gray-100 hover:shadow-xl'
+                    ? 'shadow-2xl border-blue-200 dark:border-blue-600 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-900/30 dark:to-purple-900/30' 
+                    : 'border-gray-100 dark:border-slate-700 hover:shadow-xl'
                 }`}>
                   <div className={`inline-flex p-4 mb-6 rounded-2xl transition-all duration-500 ${
                     activeValue === index 
                       ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg scale-110' 
-                      : 'bg-gray-100 text-gray-600 group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-purple-100'
+                      : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-purple-100 dark:group-hover:from-blue-800/50 dark:group-hover:to-purple-800/50'
                   }`}>
                     {value.icon}
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4">
                     {value.title}
                   </h3>
                   
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-gray-600 dark:text-slate-400 leading-relaxed">
                     {value.description}
                   </p>
                 </div>
@@ -469,31 +469,31 @@ const AboutPage = ({
       </section>
 
       {/* Partners Section */}
-      <section className="py-32 bg-white relative overflow-hidden">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-indigo-500/5 to-pink-500/5 rounded-full blur-2xl" />
+      <section className="py-32 bg-white dark:bg-slate-900 relative overflow-hidden">
+        <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-gradient-to-r from-purple-500/10 to-blue-500/10 dark:from-purple-400/20 dark:to-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-indigo-500/5 to-pink-500/5 dark:from-indigo-400/10 dark:to-pink-400/10 rounded-full blur-2xl" />
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="text-center mb-20 max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-6 py-3 mb-8 text-sm font-medium text-blue-700 bg-gradient-to-r from-blue-100/80 to-purple-100/80 backdrop-blur-sm rounded-full border border-blue-200/50 shadow-lg">
+            <div className="inline-flex items-center gap-2 px-6 py-3 mb-8 text-sm font-medium text-blue-700 dark:text-blue-300 bg-gradient-to-r from-blue-100/80 to-purple-100/80 dark:from-blue-800/40 dark:to-purple-800/40 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-600/50 shadow-lg">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse delay-200" />
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse delay-400" />
+                <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
+                <div className="w-2 h-2 bg-purple-500 dark:bg-purple-400 rounded-full animate-pulse delay-200" />
+                <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse delay-400" />
               </div>
               <span className="ml-2">Trusted Partnerships</span>
             </div>
             
-            <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-8 leading-tight">
-              <span className="bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
+            <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-slate-100 mb-8 leading-tight">
+              <span className="bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 dark:from-slate-100 dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
                 Industry Leaders
               </span>
               <br />
-              <span className="text-gray-900">Choose Us</span>
+              <span className="text-gray-900 dark:text-slate-100">Choose Us</span>
             </h2>
             
-            <p className="text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-slate-400 leading-relaxed max-w-3xl mx-auto">
               We proudly collaborate with Morocco's most prestigious organizations and international companies who trust us to deliver excellence in every project.
             </p>
           </div>
@@ -517,11 +517,11 @@ const AboutPage = ({
                 { src: "/images/partners/Partner13.jpg", name: "Partner 14" }
               ].map((partner, idx) => (
                 <div key={idx} className="group relative">
-                  <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 relative overflow-hidden h-32 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-[1px]">
-                      <div className="w-full h-full bg-white rounded-2xl" />
+                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-slate-700 hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 relative overflow-hidden h-32 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 dark:via-slate-300/20 to-transparent" />
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 dark:from-blue-400/30 dark:via-purple-400/30 dark:to-blue-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-[1px]">
+                      <div className="w-full h-full bg-white dark:bg-slate-800 rounded-2xl" />
                     </div>
                     
                     <div className="relative z-10 flex items-center justify-center w-full h-full">
@@ -538,7 +538,7 @@ const AboutPage = ({
           </div>
 
           <div className="text-center mt-20">
-            <div className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group cursor-pointer">
+            <div className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white rounded-2xl font-semibold shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group cursor-pointer">
               <Building className="size-5" />
               <span>Join Our Network of Partners</span>
               <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />

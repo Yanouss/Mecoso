@@ -160,24 +160,24 @@ const About = ({
   };
 
   return (
-    <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden transition-all duration-500">
       {/* Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)]" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.15),transparent_50%)]" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-3xl" />
       
       <div className="container px-6 mx-auto relative z-10">
         
         {/* Header */}
         <div className="mb-20 text-center max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 bg-blue-100/80 backdrop-blur-sm rounded-full border border-blue-200/50">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/30 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-700/50 transition-all duration-300">
+            <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
             {badge}
           </div>
-          <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent mb-6 leading-tight">
+          <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 bg-clip-text text-transparent mb-6 leading-tight">
             {heading}
           </h1>
-          <p className="text-xl text-justify text-gray-600 leading-relaxed">
+          <p className="text-xl text-justify text-gray-600 dark:text-slate-300 leading-relaxed">
             {description}
           </p>
         </div>
@@ -185,31 +185,31 @@ const About = ({
         {/* Hero Story Section */}
         <div className="mb-24 grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative">
-            <div className="relative overflow-hidden rounded-3xl shadow-2xl group">
+            <div className="relative overflow-hidden rounded-3xl shadow-2xl dark:shadow-slate-900/50 group">
               <img 
                 src={image} 
                 alt="About us" 
                 className="w-full h-[500px] object-cover group-hover:scale-110 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent dark:from-black/70 dark:via-transparent dark:to-transparent" />
             </div>
           </div>
           
           <div className="space-y-8">
             <div className="prose prose-lg max-w-none">
-              <p className="text-gray-700 text-justify leading-relaxed text-lg">
+              <p className="text-gray-700 dark:text-slate-300 text-justify leading-relaxed text-lg">
                 {story}
               </p>
             </div>
             
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 border border-gray-200/50">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800/50 dark:to-slate-700/50 rounded-2xl p-8 border border-gray-200/50 dark:border-slate-600/50 transition-all duration-300">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-blue-100 rounded-xl">
-                  <Target className="size-6 text-blue-600" />
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl transition-all duration-300">
+                  <Target className="size-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">Our Mission</h3>
-                  <p className="text-gray-700 leading-relaxed">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">Our Mission</h3>
+                  <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
                     {mission}
                   </p>
                 </div>
@@ -226,38 +226,38 @@ const About = ({
               className="group cursor-pointer"
               onClick={() => setSelectedStat(stat)}
             >
-              <div className="relative bg-white rounded-3xl p-8 shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 text-center overflow-hidden h-60">
+              <div className="relative bg-white dark:bg-slate-800/50 rounded-3xl p-8 shadow-lg border border-gray-100 dark:border-slate-700/50 hover:shadow-2xl dark:hover:shadow-slate-900/50 transition-all duration-500 transform hover:-translate-y-2 text-center overflow-hidden h-60 backdrop-blur-sm">
                 {/* Background Image */}
                 {stat.backgroundImage && (
                   <div 
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 group-hover:opacity-30 transition-opacity duration-500"
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 dark:opacity-30 group-hover:opacity-30 dark:group-hover:opacity-40 transition-opacity duration-500"
                     style={{ backgroundImage: `url(${stat.backgroundImage})` }}
                   />
                 )}
                 
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-purple-50/80 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-purple-50/80 dark:from-blue-900/20 dark:to-purple-900/20 opacity-60 group-hover:opacity-40 dark:group-hover:opacity-60 transition-opacity duration-500" />
                 
                 {/* Hover Effects */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-500/10 dark:to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
                 <div className="relative z-10 h-full flex flex-col justify-center">
-                  <div className="inline-flex p-4 mb-4 bg-gradient-to-br from-blue-100/90 to-purple-100/90 rounded-2xl group-hover:scale-110 transition-transform duration-500 mx-auto backdrop-blur-sm">
-                    <div className="text-blue-600 group-hover:text-purple-600 transition-colors duration-500">
+                  <div className="inline-flex p-4 mb-4 bg-gradient-to-br from-blue-100/90 to-purple-100/90 dark:from-blue-900/50 dark:to-purple-900/50 rounded-2xl group-hover:scale-110 transition-transform duration-500 mx-auto backdrop-blur-sm">
+                    <div className="text-blue-600 dark:text-blue-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-500">
                       {stat.icon}
                     </div>
                   </div>
                   
-                  <div className="text-4xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-500">
+                  <div className="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-500">
                     {stat.number}
                   </div>
                   
-                  <div className="text-gray-700 font-medium text-sm">
+                  <div className="text-gray-700 dark:text-slate-300 font-medium text-sm">
                     {stat.label}
                   </div>
                   
                   {/* Click indicator */}
-                  <div className="mt-3 text-xs text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="mt-3 text-xs text-gray-500 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     Click to learn more
                   </div>
                 </div>
@@ -269,26 +269,26 @@ const About = ({
         {/* Popup Modal */}
         {selectedStat && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300 border border-gray-200 dark:border-slate-700">
               {/* Close Button */}
               <button
                 onClick={closePopup}
-                className="absolute top-6 right-6 p-2 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors duration-200 z-10"
+                className="absolute top-6 right-6 p-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full transition-colors duration-200 z-10"
               >
-                <X className="size-6 text-gray-600" />
+                <X className="size-6 text-gray-600 dark:text-slate-300" />
               </button>
               
               {/* Popup Content */}
               <div className="p-8">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="p-4 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl">
-                    <div className="text-blue-600">
+                  <div className="p-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 rounded-2xl">
+                    <div className="text-blue-600 dark:text-blue-400">
                       {selectedStat.icon}
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-3xl font-bold text-gray-900">
+                    <h3 className="text-3xl font-bold text-gray-900 dark:text-slate-100">
                       {selectedStat.popupTitle || `${selectedStat.number} ${selectedStat.label}`}
                     </h3>
                   </div>
@@ -296,7 +296,7 @@ const About = ({
                 
                 {/* Main Image */}
                 {selectedStat.popupImage && (
-                  <div className="mb-6 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="mb-6 rounded-2xl overflow-hidden shadow-xl dark:shadow-slate-900/50">
                     <img 
                       src={selectedStat.popupImage} 
                       alt={selectedStat.popupTitle || selectedStat.label}
@@ -307,18 +307,18 @@ const About = ({
                 
                 {/* Description */}
                 {selectedStat.popupDescription && (
-                  <div className="text-lg text-gray-700 leading-relaxed">
+                  <div className="text-lg text-gray-700 dark:text-slate-300 leading-relaxed">
                     {selectedStat.popupDescription}
                   </div>
                 )}
                 
                 {/* Stats Display */}
-                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border border-gray-200/50">
+                <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-700/50 dark:to-slate-600/50 rounded-2xl border border-gray-200/50 dark:border-slate-600/50">
                   <div className="text-center">
-                    <div className="text-5xl font-bold text-blue-600 mb-2">
+                    <div className="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
                       {selectedStat.number}
                     </div>
-                    <div className="text-gray-700 font-semibold">
+                    <div className="text-gray-700 dark:text-slate-300 font-semibold">
                       {selectedStat.label}
                     </div>
                   </div>
@@ -331,10 +331,10 @@ const About = ({
         {/* Values Section with Video Backgrounds */}
         <div className="mb-24">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-slate-100 mb-6">
               Why Choose MECOSO?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-slate-300 max-w-2xl mx-auto">
               The principles that guide every decision we make and every project we undertake.
             </p>
           </div>
@@ -350,8 +350,8 @@ const About = ({
               >
                 <div className={`relative overflow-hidden rounded-3xl shadow-lg border transition-all duration-500 h-80 ${
                   activeValue === index 
-                    ? 'shadow-2xl border-blue-200' 
-                    : 'border-gray-100 hover:shadow-xl'
+                    ? 'shadow-2xl border-blue-200 dark:border-blue-700 dark:shadow-slate-900/50' 
+                    : 'border-gray-100 dark:border-slate-700 hover:shadow-xl dark:hover:shadow-slate-900/50'
                 }`}>
                   {/* Video Background */}
                   <video 
@@ -367,8 +367,8 @@ const About = ({
                   {/* Overlay */}
                   <div className={`absolute inset-0 transition-all duration-500 ${
                     activeValue === index 
-                      ? 'bg-gradient-to-t from-black/80 via-black/40 to-black/20' 
-                      : 'bg-gradient-to-t from-black/70 via-black/30 to-black/10 group-hover:from-black/75 group-hover:via-black/35'
+                      ? 'bg-gradient-to-t from-black/80 via-black/40 to-black/20 dark:from-black/90 dark:via-black/50 dark:to-black/30' 
+                      : 'bg-gradient-to-t from-black/70 via-black/30 to-black/10 group-hover:from-black/75 group-hover:via-black/35 dark:from-black/80 dark:via-black/40 dark:to-black/20 dark:group-hover:from-black/85 dark:group-hover:via-black/45'
                   }`} />
                   
                   {/* Content */}
@@ -376,7 +376,7 @@ const About = ({
                     <h3 className="text-2xl font-bold text-white mb-4">
                       {value.title}
                     </h3>
-                    <p className="text-gray-200 leading-relaxed">
+                    <p className="text-gray-200 dark:text-slate-200 leading-relaxed">
                       {value.description}
                     </p>
                   </div>
@@ -384,8 +384,8 @@ const About = ({
                   {/* Hover Effect */}
                   <div className={`absolute inset-0 transition-all duration-500 ${
                     activeValue === index 
-                      ? 'bg-blue-500/20' 
-                      : 'bg-transparent group-hover:bg-blue-500/10'
+                      ? 'bg-blue-500/20 dark:bg-blue-400/25' 
+                      : 'bg-transparent group-hover:bg-blue-500/10 dark:group-hover:bg-blue-400/15'
                   }`} />
                 </div>
               </div>
@@ -394,26 +394,26 @@ const About = ({
         </div>
 
         {/* CTA Section */}
-        <div className="text-center bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-12 shadow-2xl">
-          <h2 className="text-4xl font-bold text-white mb-6">
+        <div className="text-center bg-gradient-to-r from-gray-900 to-gray-800 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-12 shadow-2xl dark:shadow-slate-900/50 border border-gray-800 dark:border-slate-700">
+          <h2 className="text-4xl font-bold text-white dark:text-slate-100 mb-6">
             Ready to Build Something Amazing?
           </h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 dark:text-slate-300 mb-8 max-w-2xl mx-auto">
             From concept to commissioning, we're ready to deliver industrial excellence. Reach out to discuss your next project.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/contact" className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group">
+            <Link to="/contact" className="px-8 py-4 bg-blue-600 dark:bg-blue-500 text-white rounded-2xl font-semibold hover:bg-blue-500 dark:hover:bg-blue-400 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group">
               Get Started Now
               <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
             </Link>
             <button 
               onClick={handlePortfolioDownload}
               disabled={isDownloading}
-              className="px-8 py-4 bg-white/10 text-white rounded-2xl font-semibold hover:bg-white/20 backdrop-blur-sm transition-all duration-300 border border-white/20 inline-flex items-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="px-8 py-4 bg-white/10 dark:bg-slate-700/50 text-white dark:text-slate-200 rounded-2xl font-semibold hover:bg-white/20 dark:hover:bg-slate-600/50 backdrop-blur-sm transition-all duration-300 border border-white/20 dark:border-slate-600/50 inline-flex items-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isDownloading ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white dark:border-slate-200"></div>
                   Downloading...
                 </>
               ) : (

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router";
+import { ThemeProvider } from "./components/ThemeContext";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import Services from "./components/Services";
@@ -37,21 +38,23 @@ function Home() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <div className="mx-auto min-h-screen bg-white">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/services" element={<ServicePage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/machines" element={<MachinesPage />} />
-          {/* Add more routes as needed */}
-        </Routes>
-        <Footer />
-      </div>
-    </BrowserRouter>
+    <ThemeProvider defaultTheme="light">
+      <BrowserRouter>
+        <div className="mx-auto min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-500">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/services" element={<ServicePage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/machines" element={<MachinesPage />} />
+            {/* Add more routes as needed */}
+          </Routes>
+          <Footer />
+        </div>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

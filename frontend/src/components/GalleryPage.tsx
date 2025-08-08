@@ -214,24 +214,24 @@ const GalleryPage = ({
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden">
         {/* Background Elements */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)]" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.15),transparent_50%)]" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-3xl animate-pulse" />
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 bg-blue-100/80 backdrop-blur-sm rounded-full border border-blue-200/50">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/30 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-700/50">
+              <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
               {badge}
             </div>
-            <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent mb-6 leading-tight">
+            <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 dark:from-slate-100 dark:via-slate-300 dark:to-slate-400 bg-clip-text text-transparent mb-6 leading-tight">
               {heading}
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-12">
+            <p className="text-xl text-gray-600 dark:text-slate-300 leading-relaxed mb-12">
               {description}
             </p>
           </div>
@@ -246,7 +246,7 @@ const GalleryPage = ({
             <div className="relative w-full max-w-2xl">
               <button 
                 onClick={() => setShowFilters(!showFilters)}
-                className="px-6 py-3 bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-2 mx-auto"
+                className="px-6 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-300 flex items-center gap-2 mx-auto text-gray-700 dark:text-slate-300"
               >
                 <Filter className="size-5" />
                 <span>{activeFilter ? `Filter: ${activeFilter}` : 'Filter Projects'}</span>
@@ -256,7 +256,7 @@ const GalleryPage = ({
                       e.stopPropagation();
                       setActiveFilter(null);
                     }}
-                    className="ml-2 p-1 rounded-full hover:bg-gray-100 transition-colors"
+                    className="ml-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                   >
                     <X className="size-4" />
                   </button>
@@ -264,7 +264,7 @@ const GalleryPage = ({
               </button>
               
               {showFilters && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-lg p-4 z-20 animate-fadeIn">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-lg dark:shadow-2xl p-4 z-20 animate-fadeIn">
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                     {categories.map(category => (
                       <button
@@ -274,7 +274,11 @@ const GalleryPage = ({
                           setShowFilters(false);
                           setVisibleItems(8);
                         }}
-                        className={`px-4 py-2 text-sm rounded-full transition-all ${activeFilter === category ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                        className={`px-4 py-2 text-sm rounded-full transition-all ${
+                          activeFilter === category 
+                            ? 'bg-blue-600 dark:bg-blue-500 text-white' 
+                            : 'bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-300'
+                        }`}
                       >
                         {category}
                       </button>
@@ -292,7 +296,7 @@ const GalleryPage = ({
                 {[...Array(8)].map((_, index) => (
                   <div 
                     key={index}
-                    className="bg-gray-200/50 animate-pulse rounded-2xl h-64 md:h-72"
+                    className="bg-gray-200/50 dark:bg-slate-700/50 animate-pulse rounded-2xl h-64 md:h-72"
                   />
                 ))}
               </div>
@@ -304,7 +308,7 @@ const GalleryPage = ({
                     return (
                       <div 
                         key={item.id}
-                        className={`group relative overflow-hidden rounded-2xl md:rounded-3xl cursor-pointer transition-all duration-500 hover:shadow-2xl hover:scale-[1.02] ${getImageHeight(item.size)}`}
+                        className={`group relative overflow-hidden rounded-2xl md:rounded-3xl cursor-pointer transition-all duration-500 hover:shadow-2xl dark:hover:shadow-2xl hover:scale-[1.02] ${getImageHeight(item.size)}`}
                         style={{ 
                           width: itemWidth, 
                           flexShrink: 0,
@@ -375,18 +379,18 @@ const GalleryPage = ({
           {visibleItems < filteredItems.length && (
             <div className="relative mt-16">
               {/* Fade Gradient */}
-              <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-slate-800 via-white/80 dark:via-slate-800/80 to-transparent pointer-events-none" />
               
               {/* Show More Button */}
               <div className="text-center relative z-10">
                 <button 
                   onClick={showMoreItems}
-                  className="px-8 py-4 bg-gray-900 hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
+                  className="px-8 py-4 bg-gray-900 dark:bg-slate-700 hover:bg-blue-600 dark:hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-2xl flex items-center gap-2 mx-auto"
                 >
                   Show More Projects
                   <ArrowUpRight className="size-5 transform transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </button>
-                <p className="text-gray-500 text-sm mt-4">
+                <p className="text-gray-500 dark:text-slate-400 text-sm mt-4">
                   Showing {Math.min(visibleItems, filteredItems.length)} of {filteredItems.length} projects
                   {activeFilter && ` in ${activeFilter}`}
                 </p>
@@ -400,7 +404,7 @@ const GalleryPage = ({
       {selectedItem && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div 
-            className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn"
+            className="bg-white dark:bg-slate-800 rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn"
             style={{
               animation: 'scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
             }}
@@ -413,38 +417,38 @@ const GalleryPage = ({
               />
               <button 
                 onClick={() => setSelectedItem(null)}
-                className="absolute top-6 right-6 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors duration-300 flex items-center justify-center text-gray-800 font-bold hover:rotate-90 transform transition-transform duration-300"
+                className="absolute top-6 right-6 w-10 h-10 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full hover:bg-white dark:hover:bg-slate-700 transition-colors duration-300 flex items-center justify-center text-gray-800 dark:text-slate-200 font-bold hover:rotate-90 transform transition-transform duration-300"
               >
                 ✕
               </button>
               
               {/* Category Badge on Image */}
               <div className="absolute top-6 left-6">
-                <span className="px-4 py-2 bg-white/90 backdrop-blur-sm text-gray-800 font-medium rounded-full">
+                <span className="px-4 py-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-gray-800 dark:text-slate-200 font-medium rounded-full">
                   {selectedItem.category}
                 </span>
               </div>
             </div>
             
             <div className="p-8 lg:p-12">
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6 leading-tight">
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100 mb-6 leading-tight">
                 {selectedItem.title}
               </h2>
-              <p className="text-gray-600 text-lg leading-relaxed mb-8">
+              <p className="text-gray-600 dark:text-slate-300 text-lg leading-relaxed mb-8">
                 {selectedItem.description}
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <button 
                   onClick={() => setSelectedItem(null)}
-                  className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                  className="px-8 py-4 bg-blue-600 dark:bg-blue-500 text-white rounded-2xl font-semibold hover:bg-blue-500 dark:hover:bg-blue-400 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-2xl flex items-center justify-center gap-2"
                 >
                   Contact Us About This Project
                   <ArrowUpRight className="size-5" />
                 </button>
                 <button 
                   onClick={() => setSelectedItem(null)}
-                  className="px-8 py-4 bg-gray-100 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-300"
+                  className="px-8 py-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-2xl font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition-all duration-300"
                 >
                   Close
                 </button>
