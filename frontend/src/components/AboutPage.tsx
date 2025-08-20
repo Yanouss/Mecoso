@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Building, Lightbulb, Heart, Shield, Star, Trophy, MapPin, Phone, Mail, X } from 'lucide-react';
+import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Building, Lightbulb, Heart, Shield, Star, Trophy, MapPin, Phone, Mail, X, Edit3, Save, Plus, Trash2, Type } from 'lucide-react';
 
 interface Stat {
   number: string;
@@ -25,12 +25,6 @@ interface Value {
   icon: React.ReactNode;
 }
 
-interface Milestone {
-  year: string;
-  title: string;
-  description: string;
-}
-
 interface AboutPageProps {
   badge?: string;
   heading?: string;
@@ -41,9 +35,33 @@ interface AboutPageProps {
   team?: TeamMember[];
   mission?: string;
   vision?: string;
-  milestones?: Milestone[];
   heroImage?: string;
+  isModerator?: boolean;
 }
+
+interface AboutPageFormData {
+  badge: string;
+  heading: string;
+  description: string;
+  story: string;
+  mission: string;
+  vision: string;
+  heroImage: string;
+  stats: Stat[];
+  values: Value[];
+}
+
+const iconOptions = [
+  { name: 'Target', component: Target },
+  { name: 'Clock', component: Clock },
+  { name: 'Award', component: Award },
+  { name: 'Users', component: Users },
+  { name: 'CheckCircle', component: CheckCircle },
+  { name: 'Building', component: Building },
+  { name: 'Shield', component: Shield },
+  { name: 'Heart', component: Heart },
+  { name: 'Lightbulb', component: Lightbulb },
+];
 
 const AboutPage = ({
   badge = "About Our Company",
@@ -92,78 +110,71 @@ const AboutPage = ({
   
   values = [
       {
-        title: " Complete Solutions",
+        title: "Complete Solutions",
         description: "From initial design to final commissioning and ongoing maintenance, MECOSO delivers seamless, end-to-end industrial solutions tailored to your needs.",
-        icon: <Target className="size-6" />,
-        videoUrl: "/videos/values/value1.mp4"
+        icon: <Target className="size-6" />
       },
       {
         title: "Advanced Technology",
         description: "We leverage state-of-the-art machinery and cutting-edge processes to ensure efficiency, precision, and innovation at every stage.",
-        icon: <Award className="size-6" />,
-        videoUrl: "/videos/values/value4.mp4"
+        icon: <Award className="size-6" />
       },
       {
         title: "Quality Assurance",
         description: "Certified to ISO 9001:2015 standards, our rigorous quality control systems guarantee consistent excellence across all operations.",
-        icon: <Users className="size-6" />,
-        videoUrl: "/videos/values/value3.mp4"
+        icon: <Users className="size-6" />
       },
       {
         title: "Safety First",
         description: "We prioritize safety above all, adhering to the highest industry standards to protect our people, partners, and projects.",
-        icon: <Shield className="size-6" />,
-        videoUrl: "/videos/values/value6.mp4"
+        icon: <Shield className="size-6" />
       },
       {
         title: "Experienced Team",
         description: "Our multidisciplinary team brings deep expertise and hands-on experience, ensuring professional execution and reliable support every step of the way.",
-        icon: <Users className="size-6" />,
-        videoUrl: "/videos/values/value2.mp4"
+        icon: <Users className="size-6" />
       },
       {
         title: "Client Partnership",
         description: "Building lasting relationships through collaborative approach.",
-        icon: <Heart className="size-6" />,
-        videoUrl: "/videos/values/value5.mp4"
+        icon: <Heart className="size-6" />
       }
   ],
   mission = "To provide comprehensive, high-quality metalwork solutions that meet the evolving needs of modern industry while maintaining the highest standards of safety, quality, and customer satisfaction",
   
   vision = "To be the leading construction company that shapes the future of our cities through sustainable, innovative, and transformative building solutions.",
-
-  milestones = [
-    {
-      year: "2003",
-      title: "Company Founded",
-      description: "Started with a small team of passionate engineers and a big vision for the future."
-    },
-    {
-      year: "2008",
-      title: "First Major Project",
-      description: "Completed our first landmark commercial building, establishing our reputation for excellence."
-    },
-    {
-      year: "2015",
-      title: "Sustainability Focus",
-      description: "Pioneered green building practices and became certified in sustainable construction methods."
-    },
-    {
-      year: "2020",
-      title: "Digital Innovation",
-      description: "Integrated cutting-edge technology and BIM modeling into our construction processes."
-    },
-    {
-      year: "2024",
-      title: "Industry Recognition",
-      description: "Received multiple awards for outstanding construction projects and innovation in design."
-    }
-  ],
-  heroImage = "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=800&fit=crop"
+  heroImage = "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=800&fit=crop",
+  isModerator = true
 }: AboutPageProps) => {
   const [activeValue, setActiveValue] = useState(0);
   const [scrollY, setScrollY] = useState(0);
   const [selectedStat, setSelectedStat] = useState<Stat | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'general' | 'stats' | 'values'>('general');
+  
+  const [formData, setFormData] = useState<AboutPageFormData>({
+    badge,
+    heading,
+    description,
+    story,
+    mission,
+    vision,
+    heroImage,
+    stats,
+    values
+  });
+
+  const [currentData, setCurrentData] = useState({
+    badge,
+    heading,
+    description,
+    story,
+    mission,
+    vision,
+    heroImage,
+    stats,
+    values
+  });
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -187,17 +198,96 @@ const AboutPage = ({
     };
   }, [selectedStat]);
 
+  const handleInputChange = (field: keyof AboutPageFormData, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleStatChange = (index: number, field: keyof Stat, value: any) => {
+    const newStats = [...formData.stats];
+    newStats[index] = { ...newStats[index], [field]: value };
+    handleInputChange('stats', newStats);
+  };
+
+  const handleValueChange = (index: number, field: keyof Value, value: any) => {
+    const newValues = [...formData.values];
+    newValues[index] = { ...newValues[index], [field]: value };
+    handleInputChange('values', newValues);
+  };
+
+  const addStat = () => {
+    const newStat: Stat = {
+      number: "",
+      label: "",
+      icon: <Target className="size-6" />,
+      backgroundImage: "",
+      popupImage: "",
+      popupTitle: "",
+      popupDescription: ""
+    };
+    handleInputChange('stats', [...formData.stats, newStat]);
+  };
+
+  const removeStat = (index: number) => {
+    const newStats = formData.stats.filter((_, i) => i !== index);
+    handleInputChange('stats', newStats);
+  };
+
+  const addValue = () => {
+    const newValue: Value = {
+      title: "",
+      description: "",
+      icon: <Target className="size-6" />
+    };
+    handleInputChange('values', [...formData.values, newValue]);
+  };
+
+  const removeValue = (index: number) => {
+    const newValues = formData.values.filter((_, i) => i !== index);
+    handleInputChange('values', newValues);
+  };
+
+  const getIconComponent = (iconName: string) => {
+    const iconOption = iconOptions.find(option => option.name === iconName);
+    return iconOption ? <iconOption.component className="size-6" /> : <Target className="size-6" />;
+  };
+
+  const handleSave = () => {
+    setCurrentData(formData);
+    console.log('Saving about page data:', formData);
+    // TODO: Add API call to Node.js backend
+    setIsEditModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setFormData(currentData);
+    setIsEditModalOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
+    <div className="min-h-screen bg-white dark:bg-slate-900 relative">
+      {/* Edit Button for Moderators - Fixed to be more visible */}
+      {isModerator && (
+        <button
+          onClick={() => setIsEditModalOpen(true)}
+          className="fixed top-44 right-4 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-3 shadow-lg hover:shadow-xl transition-all duration-300 group"
+          title="Edit About Page"
+        >
+          <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+        </button>
+      )}
+
       {/* Hero Section */}
       <section 
         className="relative py-32 lg:py-44 bg-cover bg-center bg-no-repeat overflow-hidden"
-        style={{ backgroundImage: `url(${heroImage})` }}
+        style={{ backgroundImage: `url(${currentData.heroImage})` }}
       >
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-300"
           style={{ 
-            backgroundImage: `url(${heroImage})`,
+            backgroundImage: `url(${currentData.heroImage})`,
           }}
         />
         
@@ -210,15 +300,15 @@ const AboutPage = ({
           <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-300 dark:text-blue-200 bg-blue-900/30 dark:bg-blue-800/40 backdrop-blur-sm rounded-full border border-blue-500/30 dark:border-blue-400/40">
               <div className="w-2 h-2 bg-blue-400 dark:bg-blue-300 rounded-full animate-pulse" />
-              {badge}
+              {currentData.badge}
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold text-white dark:text-slate-100 mb-6 leading-tight">
-              {heading}
+              {currentData.heading}
             </h1>
             
             <p className="text-xl text-white/90 dark:text-slate-200/90 leading-relaxed max-w-3xl mb-8">
-              {description}
+              {currentData.description}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
@@ -237,7 +327,7 @@ const AboutPage = ({
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {stats.map((stat, index) => (
+            {currentData.stats.map((stat, index) => (
               <div 
                 key={index}
                 className="group cursor-pointer"
@@ -374,7 +464,7 @@ const AboutPage = ({
                 </h2>
                 
                 <p className="text-lg text-gray-700 dark:text-slate-300 leading-relaxed mb-8">
-                  {story}
+                  {currentData.story}
                 </p>
               </div>
 
@@ -387,7 +477,7 @@ const AboutPage = ({
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Our Mission</h3>
                       <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
-                        {mission}
+                        {currentData.mission}
                       </p>
                     </div>
                   </div>
@@ -401,7 +491,7 @@ const AboutPage = ({
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Our Vision</h3>
                       <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
-                        {vision}
+                        {currentData.vision}
                       </p>
                     </div>
                   </div>
@@ -433,7 +523,7 @@ const AboutPage = ({
           </div>
           
           <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {values.map((value, index) => (
+            {currentData.values.map((value, index) => (
               <div 
                 key={index}
                 className={`group cursor-pointer transition-all duration-500 ${
@@ -546,6 +636,344 @@ const AboutPage = ({
           </div>
         </div>
       </section>
+
+      {/* Edit Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                  <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit About Page</h2>
+              </div>
+              <button
+                onClick={handleCancel}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+              {[
+                { key: 'general', label: 'General Info', icon: Type },
+                { key: 'stats', label: 'Statistics', icon: Award },
+                { key: 'values', label: 'Values', icon: Target }
+              ].map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key as any)}
+                  className={`flex items-center gap-2 px-6 py-4 font-medium transition-all duration-200 ${
+                    activeTab === key
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-600'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              {/* General Tab */}
+              {activeTab === 'general' && (
+                <div className="space-y-6">
+                  {/* Badge */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Badge Text
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.badge}
+                      onChange={(e) => handleInputChange('badge', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+                      placeholder="About Our Company"
+                    />
+                  </div>
+
+                  {/* Heading */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Main Heading
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.heading}
+                      onChange={(e) => handleInputChange('heading', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+                      placeholder="Leading Industrial Solutions in Morocco"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Description
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
+                      placeholder="Enter description..."
+                    />
+                  </div>
+
+                  {/* Story */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Company Story
+                    </label>
+                    <textarea
+                      value={formData.story}
+                      onChange={(e) => handleInputChange('story', e.target.value)}
+                      rows={6}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
+                      placeholder="Enter company story..."
+                    />
+                  </div>
+
+                  {/* Mission */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Mission Statement
+                    </label>
+                    <textarea
+                      value={formData.mission}
+                      onChange={(e) => handleInputChange('mission', e.target.value)}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
+                      placeholder="Enter mission statement..."
+                    />
+                  </div>
+
+                  {/* Vision */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Vision Statement
+                    </label>
+                    <textarea
+                      value={formData.vision}
+                      onChange={(e) => handleInputChange('vision', e.target.value)}
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
+                      placeholder="Enter vision statement..."
+                    />
+                  </div>
+
+                  {/* Hero Image */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Hero Image URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.heroImage}
+                      onChange={(e) => handleInputChange('heroImage', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+                      placeholder="https://example.com/hero-image.jpg"
+                    />
+                    {formData.heroImage && (
+                      <div className="mt-3">
+                        <div className="relative w-full h-32 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
+                          <img
+                            src={formData.heroImage}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
+                            Failed to load image
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Stats Tab */}
+              {activeTab === 'stats' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Statistics</h3>
+                    <button
+                      onClick={addStat}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Stat
+                    </button>
+                  </div>
+
+                  {formData.stats.map((stat, index) => (
+                    <div key={index} className="p-6 border border-gray-200 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-700/50 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900 dark:text-white">Statistic {index + 1}</h4>
+                        <button
+                          onClick={() => removeStat(index)}
+                          className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Number</label>
+                          <input
+                            type="text"
+                            value={stat.number}
+                            onChange={(e) => handleStatChange(index, 'number', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="50+"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Label</label>
+                          <input
+                            type="text"
+                            value={stat.label}
+                            onChange={(e) => handleStatChange(index, 'label', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="Projects Completed"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Background Image</label>
+                          <input
+                            type="url"
+                            value={stat.backgroundImage || ''}
+                            onChange={(e) => handleStatChange(index, 'backgroundImage', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="https://example.com/bg.jpg"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Image</label>
+                          <input
+                            type="url"
+                            value={stat.popupImage || ''}
+                            onChange={(e) => handleStatChange(index, 'popupImage', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="https://example.com/popup.jpg"
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Title</label>
+                          <input
+                            type="text"
+                            value={stat.popupTitle || ''}
+                            onChange={(e) => handleStatChange(index, 'popupTitle', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="50+ Projects Completed"
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Description</label>
+                          <textarea
+                            value={stat.popupDescription || ''}
+                            onChange={(e) => handleStatChange(index, 'popupDescription', e.target.value)}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm resize-none"
+                            placeholder="Detailed description for the popup..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Values Tab */}
+              {activeTab === 'values' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Company Values</h3>
+                    <button
+                      onClick={addValue}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Value
+                    </button>
+                  </div>
+
+                  {formData.values.map((value, index) => (
+                    <div key={index} className="p-6 border border-gray-200 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-700/50 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900 dark:text-white">Value {index + 1}</h4>
+                        <button
+                          onClick={() => removeValue(index)}
+                          className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                          <input
+                            type="text"
+                            value={value.title}
+                            onChange={(e) => handleValueChange(index, 'title', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="Complete Solutions"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                          <textarea
+                            value={value.description}
+                            onChange={(e) => handleValueChange(index, 'description', e.target.value)}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm resize-none"
+                            placeholder="Detailed description of this value..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-4 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+              <button
+                onClick={handleCancel}
+                className="px-6 py-2 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+              >
+                <Save className="inline-block w-4 h-4 mr-2" />
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
