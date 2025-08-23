@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Building, Lightbulb, Heart, Shield, Star, Trophy, MapPin, Phone, Mail, X, Edit3, Save, Plus, Trash2, Type } from 'lucide-react';
+import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Building, Lightbulb, Heart, Shield, Star, Trophy, MapPin, Phone, Mail, X, Edit3, Save, Plus, Trash2, Type, Upload } from 'lucide-react';
 
 interface Stat {
   number: string;
@@ -25,6 +25,11 @@ interface Value {
   icon: React.ReactNode;
 }
 
+interface Partner {
+  src: string;
+  name: string;
+}
+
 interface AboutPageProps {
   badge?: string;
   heading?: string;
@@ -36,6 +41,7 @@ interface AboutPageProps {
   mission?: string;
   vision?: string;
   heroImage?: string;
+  partners?: Partner[];
   isModerator?: boolean;
 }
 
@@ -49,6 +55,7 @@ interface AboutPageFormData {
   heroImage: string;
   stats: Stat[];
   values: Value[];
+  partners: Partner[];
 }
 
 const iconOptions = [
@@ -140,6 +147,24 @@ const AboutPage = ({
         icon: <Heart className="size-6" />
       }
   ],
+  
+  partners = [
+    { src: "/images/partners/Partner1.jpg", name: "Partner 1" },
+    { src: "/images/partners/Partner2.jpg", name: "Partner 2" },
+    { src: "/images/partners/Partner3.jpg", name: "Partner 3" },
+    { src: "/images/partners/Partner4.jpg", name: "Partner 4" },
+    { src: "/images/partners/Partner5.jpg", name: "Partner 5" },
+    { src: "/images/partners/Partner5.png", name: "Partner 6" },
+    { src: "/images/partners/Partner6.webp", name: "Partner 7" },
+    { src: "/images/partners/Partner7.png", name: "Partner 8" },
+    { src: "/images/partners/Partner8.jpg", name: "Partner 9" },
+    { src: "/images/partners/Partner9.png", name: "Partner 10" },
+    { src: "/images/partners/Partner10.jpg", name: "Partner 11" },
+    { src: "/images/partners/Partner11.png", name: "Partner 12" },
+    { src: "/images/partners/Partner12.png", name: "Partner 13" },
+    { src: "/images/partners/Partner13.jpg", name: "Partner 14" }
+  ],
+  
   mission = "To provide comprehensive, high-quality metalwork solutions that meet the evolving needs of modern industry while maintaining the highest standards of safety, quality, and customer satisfaction",
   
   vision = "To be the leading construction company that shapes the future of our cities through sustainable, innovative, and transformative building solutions.",
@@ -150,7 +175,7 @@ const AboutPage = ({
   const [scrollY, setScrollY] = useState(0);
   const [selectedStat, setSelectedStat] = useState<Stat | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'stats' | 'values'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'stats' | 'values' | 'partners'>('general');
   
   const [formData, setFormData] = useState<AboutPageFormData>({
     badge,
@@ -161,7 +186,8 @@ const AboutPage = ({
     vision,
     heroImage,
     stats,
-    values
+    values,
+    partners
   });
 
   const [currentData, setCurrentData] = useState({
@@ -173,7 +199,8 @@ const AboutPage = ({
     vision,
     heroImage,
     stats,
-    values
+    values,
+    partners
   });
 
   useEffect(() => {
@@ -217,6 +244,12 @@ const AboutPage = ({
     handleInputChange('values', newValues);
   };
 
+  const handlePartnerChange = (index: number, field: keyof Partner, value: any) => {
+    const newPartners = [...formData.partners];
+    newPartners[index] = { ...newPartners[index], [field]: value };
+    handleInputChange('partners', newPartners);
+  };
+
   const addStat = () => {
     const newStat: Stat = {
       number: "",
@@ -249,6 +282,19 @@ const AboutPage = ({
     handleInputChange('values', newValues);
   };
 
+  const addPartner = () => {
+    const newPartner: Partner = {
+      src: "",
+      name: ""
+    };
+    handleInputChange('partners', [...formData.partners, newPartner]);
+  };
+
+  const removePartner = (index: number) => {
+    const newPartners = formData.partners.filter((_, i) => i !== index);
+    handleInputChange('partners', newPartners);
+  };
+
   const getIconComponent = (iconName: string) => {
     const iconOption = iconOptions.find(option => option.name === iconName);
     return iconOption ? <iconOption.component className="size-6" /> : <Target className="size-6" />;
@@ -272,7 +318,7 @@ const AboutPage = ({
       {isModerator && (
         <button
           onClick={() => setIsEditModalOpen(true)}
-          className="fixed top-44 right-4 z-50 bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-3 shadow-lg hover:shadow-xl transition-all duration-300 group"
+          className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-gray-800 dark:text-white hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 shadow-lg hover:shadow-xl group"
           title="Edit About Page"
         >
           <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
@@ -590,22 +636,7 @@ const AboutPage = ({
 
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-              {[
-                { src: "/images/partners/Partner1.jpg", name: "Partner 1" },
-                { src: "/images/partners/Partner2.jpg", name: "Partner 2" },
-                { src: "/images/partners/Partner3.jpg", name: "Partner 3" },
-                { src: "/images/partners/Partner4.jpg", name: "Partner 4" },
-                { src: "/images/partners/Partner5.jpg", name: "Partner 5" },
-                { src: "/images/partners/Partner5.png", name: "Partner 6" },
-                { src: "/images/partners/Partner6.webp", name: "Partner 7" },
-                { src: "/images/partners/Partner7.png", name: "Partner 8" },
-                { src: "/images/partners/Partner8.jpg", name: "Partner 9" },
-                { src: "/images/partners/Partner9.png", name: "Partner 10" },
-                { src: "/images/partners/Partner10.jpg", name: "Partner 11" },
-                { src: "/images/partners/Partner11.png", name: "Partner 12" },
-                { src: "/images/partners/Partner12.png", name: "Partner 13" },
-                { src: "/images/partners/Partner13.jpg", name: "Partner 14" }
-              ].map((partner, idx) => (
+              {currentData.partners.map((partner, idx) => (
                 <div key={idx} className="group relative">
                   <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-slate-700 hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 relative overflow-hidden h-32 flex items-center justify-center">
                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -619,7 +650,14 @@ const AboutPage = ({
                         src={partner.src} 
                         alt={partner.name}
                         className="max-h-16 max-w-[80%] object-contain grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                        }}
                       />
+                      <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden rounded-lg">
+                        {partner.name}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -662,7 +700,8 @@ const AboutPage = ({
               {[
                 { key: 'general', label: 'General Info', icon: Type },
                 { key: 'stats', label: 'Statistics', icon: Award },
-                { key: 'values', label: 'Values', icon: Target }
+                { key: 'values', label: 'Values', icon: Target },
+                { key: 'partners', label: 'Partners', icon: Building }
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
@@ -951,6 +990,98 @@ const AboutPage = ({
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Partners Tab */}
+              {activeTab === 'partners' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Partners</h3>
+                    <button
+                      onClick={addPartner}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Partner
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {formData.partners.map((partner, index) => (
+                      <div key={index} className="p-6 border border-gray-200 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-700/50 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900 dark:text-white">Partner {index + 1}</h4>
+                          <button
+                            onClick={() => removePartner(index)}
+                            className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Partner Name</label>
+                            <input
+                              type="text"
+                              value={partner.name}
+                              onChange={(e) => handlePartnerChange(index, 'name', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                              placeholder="Partner Name"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo URL</label>
+                            <input
+                              type="url"
+                              value={partner.src}
+                              onChange={(e) => handlePartnerChange(index, 'src', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                              placeholder="https://example.com/logo.jpg"
+                            />
+                          </div>
+
+                          {/* Image Preview */}
+                          {partner.src && (
+                            <div className="mt-3">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview</label>
+                              <div className="relative w-full h-24 bg-gray-100 dark:bg-slate-600 rounded-lg overflow-hidden flex items-center justify-center">
+                                <img
+                                  src={partner.src}
+                                  alt={partner.name}
+                                  className="max-h-16 max-w-[80%] object-contain"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling.style.display = 'flex';
+                                  }}
+                                />
+                                <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
+                                  Failed to load image
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {formData.partners.length === 0 && (
+                    <div className="text-center py-12">
+                      <Building className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No partners yet</h3>
+                      <p className="text-gray-500 dark:text-gray-400 mb-6">Get started by adding your first partner.</p>
+                      <button
+                        onClick={addPartner}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Partner
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
