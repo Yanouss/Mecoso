@@ -10,6 +10,7 @@ import AboutPage from "./components/AboutPage";
 import ServicePage from "./components/ServicePage";
 import GalleryPage from "./components/GalleryPage";
 import MachinesPage from "./components/MachinesPage";
+import { Toaster } from "sonner"; // Import the Toaster component
 
 function Home() {
   return (
@@ -52,6 +53,13 @@ function App() {
             {/* Add more routes as needed */}
           </Routes>
           <Footer />
+          {/* Add the Toaster component here */}
+          <Toaster 
+            position="top-right"
+            richColors
+            closeButton
+            duration={4000}
+          />
         </div>
       </BrowserRouter>
     </ThemeProvider>

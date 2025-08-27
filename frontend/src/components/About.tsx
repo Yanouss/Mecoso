@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Download, X, Edit3, Save, Plus, Trash2, Image, Type, FileText } from 'lucide-react';
+import React, { useState, useCallback, useRef } from 'react';
+import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Download, X, Edit3, Save, Plus, Trash2, Image, Type, FileText, Upload, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router';
+import { toast } from 'sonner';
 
 interface Stat {
   number: string;
@@ -59,6 +60,209 @@ const iconOptions = [
   { name: 'Users', component: Users },
   { name: 'CheckCircle', component: CheckCircle },
 ];
+
+// File upload utility functions
+const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB in bytes
+
+const isValidImageType = (type: string) => {
+  return ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml'].includes(type);
+};
+
+const isValidVideoType = (type: string) => {
+  return ['video/mp4', 'video/webm', 'video/avi', 'video/mov', 'video/wmv', 'video/flv'].includes(type);
+};
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+// Drag and Drop Image Upload Component
+const DragDropImageUpload = ({ 
+  value, 
+  onChange, 
+  label, 
+  className = "",
+  accept = "image/*"
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  label: string;
+  className?: string;
+  accept?: string;
+}) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = useCallback(async (file: File) => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`File size too large. Maximum size allowed is ${formatFileSize(MAX_FILE_SIZE)}.`);
+      return;
+    }
+
+    // Check file type
+    const isImage = isValidImageType(file.type);
+    const isVideo = isValidVideoType(file.type);
+    
+    if (!isImage && !isVideo) {
+      toast.error('Invalid file type. Please upload an image or video file.');
+      return;
+    }
+
+    setIsUploading(true);
+    
+    try {
+      // Create object URL for preview (in a real app, you'd upload to server)
+      const objectUrl = URL.createObjectURL(file);
+      onChange(objectUrl);
+      toast.success(`${isImage ? 'Image' : 'Video'} uploaded successfully!`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload file. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  }, [onChange]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFile(files[0]);
+    }
+  }, [handleFile]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFile(files[0]);
+    }
+  }, [handleFile]);
+
+  const handleClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange('');
+    toast.success('File removed successfully.');
+  };
+
+  return (
+    <div className={`space-y-3 ${className}`}>
+      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+        {label}
+      </label>
+      
+      <div
+        className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-200 cursor-pointer ${
+          isDragging
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+            : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+        } ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onClick={handleClick}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={accept}
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+
+        {value ? (
+          <div className="relative">
+            {/* Preview */}
+            <div className="relative w-full h-32 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden mb-3">
+              {value.startsWith('blob:') || value.includes('video') || accept.includes('video') ? (
+                <video
+                  src={value}
+                  className="w-full h-full object-cover"
+                  muted
+                  controls
+                  onError={() => {
+                    toast.error('Failed to load video preview.');
+                  }}
+                />
+              ) : (
+                <img
+                  src={value}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                  onError={() => {
+                    toast.error('Failed to load image preview.');
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Remove button */}
+            <button
+              onClick={handleRemove}
+              className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+              title="Remove file"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* File info */}
+            <div className="text-sm text-gray-600 dark:text-gray-400 text-center">
+              Click to replace or drag new file here
+            </div>
+          </div>
+        ) : (
+          <div className="text-center">
+            {isUploading ? (
+              <div className="flex flex-col items-center gap-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Uploading...</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <div className={`p-3 rounded-full ${
+                  isDragging 
+                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' 
+                    : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400'
+                }`}>
+                  <Upload className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {isDragging ? 'Drop file here' : 'Drop file here or click to browse'}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Images, videos up to {formatFileSize(MAX_FILE_SIZE)}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const About = ({
   badge = "About Our Company",
@@ -207,11 +411,13 @@ const About = ({
       popupDescription: ""
     };
     handleInputChange('stats', [...formData.stats, newStat]);
+    toast.success('New statistic added successfully.');
   };
 
   const removeStat = (index: number) => {
     const newStats = formData.stats.filter((_, i) => i !== index);
     handleInputChange('stats', newStats);
+    toast.success('Statistic removed successfully.');
   };
 
   const addValue = () => {
@@ -222,11 +428,13 @@ const About = ({
       videoUrl: ""
     };
     handleInputChange('values', [...formData.values, newValue]);
+    toast.success('New value added successfully.');
   };
 
   const removeValue = (index: number) => {
     const newValues = formData.values.filter((_, i) => i !== index);
     handleInputChange('values', newValues);
+    toast.success('Value removed successfully.');
   };
 
   const getIconComponent = (iconName: string) => {
@@ -237,13 +445,14 @@ const About = ({
   const handleSave = () => {
     setCurrentData(formData);
     console.log('Saving about data:', formData);
-    // TODO: Add API call to Node.js backend
+    toast.success('About section updated successfully!');
     setIsEditModalOpen(false);
   };
 
   const handleCancel = () => {
     setFormData(currentData);
     setIsEditModalOpen(false);
+    toast.info('Changes discarded.');
   };
 
   const handlePortfolioDownload = async () => {
@@ -257,8 +466,10 @@ const About = ({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      toast.success('Portfolio download started successfully.');
     } catch (error) {
       console.error('Error downloading portfolio:', error);
+      toast.error('Failed to download portfolio. Please try again.');
     } finally {
       setIsDownloading(false);
     }
@@ -666,37 +877,13 @@ const About = ({
                     />
                   </div>
 
-                  {/* Image */}
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Main Image URL
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.image}
-                      onChange={(e) => handleInputChange('image', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                    {formData.image && (
-                      <div className="mt-3">
-                        <div className="relative w-full h-32 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
-                          <img
-                            src={formData.image}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling.style.display = 'flex';
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
-                            Failed to load image
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  {/* Main Image with Drag & Drop */}
+                  <DragDropImageUpload
+                    value={formData.image}
+                    onChange={(value) => handleInputChange('image', value)}
+                    label="Main Image"
+                    accept="image/*"
+                  />
 
                   {/* Portfolio File */}
                   <div className="space-y-3">
@@ -763,25 +950,23 @@ const About = ({
                           />
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Background Image</label>
-                          <input
-                            type="url"
+                        {/* Background Image with Drag & Drop */}
+                        <div className="md:col-span-2">
+                          <DragDropImageUpload
                             value={stat.backgroundImage || ''}
-                            onChange={(e) => handleStatChange(index, 'backgroundImage', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="https://example.com/bg.jpg"
+                            onChange={(value) => handleStatChange(index, 'backgroundImage', value)}
+                            label="Background Image"
+                            accept="image/*"
                           />
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Image</label>
-                          <input
-                            type="url"
+                        {/* Popup Image with Drag & Drop */}
+                        <div className="md:col-span-2">
+                          <DragDropImageUpload
                             value={stat.popupImage || ''}
-                            onChange={(e) => handleStatChange(index, 'popupImage', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="https://example.com/popup.jpg"
+                            onChange={(value) => handleStatChange(index, 'popupImage', value)}
+                            label="Popup Image"
+                            accept="image/*"
                           />
                         </div>
 
@@ -838,7 +1023,7 @@ const About = ({
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
                           <input
@@ -850,18 +1035,15 @@ const About = ({
                           />
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video URL</label>
-                          <input
-                            type="text"
-                            value={value.videoUrl}
-                            onChange={(e) => handleValueChange(index, 'videoUrl', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="/videos/values/value1.mp4"
-                          />
-                        </div>
+                        {/* Video with Drag & Drop */}
+                        <DragDropImageUpload
+                          value={value.videoUrl}
+                          onChange={(value) => handleValueChange(index, 'videoUrl', value)}
+                          label="Background Video"
+                          accept="video/*,image/*"
+                        />
 
-                        <div className="md:col-span-2">
+                        <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                           <textarea
                             value={value.description}

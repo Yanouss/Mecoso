@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Edit3, Trash2, Plus, X, Save, Image, Type, FileText, Grid3X3 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight, Edit3, Trash2, Plus, X, Save, Image, Type, FileText, Grid3X3, Upload, File } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Feature {
   id?: number;
@@ -58,7 +59,7 @@ const ServicesCarousel = ({
       image: "https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
     },
   ],
-  isModerator = true, // Set to true for demo purposes
+  isModerator = true,
 }: ServicesCarouselProps) => {
   const [features, setFeatures] = useState<Feature[]>(initialFeatures);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -70,6 +71,12 @@ const ServicesCarousel = ({
     description: '',
     image: ''
   });
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB in bytes
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/mov', 'video/avi'];
 
   useEffect(() => {
     if (!isPlaying || modalMode) return;
@@ -98,8 +105,68 @@ const ServicesCarousel = ({
     }));
   };
 
+  const validateFile = (file: File): boolean => {
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File too large", {
+        description: `File size must be less than 200MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
+      });
+      return false;
+    }
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error("Invalid file type", {
+        description: "Please upload an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM, MOV, AVI).",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleFileSelect = (file: File) => {
+    if (!validateFile(file)) return;
+
+    setUploadedFile(file);
+    
+    // Create a temporary URL for preview
+    const fileUrl = URL.createObjectURL(file);
+    handleInputChange('image', fileUrl);
+
+    toast.success("File uploaded successfully", {
+      description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  };
+
   const openAddModal = () => {
     setFormData({ title: '', description: '', image: '' });
+    setUploadedFile(null);
     setModalMode('add');
   };
 
@@ -110,6 +177,7 @@ const ServicesCarousel = ({
       description: feature.description,
       image: feature.image
     });
+    setUploadedFile(null);
     setModalMode('edit');
   };
 
@@ -126,6 +194,17 @@ const ServicesCarousel = ({
     setModalMode(null);
     setEditingFeature(null);
     setFormData({ title: '', description: '', image: '' });
+    setUploadedFile(null);
+    
+    // Clean up any object URLs
+    if (formData.image && formData.image.startsWith('blob:')) {
+      URL.revokeObjectURL(formData.image);
+    }
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleAdd = () => {
@@ -135,6 +214,11 @@ const ServicesCarousel = ({
       ...formData
     };
     setFeatures([...features, newFeature]);
+    
+    toast.success("Service added successfully", {
+      description: `${formData.title} has been added to your services.`,
+    });
+    
     console.log('Adding new service:', newFeature);
     // TODO: Add API call to Node.js backend
     closeModal();
@@ -146,6 +230,11 @@ const ServicesCarousel = ({
       f.id === editingFeature.id ? { ...f, ...formData } : f
     );
     setFeatures(updatedFeatures);
+    
+    toast.success("Service updated successfully", {
+      description: `${formData.title} has been updated.`,
+    });
+    
     console.log('Updating service:', { id: editingFeature.id, ...formData });
     // TODO: Add API call to Node.js backend
     closeModal();
@@ -163,6 +252,10 @@ const ServicesCarousel = ({
       setCurrentIndex(0);
     }
     
+    toast.error("Service deleted", {
+      description: `${editingFeature.title} has been removed from your services.`,
+    });
+    
     console.log('Deleting service:', editingFeature.id);
     // TODO: Add API call to Node.js backend
     closeModal();
@@ -173,6 +266,11 @@ const ServicesCarousel = ({
     const [movedItem] = newFeatures.splice(fromIndex, 1);
     newFeatures.splice(toIndex, 0, movedItem);
     setFeatures(newFeatures);
+    
+    toast.success("Services reordered", {
+      description: "Service order has been updated successfully.",
+    });
+    
     console.log('Reordering services from', fromIndex, 'to', toIndex);
     // TODO: Add API call to Node.js backend
   };
@@ -465,42 +563,127 @@ const ServicesCarousel = ({
                     />
                   </div>
 
-                  {/* Image */}
+                  {/* Image Upload */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <Image className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Service Image
+                        Service Image or Video
                       </label>
                     </div>
                     
-                    <div className="space-y-3">
-                      <input
-                        type="url"
-                        value={formData.image}
-                        onChange={(e) => handleInputChange('image', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
-                        placeholder="https://example.com/image.jpg"
-                      />
+                    <div className="space-y-4">
+                      {/* Drag & Drop Zone */}
+                      <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 cursor-pointer hover:border-blue-400 ${
+                          isDragging 
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                            : 'border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                        }`}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*,video/*"
+                          onChange={handleFileInputChange}
+                          className="hidden"
+                        />
+                        
+                        <div className="space-y-4">
+                          <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
+                            isDragging 
+                              ? 'bg-blue-100 dark:bg-blue-900/50' 
+                              : 'bg-gray-100 dark:bg-slate-600'
+                          }`}>
+                            {uploadedFile ? (
+                              <File className="w-8 h-8 text-green-600 dark:text-green-400" />
+                            ) : (
+                              <Upload className={`w-8 h-8 ${
+                                isDragging 
+                                  ? 'text-blue-600 dark:text-blue-400' 
+                                  : 'text-gray-400 dark:text-gray-500'
+                              }`} />
+                            )}
+                          </div>
+                          
+                          <div>
+                            {uploadedFile ? (
+                              <div className="space-y-2">
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {uploadedFile.name} ({(uploadedFile.size / (1024 * 1024)).toFixed(1)}MB)
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setUploadedFile(null);
+                                    handleInputChange('image', '');
+                                    if (fileInputRef.current) {
+                                      fileInputRef.current.value = '';
+                                    }
+                                  }}
+                                  className="text-sm text-red-600 hover:text-red-700 font-medium"
+                                >
+                                  Remove file
+                                </button>
+                              </div>
+                            ) : isDragging ? (
+                              <div className="space-y-2">
+                                <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+                                  Drop your file here
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  Images and videos up to 200MB
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                                  Drop files here or click to upload
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  Supports: JPEG, PNG, GIF, WebP, MP4, WebM, MOV, AVI (max 200MB)
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
                       {/* Image Preview */}
                       {formData.image && (
-                        <div className="mt-3">
-                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                        <div className="space-y-3">
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
                             Preview
                           </label>
                           <div className="relative w-full h-48 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
-                            <img
-                              src={formData.image}
-                              alt="Preview"
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                e.currentTarget.nextElementSibling.style.display = 'flex';
-                              }}
-                            />
+                            {uploadedFile?.type.startsWith('video/') ? (
+                              <video
+                                src={formData.image}
+                                className="w-full h-full object-cover"
+                                controls
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                                }}
+                              />
+                            ) : (
+                              <img
+                                src={formData.image}
+                                alt="Preview"
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling.style.display = 'flex';
+                                }}
+                              />
+                            )}
                             <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
-                              Failed to load image
+                              Failed to load media
                             </div>
                           </div>
                         </div>

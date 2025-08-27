@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Link } from "react-router";
-import { Edit3, X, Save, Image, Type, FileText } from 'lucide-react';
+import { Edit3, X, Save, Image, Type, FileText, Upload, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Hero1Props {
   badge?: string;
@@ -30,6 +31,7 @@ interface HeroFormData {
   imageAlt: string;
   primaryButtonText: string;
   primaryButtonUrl: string;
+  imageFile?: File;
 }
 
 const Hero = ({
@@ -39,9 +41,12 @@ const Hero = ({
     src: "https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2574&q=80",
     alt: "Hero section demo image showing interface components",
   },
-  isModerator = true, // Set to true for demo purposes
+  isModerator = true,
 }: Hero1Props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState<HeroFormData>({
     heading,
     description,
@@ -68,6 +73,82 @@ const Hero = ({
     }));
   };
 
+  // File upload handlers
+  const handleFileUpload = useCallback((file: File) => {
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+      toast.error("Invalid file type", {
+        description: "Please upload an image or video file.",
+      });
+      return;
+    }
+
+    if (file.size > 200 * 1024 * 1024) { // 200MB limit
+      toast.error("File too large", {
+        description: `File size must be less than 200MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      setFormData(prev => ({
+        ...prev,
+        imageSrc: result,
+        imageFile: file,
+        imageAlt: prev.imageAlt || `Uploaded ${file.type.startsWith('video/') ? 'video' : 'image'}: ${file.name}`
+      }));
+      
+      toast.success("File uploaded successfully", {
+        description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
+      });
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileUpload(files[0]);
+    }
+  }, [handleFileUpload]);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFileUpload(files[0]);
+    }
+  }, [handleFileUpload]);
+
+  const removeImage = () => {
+    setFormData(prev => ({
+      ...prev,
+      imageSrc: '',
+      imageFile: undefined,
+      imageAlt: ''
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
+    toast.info("Media removed", {
+      description: "The background media has been removed.",
+    });
+  };
+
   const handleSave = () => {
     // Update the current data with form data
     setCurrentData({
@@ -85,8 +166,18 @@ const Hero = ({
     
     // Here you would make the API call to Node.js backend
     console.log('Saving hero data:', formData);
-    // TODO: Add API call to Node.js backend
-    // await saveHeroData(formData);
+    if (formData.imageFile) {
+      console.log('Image file to upload:', formData.imageFile);
+      // TODO: Add file upload to your backend
+      // const formDataToSend = new FormData();
+      // formDataToSend.append('image', formData.imageFile);
+      // formDataToSend.append('heroData', JSON.stringify(formData));
+      // await uploadHeroData(formDataToSend);
+    }
+    
+    toast.success("Hero section updated", {
+      description: "Your changes have been saved successfully.",
+    });
     
     setIsModalOpen(false);
   };
@@ -101,6 +192,15 @@ const Hero = ({
       primaryButtonText: currentData.primaryButton.text,
       primaryButtonUrl: currentData.primaryButton.url
     });
+    setIsDragOver(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
+    toast.info("Changes discarded", {
+      description: "Your edits have been cancelled.",
+    });
+    
     setIsModalOpen(false);
   };
 
@@ -211,60 +311,115 @@ const Hero = ({
                   />
                 </div>
 
-                {/* Image Section */}
+                {/* Media Section - Drag & Drop Only */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Image className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Background Image
+                      Background Media
                     </label>
                   </div>
                   
                   <div className="space-y-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                        Image URL
+                        Upload Image or Video File
                       </label>
-                      <input
-                        type="url"
-                        value={formData.imageSrc}
-                        onChange={(e) => handleInputChange('imageSrc', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                        placeholder="https://example.com/image.jpg"
-                      />
+                      
+                      {/* Drag & Drop Area */}
+                      <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`relative w-full min-h-[120px] border-2 border-dashed rounded-lg transition-all duration-200 flex flex-col items-center justify-center p-6 cursor-pointer group ${
+                          isDragOver
+                            ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            : formData.imageSrc
+                            ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20'
+                            : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                        }`}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*,video/*"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+                        
+                        {formData.imageSrc ? (
+                          <div className="flex items-center gap-3 text-green-600 dark:text-green-400">
+                            <Upload className="w-6 h-6" />
+                            <div>
+                              <p className="font-medium">Media uploaded successfully!</p>
+                              <p className="text-sm opacity-75">Click to change or drag a new file</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                            <Upload className="w-6 h-6" />
+                            <div className="text-center">
+                              <p className="font-medium">
+                                {isDragOver ? 'Drop your media file here!' : 'Click to upload or drag & drop'}
+                              </p>
+                              <p className="text-sm opacity-75">Images & Videos up to 200MB</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                        Alt Text
+                        Alt Text / Description
                       </label>
                       <input
                         type="text"
                         value={formData.imageAlt}
                         onChange={(e) => handleInputChange('imageAlt', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                        placeholder="Describe the image..."
+                        placeholder="Describe the media..."
                       />
                     </div>
 
-                    {/* Image Preview */}
+                    {/* Media Preview */}
                     {formData.imageSrc && (
                       <div className="mt-3">
-                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                          Preview
-                        </label>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
+                            Preview
+                          </label>
+                          <button
+                            type="button"
+                            onClick={removeImage}
+                            className="flex items-center gap-1 px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Remove
+                          </button>
+                        </div>
                         <div className="relative w-full h-32 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
-                          <img
-                            src={formData.imageSrc}
-                            alt={formData.imageAlt}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling.style.display = 'flex';
-                            }}
-                          />
+                          {formData.imageFile && formData.imageFile.type.startsWith('video/') ? (
+                            <video
+                              src={formData.imageSrc}
+                              className="w-full h-full object-cover"
+                              controls
+                              muted
+                            />
+                          ) : (
+                            <img
+                              src={formData.imageSrc}
+                              alt={formData.imageAlt}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling.style.display = 'flex';
+                              }}
+                            />
+                          )}
                           <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
-                            Failed to load image
+                            Failed to load media
                           </div>
                         </div>
                       </div>
