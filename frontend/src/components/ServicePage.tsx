@@ -21,9 +21,12 @@ import {
   FileText,
   Image,
   DollarSign,
-  Settings
+  Settings,
+  Upload,
+  File
 } from 'lucide-react';
 import { Link } from 'react-router';
+import { toast } from 'sonner';
 
 interface Service {
   id: string;
@@ -209,6 +212,26 @@ const ServicePage = ({
     image: ''
   });
 
+  // Drag and drop states
+  const [isDraggingService, setIsDraggingService] = useState(false);
+  const [isDraggingTestimonial, setIsDraggingTestimonial] = useState(false);
+  const [uploadedServiceFile, setUploadedServiceFile] = useState<File | null>(null);
+  const [uploadedTestimonialFile, setUploadedTestimonialFile] = useState<File | null>(null);
+  const serviceFileInputRef = useRef<HTMLInputElement>(null);
+  const testimonialFileInputRef = useRef<HTMLInputElement>(null);
+
+
+  // Delete confirmation states
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{
+    type: 'service' | 'testimonial';
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB in bytes
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/mov', 'video/avi'];
+
   const categories = ['All', ...Array.from(new Set(currentServices.map(s => s.category)))];
   const filteredServices = selectedCategory === 'All' 
     ? currentServices 
@@ -231,6 +254,109 @@ const ServicePage = ({
     ));
   };
 
+  // File validation function
+  const validateFile = (file: File): boolean => {
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File too large", {
+        description: `File size must be less than 200MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
+      });
+      return false;
+    }
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error("Invalid file type", {
+        description: "Please upload an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM, MOV, AVI).",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  // Service image handlers
+  const handleServiceFileSelect = (file: File) => {
+    if (!validateFile(file)) return;
+
+    setUploadedServiceFile(file);
+    
+    // Create a temporary URL for preview
+    const fileUrl = URL.createObjectURL(file);
+    setServiceForm(prev => ({ ...prev, image: fileUrl }));
+
+    toast.success("File uploaded successfully", {
+      description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
+    });
+  };
+
+  const handleServiceDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingService(true);
+  };
+
+  const handleServiceDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingService(false);
+  };
+
+  const handleServiceDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingService(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleServiceFileSelect(files[0]);
+    }
+  };
+
+  const handleServiceFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleServiceFileSelect(files[0]);
+    }
+  };
+
+  // Testimonial image handlers
+  const handleTestimonialFileSelect = (file: File) => {
+    if (!validateFile(file)) return;
+
+    setUploadedTestimonialFile(file);
+    
+    // Create a temporary URL for preview
+    const fileUrl = URL.createObjectURL(file);
+    setTestimonialForm(prev => ({ ...prev, image: fileUrl }));
+
+    toast.success("File uploaded successfully", {
+      description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
+    });
+  };
+
+  const handleTestimonialDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingTestimonial(true);
+  };
+
+  const handleTestimonialDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingTestimonial(false);
+  };
+
+  const handleTestimonialDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingTestimonial(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleTestimonialFileSelect(files[0]);
+    }
+  };
+
+  const handleTestimonialFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleTestimonialFileSelect(files[0]);
+    }
+  };
+
   // Main Content handlers
   const openMainContentModal = () => {
     setMainContentForm(currentMainContent);
@@ -240,6 +366,7 @@ const ServicePage = ({
   const saveMainContent = () => {
     setCurrentMainContent(mainContentForm);
     setIsMainContentModalOpen(false);
+    toast.success("Main content updated successfully");
   };
 
   const cancelMainContent = () => {
@@ -252,6 +379,7 @@ const ServicePage = ({
     if (service) {
       setEditingService(service);
       setServiceForm(service);
+      setUploadedServiceFile(null);
     } else {
       setEditingService(null);
       setServiceForm({
@@ -264,9 +392,50 @@ const ServicePage = ({
         price: '',
         category: ''
       });
+      setUploadedServiceFile(null);
     }
     setIsServiceModalOpen(true);
   };
+
+  // Delete Confirmation Modal
+  const DeleteConfirmationModal = () => (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-60">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          Confirm Deletion
+        </h3>
+        
+        <p className="text-gray-600 dark:text-gray-300 mb-6">
+          Are you sure you want to delete {itemToDelete?.name || 'this item'}? 
+          This action cannot be undone.
+        </p>
+        
+        <div className="flex justify-end gap-4">
+          <button
+            onClick={() => setDeleteModalOpen(false)}
+            className="px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              if (itemToDelete) {
+                if (itemToDelete.type === 'service') {
+                  deleteService(itemToDelete.id);
+                } else if (itemToDelete.type === 'testimonial') {
+                  deleteTestimonial(itemToDelete.id);
+                }
+              }
+              setDeleteModalOpen(false);
+            }}
+            className="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   const saveService = () => {
     const cleanedFeatures = serviceForm.features.filter(f => f.trim() !== '');
@@ -274,15 +443,30 @@ const ServicePage = ({
 
     if (editingService) {
       setCurrentServices(prev => prev.map(s => s.id === editingService.id ? updatedService : s));
+      toast.success("Service updated successfully");
     } else {
       setCurrentServices(prev => [...prev, updatedService]);
+      toast.success("Service added successfully");
     }
     setIsServiceModalOpen(false);
     setEditingService(null);
+    
+    // Clean up object URL if created
+    if (uploadedServiceFile) {
+      URL.revokeObjectURL(serviceForm.image);
+    }
   };
 
   const deleteService = (id: string) => {
     setCurrentServices(prev => prev.filter(s => s.id !== id));
+    toast.error("Service deleted", {
+      description: "The service has been permanently removed.",
+    });
+  };
+
+  const confirmDeleteService = (id: string, name: string) => {
+    setItemToDelete({ type: 'service', id, name });
+    setDeleteModalOpen(true);
   };
 
   const addFeature = () => {
@@ -308,6 +492,7 @@ const ServicePage = ({
     if (testimonial) {
       setEditingTestimonial(testimonial);
       setTestimonialForm(testimonial);
+      setUploadedTestimonialFile(null);
     } else {
       setEditingTestimonial(null);
       setTestimonialForm({
@@ -318,6 +503,7 @@ const ServicePage = ({
         rating: 5,
         image: ''
       });
+      setUploadedTestimonialFile(null);
     }
     setIsTestimonialModalOpen(true);
   };
@@ -327,19 +513,35 @@ const ServicePage = ({
       setCurrentTestimonials(prev => prev.map(t => 
         t.name === editingTestimonial.name ? testimonialForm : t
       ));
+      toast.success("Testimonial updated successfully");
     } else {
       setCurrentTestimonials(prev => [...prev, testimonialForm]);
+      toast.success("Testimonial added successfully");
     }
     setIsTestimonialModalOpen(false);
     setEditingTestimonial(null);
+    
+    // Clean up object URL if created
+    if (uploadedTestimonialFile) {
+      URL.revokeObjectURL(testimonialForm.image);
+    }
   };
 
   const deleteTestimonial = (name: string) => {
     setCurrentTestimonials(prev => prev.filter(t => t.name !== name));
+    toast.error("Testimonial deleted", {
+      description: "The testimonial has been permanently removed.",
+    });
+  };
+
+  const confirmDeleteTestimonial = (name: string) => {
+    setItemToDelete({ type: 'testimonial', id: name, name });
+    setDeleteModalOpen(true);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {deleteModalOpen && <DeleteConfirmationModal />}
       
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden">
@@ -443,7 +645,7 @@ const ServicePage = ({
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => deleteService(service.id)}
+                      onClick={() => confirmDeleteService(service.id, service.title)}
                       className="p-2 bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm rounded-lg hover:bg-white dark:hover:bg-slate-600 transition-colors text-red-600 dark:text-red-400"
                       title="Delete Service"
                     >
@@ -532,18 +734,15 @@ const ServicePage = ({
             {[
               { step: "01", title: "Consultation", desc: "Understanding your industrial needs and project requirements" },
               { step: "02", title: "Design & Planning", desc: "Detailed engineering design and comprehensive project planning" },
-              { step: "03", title: "Manufacturing & Installation", desc: "Expert fabrication and professional on-site installation" },
-              { step: "04", title: "Commissioning & Support", desc: "System commissioning and ongoing maintenance support" }
+              { step: "03", title: "Fabrication", desc: "Precision manufacturing using advanced technology and quality materials" },
+              { step: "04", title: "Installation", desc: "Professional on-site assembly and commissioning by expert teams" }
             ].map((item, index) => (
-              <div key={index} className="relative group">
-                <div className="bg-white/10 dark:bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-white/20 dark:border-slate-600/30 hover:bg-white/20 dark:hover:bg-slate-700/40 transition-all duration-300">
-                  <div className="text-4xl font-bold text-blue-400 dark:text-blue-300 mb-4">{item.step}</div>
-                  <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-                  <p className="text-gray-300 dark:text-slate-400">{item.desc}</p>
+              <div key={index} className="text-center">
+                <div className="w-20 h-20 bg-blue-600 dark:bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
+                  {item.step}
                 </div>
-                {index < 3 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-4 w-8 h-px bg-gradient-to-r from-blue-400 to-purple-400 dark:from-blue-300 dark:to-purple-300" />
-                )}
+                <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
+                <p className="text-gray-300 dark:text-slate-400">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -553,13 +752,10 @@ const ServicePage = ({
       {/* Testimonials Section */}
       <section className="py-20">
         <div className="container px-6 mx-auto">
-          <div className="flex justify-between items-center mb-16">
-            <div className="text-center flex-1">
-              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-slate-100 mb-6">Client Success Stories</h2>
-              <p className="text-xl text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
-                Hear what our clients say about working with us and the results we've delivered.
-              </p>
-            </div>
+          
+          {/* Testimonials Header with Add Button */}
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Client Testimonials</h2>
             {isModerator && (
               <button
                 onClick={() => openTestimonialModal()}
@@ -572,63 +768,70 @@ const ServicePage = ({
           </div>
 
           <div className="relative max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl dark:shadow-2xl dark:shadow-blue-500/5 p-12 border border-gray-100 dark:border-slate-700">
-              {/* Edit Controls */}
-              {isModerator && currentTestimonials[currentTestimonial] && (
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <button
-                    onClick={() => openTestimonialModal(currentTestimonials[currentTestimonial])}
-                    className="p-2 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors text-blue-600 dark:text-blue-400"
-                    title="Edit Testimonial"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteTestimonial(currentTestimonials[currentTestimonial].name)}
-                    className="p-2 bg-gray-100 dark:bg-slate-700 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors text-red-600 dark:text-red-400"
-                    title="Delete Testimonial"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
+            <div 
+              ref={testimonialRef}
+              className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 lg:p-12 border border-gray-100 dark:border-slate-700"
+            >
+              {currentTestimonials.map((testimonial, index) => (
+                <div 
+                  key={index}
+                  className={`transition-all duration-500 ease-in-out ${
+                    index === currentTestimonial ? 'opacity-100 translate-y-0' : 'opacity-0 absolute translate-y-8 pointer-events-none'
+                  }`}
+                >
+                  {/* Edit Controls */}
+                  {isModerator && (
+                    <div className="absolute top-4 right-4 z-10 flex gap-2">
+                      <button
+                        onClick={() => openTestimonialModal(testimonial)}
+                        className="p-2 bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm rounded-lg hover:bg-white dark:hover:bg-slate-600 transition-colors text-blue-600 dark:text-blue-400"
+                        title="Edit Testimonial"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => confirmDeleteTestimonial(testimonial.name)}
+                        className="p-2 bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm rounded-lg hover:bg-white dark:hover:bg-slate-600 transition-colors text-red-600 dark:text-red-400"
+                        title="Delete Testimonial"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
 
-              {currentTestimonials[currentTestimonial] && (
-                <>
-                  <div className="flex items-center gap-2 mb-6">
-                    {renderStars(currentTestimonials[currentTestimonial].rating)}
-                  </div>
-                  
-                  <blockquote className="text-2xl text-gray-800 dark:text-slate-200 leading-relaxed mb-8 italic">
-                    "{currentTestimonials[currentTestimonial].content}"
-                  </blockquote>
-                  
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 mb-6">
                     <img 
-                      src={currentTestimonials[currentTestimonial].image} 
-                      alt={currentTestimonials[currentTestimonial].name}
+                      src={testimonial.image} 
+                      alt={testimonial.name}
                       className="w-16 h-16 rounded-full object-cover"
                     />
                     <div>
-                      <div className="font-bold text-gray-900 dark:text-slate-100">{currentTestimonials[currentTestimonial].name}</div>
-                      <div className="text-gray-600 dark:text-slate-400">{currentTestimonials[currentTestimonial].role}</div>
-                      <div className="text-blue-600 dark:text-blue-400 text-sm">{currentTestimonials[currentTestimonial].company}</div>
+                      <h4 className="font-semibold text-gray-900 dark:text-slate-100">{testimonial.name}</h4>
+                      <p className="text-gray-600 dark:text-slate-400">{testimonial.role}, {testimonial.company}</p>
                     </div>
                   </div>
-                </>
-              )}
+                  
+                  <div className="flex mb-4">
+                    {renderStars(testimonial.rating)}
+                  </div>
+                  
+                  <blockquote className="text-xl lg:text-2xl text-gray-700 dark:text-slate-300 leading-relaxed italic">
+                    "{testimonial.content}"
+                  </blockquote>
+                </div>
+              ))}
             </div>
 
-            {/* Testimonial Indicators */}
+            {/* Navigation Dots */}
             <div className="flex justify-center gap-2 mt-8">
               {currentTestimonials.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentTestimonial(index)}
                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentTestimonial
-                      ? 'bg-blue-600 dark:bg-blue-500 scale-125'
-                      : 'bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500 hover:scale-110'
+                    index === currentTestimonial 
+                      ? 'bg-blue-600 dark:bg-blue-500 scale-125' 
+                      : 'bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500'
                   }`}
                 />
               ))}
@@ -637,162 +840,77 @@ const ServicePage = ({
         </div>
       </section>
 
-      {/* Service Detail Modal */}
-      {selectedService && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="relative">
-              <img 
-                src={selectedService.image} 
-                alt={selectedService.title}
-                className="w-full h-64 object-cover"
-              />
-              <button 
-                onClick={() => setSelectedService(null)}
-                className="absolute top-4 right-4 p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full hover:bg-white dark:hover:bg-slate-700 transition-colors duration-300 text-gray-800 dark:text-slate-200"
-              >
-                ✕
-              </button>
-            </div>
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-700 dark:from-blue-700 dark:to-purple-800 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.1),transparent_50%)] dark:bg-[radial-gradient(circle_at_70%_30%,rgba(0,0,0,0.2),transparent_50%)]" />
+        
+        <div className="container px-6 mx-auto relative z-10">
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">Ready to Transform Your Operations?</h2>
+            <p className="text-xl text-blue-100 dark:text-blue-200 mb-12">
+              Let's discuss how our industrial solutions can optimize your processes and drive efficiency.
+            </p>
             
-            <div className="p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium rounded-full">
-                  {selectedService.category}
-                </span>
-                <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-sm font-medium rounded-full">
-                  {selectedService.price}
-                </span>
-              </div>
-              
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100 mb-4">{selectedService.title}</h2>
-              <p className="text-gray-600 dark:text-slate-400 text-lg leading-relaxed mb-8">{selectedService.description}</p>
-              
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Key Features</h3>
-                  <div className="space-y-3">
-                    {selectedService.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        <CheckCircle className="size-5 text-green-500 dark:text-green-400" />
-                        <span className="text-gray-700 dark:text-slate-300">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Project Details</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Clock className="size-5 text-blue-600 dark:text-blue-400" />
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-slate-200">Duration</div>
-                        <div className="text-gray-600 dark:text-slate-400">{selectedService.duration}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Target className="size-5 text-blue-600 dark:text-blue-400" />
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-slate-200">Investment</div>
-                        <div className="text-gray-600 dark:text-slate-400">{selectedService.price}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex gap-4 mt-8">
-                <Link 
-                  to="/contact"
-                  className="px-8 py-4 bg-blue-600 dark:bg-blue-500 text-white rounded-2xl font-semibold hover:bg-blue-500 dark:hover:bg-blue-400 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-2"
-                >
-                  Get Started
-                  <ChevronRight className="size-5" />
-                </Link>
-                <button 
-                  onClick={() => setSelectedService(null)}
-                  className="px-8 py-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-2xl font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition-all duration-300"
-                >
-                  Close
-                </button>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="px-8 py-4 bg-white text-blue-600 dark:text-blue-700 rounded-2xl font-semibold hover:bg-gray-100 dark:hover:bg-gray-200 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                Schedule Consultation
+              </button>
+              <button className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-2xl font-semibold hover:bg-white hover:text-blue-600 dark:hover:text-blue-700 transition-all duration-300 transform hover:scale-105">
+                Request Quote
+              </button>
             </div>
           </div>
         </div>
-      )}
+      </section>
 
-      {/* Main Content Edit Modal */}
+      {/* Modals */}
+      {/* Main Content Modal */}
       {isMainContentModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                  <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Main Content</h2>
-              </div>
-              <button
-                onClick={cancelMainContent}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Main Content</h3>
             </div>
-
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Badge Text</label>
-                  <input
-                    type="text"
-                    value={mainContentForm.badge}
-                    onChange={(e) => setMainContentForm(prev => ({ ...prev, badge: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                    placeholder="Badge text..."
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Main Heading</label>
-                  <input
-                    type="text"
-                    value={mainContentForm.heading}
-                    onChange={(e) => setMainContentForm(prev => ({ ...prev, heading: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                    placeholder="Main heading..."
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Description</label>
-                  <textarea
-                    value={mainContentForm.description}
-                    onChange={(e) => setMainContentForm(prev => ({ ...prev, description: e.target.value }))}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
-                    placeholder="Description..."
-                  />
-                </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Badge Text</label>
+                <input
+                  type="text"
+                  value={mainContentForm.badge}
+                  onChange={(e) => setMainContentForm({...mainContentForm, badge: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Heading</label>
+                <input
+                  type="text"
+                  value={mainContentForm.heading}
+                  onChange={(e) => setMainContentForm({...mainContentForm, heading: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                <textarea
+                  rows={4}
+                  value={mainContentForm.description}
+                  onChange={(e) => setMainContentForm({...mainContentForm, description: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
               </div>
             </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+            <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
               <button
                 onClick={cancelMainContent}
-                className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium"
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
               >
                 Cancel
               </button>
               <button
                 onClick={saveMainContent}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                <Save className="w-4 h-4" />
                 Save Changes
               </button>
             </div>
@@ -800,170 +918,163 @@ const ServicePage = ({
         </div>
       )}
 
-      {/* Service Edit Modal */}
+      {/* Service Modal */}
       {isServiceModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                  <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {editingService ? 'Edit Service' : 'Add New Service'}
-                </h2>
-              </div>
-              <button
-                onClick={() => setIsServiceModalOpen(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {editingService ? 'Edit Service' : 'Add New Service'}
+              </h3>
             </div>
-
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left Column */}
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Type className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Service Title</label>
-                    </div>
-                    <input
-                      type="text"
-                      value={serviceForm.title}
-                      onChange={(e) => setServiceForm(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                      placeholder="Service title..."
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Description</label>
-                    </div>
-                    <textarea
-                      value={serviceForm.description}
-                      onChange={(e) => setServiceForm(prev => ({ ...prev, description: e.target.value }))}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
-                      placeholder="Service description..."
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Image className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Image URL</label>
-                    </div>
-                    <input
-                      type="url"
-                      value={serviceForm.image}
-                      onChange={(e) => setServiceForm(prev => ({ ...prev, image: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Category</label>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                <input
+                  type="text"
+                  value={serviceForm.title}
+                  onChange={(e) => setServiceForm({...serviceForm, title: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                <textarea
+                  rows={4}
+                  value={serviceForm.description}
+                  onChange={(e) => setServiceForm({...serviceForm, description: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+                <input
+                  type="text"
+                  value={serviceForm.category}
+                  onChange={(e) => setServiceForm({...serviceForm, category: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Duration</label>
+                <input
+                  type="text"
+                  value={serviceForm.duration}
+                  onChange={(e) => setServiceForm({...serviceForm, duration: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price</label>
+                <input
+                  type="text"
+                  value={serviceForm.price}
+                  onChange={(e) => setServiceForm({...serviceForm, price: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              
+              {/* Features */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Features</label>
+                <div className="space-y-2">
+                  {serviceForm.features.map((feature, index) => (
+                    <div key={index} className="flex gap-2">
                       <input
                         type="text"
-                        value={serviceForm.category}
-                        onChange={(e) => setServiceForm(prev => ({ ...prev, category: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                        placeholder="Manufacturing"
+                        value={feature}
+                        onChange={(e) => updateFeature(index, e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                        placeholder="Enter feature"
                       />
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Price</label>
-                      </div>
-                      <input
-                        type="text"
-                        value={serviceForm.price}
-                        onChange={(e) => setServiceForm(prev => ({ ...prev, price: e.target.value }))}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                        placeholder="Starting at $10,000"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Duration</label>
-                    </div>
-                    <input
-                      type="text"
-                      value={serviceForm.duration}
-                      onChange={(e) => setServiceForm(prev => ({ ...prev, duration: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                      placeholder="4-8 weeks"
-                    />
-                  </div>
-
-                  {/* Features */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Features</label>
                       <button
-                        type="button"
-                        onClick={addFeature}
-                        className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                        onClick={() => removeFeature(index)}
+                        className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
                       >
-                        <Plus className="w-3 h-3" />
-                        Add
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                      {serviceForm.features.map((feature, index) => (
-                        <div key={index} className="flex gap-2">
-                          <input
-                            type="text"
-                            value={feature}
-                            onChange={(e) => updateFeature(index, e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="Feature description..."
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeFeature(index)}
-                            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
+                  ))}
+                </div>
+                <button
+                  onClick={addFeature}
+                  className="mt-2 px-4 py-2 bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-500"
+                >
+                  Add Feature
+                </button>
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Service Image</label>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                    isDraggingService 
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                      : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                  }`}
+                  onDragOver={handleServiceDragOver}
+                  onDragLeave={handleServiceDragLeave}
+                  onDrop={handleServiceDrop}
+                  onClick={() => serviceFileInputRef.current?.click()}
+                >
+                  <input
+                    ref={serviceFileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleServiceFileInputChange}
+                    accept="image/*,video/*"
+                  />
+                  <div className="space-y-4">
+                    <div className="flex justify-center">
+                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                        <Upload className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        Drag and drop or click to upload
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Upload an image or video (max 200MB)
+                      </p>
                     </div>
                   </div>
                 </div>
+                
+                {serviceForm.image && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
+                    <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700">
+                      {serviceForm.image.startsWith('data:video') || serviceForm.image.endsWith('.mp4') || serviceForm.image.endsWith('.webm') || serviceForm.image.endsWith('.mov') || serviceForm.image.endsWith('.avi') ? (
+                        <video 
+                          src={serviceForm.image} 
+                          className="w-full h-48 object-cover"
+                          controls
+                        />
+                      ) : (
+                        <img 
+                          src={serviceForm.image} 
+                          alt="Preview" 
+                          className="w-full h-48 object-cover"
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+            <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
               <button
                 onClick={() => setIsServiceModalOpen(false)}
-                className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium"
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
               >
                 Cancel
               </button>
               <button
                 onClick={saveService}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                <Save className="w-4 h-4" />
                 {editingService ? 'Update Service' : 'Add Service'}
               </button>
             </div>
@@ -971,118 +1082,135 @@ const ServicePage = ({
         </div>
       )}
 
-      {/* Testimonial Edit Modal */}
+      {/* Testimonial Modal */}
       {isTestimonialModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                  <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {editingTestimonial ? 'Edit Testimonial' : 'Add New Testimonial'}
-                </h2>
-              </div>
-              <button
-                onClick={() => setIsTestimonialModalOpen(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                {editingTestimonial ? 'Edit Testimonial' : 'Add New Testimonial'}
+              </h3>
             </div>
-
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Name</label>
-                    <input
-                      type="text"
-                      value={testimonialForm.name}
-                      onChange={(e) => setTestimonialForm(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                      placeholder="Client name..."
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Role</label>
-                    <input
-                      type="text"
-                      value={testimonialForm.role}
-                      onChange={(e) => setTestimonialForm(prev => ({ ...prev, role: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                      placeholder="Job title..."
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Company</label>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
                   <input
                     type="text"
-                    value={testimonialForm.company}
-                    onChange={(e) => setTestimonialForm(prev => ({ ...prev, company: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                    placeholder="Company name..."
+                    value={testimonialForm.name}
+                    onChange={(e) => setTestimonialForm({...testimonialForm, name: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
                   />
                 </div>
-
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Testimonial Content</label>
-                  <textarea
-                    value={testimonialForm.content}
-                    onChange={(e) => setTestimonialForm(prev => ({ ...prev, content: e.target.value }))}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
-                    placeholder="What did they say about your service..."
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
+                  <input
+                    type="text"
+                    value={testimonialForm.role}
+                    onChange={(e) => setTestimonialForm({...testimonialForm, role: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Rating</label>
-                    <select
-                      value={testimonialForm.rating}
-                      onChange={(e) => setTestimonialForm(prev => ({ ...prev, rating: parseInt(e.target.value) }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                    >
-                      {[1, 2, 3, 4, 5].map(num => (
-                        <option key={num} value={num}>{num} Star{num > 1 ? 's' : ''}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Profile Image URL</label>
-                    <input
-                      type="url"
-                      value={testimonialForm.image}
-                      onChange={(e) => setTestimonialForm(prev => ({ ...prev, image: e.target.value }))}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                      placeholder="https://example.com/photo.jpg"
-                    />
-                  </div>
                 </div>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company</label>
+                <input
+                  type="text"
+                  value={testimonialForm.company}
+                  onChange={(e) => setTestimonialForm({...testimonialForm, company: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content</label>
+                <textarea
+                  rows={4}
+                  value={testimonialForm.content}
+                  onChange={(e) => setTestimonialForm({...testimonialForm, content: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setTestimonialForm({...testimonialForm, rating: star})}
+                      className="text-2xl focus:outline-none"
+                    >
+                      <Star 
+                        className={`w-8 h-8 ${star <= testimonialForm.rating ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`} 
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Profile Image</label>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                    isDraggingTestimonial 
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                      : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                  }`}
+                  onDragOver={handleTestimonialDragOver}
+                  onDragLeave={handleTestimonialDragLeave}
+                  onDrop={handleTestimonialDrop}
+                  onClick={() => testimonialFileInputRef.current?.click()}
+                >
+                  <input
+                    ref={testimonialFileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleTestimonialFileInputChange}
+                    accept="image/*"
+                  />
+                  <div className="space-y-4">
+                    <div className="flex justify-center">
+                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                        <Upload className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        Drag and drop or click to upload
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Upload a profile image (max 200MB)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {testimonialForm.image && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
+                    <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 w-32 h-32">
+                      <img 
+                        src={testimonialForm.image} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+            <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
               <button
                 onClick={() => setIsTestimonialModalOpen(false)}
-                className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium"
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
               >
                 Cancel
               </button>
               <button
                 onClick={saveTestimonial}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                <Save className="w-4 h-4" />
                 {editingTestimonial ? 'Update Testimonial' : 'Add Testimonial'}
               </button>
             </div>
