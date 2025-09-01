@@ -43,7 +43,7 @@ function App() {
     <ThemeProvider defaultTheme="light">
       <AuthProvider>
         <BrowserRouter>
-          <div className="mx-auto min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-500">
+          <div className="mx-auto min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-500 overflow-x-hidden">
             <Navbar />
             <Routes>
               <Route path="/" element={<Home />} />
