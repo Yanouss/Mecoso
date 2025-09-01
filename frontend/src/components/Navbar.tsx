@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
-import AdminLogin from "./AdminLogin";
 import AdminPanel from "./AdminPanel";
 
 interface MenuItem {
@@ -75,29 +74,7 @@ const Navbar = ({
   ],
 }: Navbar1Props) => {
   const { user, isAuthenticated } = useAuth();
-  const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [logoClickCount, setLogoClickCount] = useState(0);
-  const [lastClickTime, setLastClickTime] = useState(0);
-
-  // Hidden admin access - 5 quick clicks on logo within 2 seconds
-  const handleLogoClick = (e: React.MouseEvent) => {
-    if (isAuthenticated) return; // Don't trigger if already logged in
-    
-    const now = Date.now();
-    if (now - lastClickTime > 2000) {
-      setLogoClickCount(1);
-    } else {
-      setLogoClickCount(prev => prev + 1);
-    }
-    setLastClickTime(now);
-
-    if (logoClickCount >= 4) { // 5 clicks total (0-4)
-      e.preventDefault();
-      setShowAdminLogin(true);
-      setLogoClickCount(0);
-    }
-  };
 
   return (
     <>
@@ -106,11 +83,10 @@ const Navbar = ({
           {/* Desktop Menu */}
           <nav className="hidden justify-between items-center lg:flex">
             <div className="flex items-center gap-6">
-              {/* Logo with hidden admin access */}
+              {/* Logo (removed hidden admin access) */}
               <Link 
                 to={logo.url} 
                 className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
-                onClick={handleLogoClick}
               >
                 <img src={logo.src} className="max-h-40" alt={logo.alt} />
               </Link>
@@ -146,11 +122,10 @@ const Navbar = ({
           {/* Mobile Menu */}
           <div className="block lg:hidden">
             <div className="flex items-center justify-between">
-              {/* Logo with hidden admin access */}
+              {/* Logo (removed hidden admin access) */}
               <Link 
                 to={logo.url} 
                 className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
-                onClick={handleLogoClick}
               >
                 <img src={logo.src} className="max-h-8" alt={logo.alt} />
               </Link>
@@ -205,12 +180,6 @@ const Navbar = ({
           </div>
         </div>
       </section>
-
-      {/* Admin Login Modal */}
-      <AdminLogin 
-        isOpen={showAdminLogin} 
-        onClose={() => setShowAdminLogin(false)} 
-      />
 
       {/* Admin Panel Modal */}
       <AdminPanel 
