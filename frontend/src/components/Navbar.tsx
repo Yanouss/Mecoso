@@ -1,5 +1,6 @@
-import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { Book, Menu, Sunset, Trees, Zap, Shield } from "lucide-react";
 import { Link } from "react-router";
+import { useState } from "react";
 
 import {
   Accordion,
@@ -24,6 +25,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "./ThemeToggle";
+import { useAuth } from "../../context/AuthContext";
+import AdminLogin from "./AdminLogin";
+import AdminPanel from "./AdminPanel";
 
 interface MenuItem {
   title: string;
@@ -68,86 +72,152 @@ const Navbar = ({
       title: "Gallery",
       url: "/gallery",
     },
-    
   ],
 }: Navbar1Props) => {
+  const { user, isAuthenticated } = useAuth();
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [logoClickCount, setLogoClickCount] = useState(0);
+  const [lastClickTime, setLastClickTime] = useState(0);
+
+  // Hidden admin access - 5 quick clicks on logo within 2 seconds
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (isAuthenticated) return; // Don't trigger if already logged in
+    
+    const now = Date.now();
+    if (now - lastClickTime > 2000) {
+      setLogoClickCount(1);
+    } else {
+      setLogoClickCount(prev => prev + 1);
+    }
+    setLastClickTime(now);
+
+    if (logoClickCount >= 4) { // 5 clicks total (0-4)
+      e.preventDefault();
+      setShowAdminLogin(true);
+      setLogoClickCount(0);
+    }
+  };
+
   return (
-    <section className="py-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
-      <div className="mx-auto container">
-        {/* Desktop Menu */}
-        <nav className="hidden justify-between items-center lg:flex">
-          <div className="flex items-center gap-6">
-            {/* Logo */}
-            <Link to={logo.url} className="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
-              <img src={logo.src} className="max-h-40" alt={logo.alt} />
-            </Link>
-          </div>
-          <div className="flex items-center">
-            <NavigationMenu>
-              <NavigationMenuList className="text-xl flex items-center gap-8">
-                {menu.map((item) => renderMenuItem(item))}
-              </NavigationMenuList>
-            </NavigationMenu>
-          </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Link
-              to="/contact"
-              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-blue-600 dark:hover:from-blue-400 dark:hover:to-blue-500 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
-            >
-              Get a quote
-            </Link>
-          </div>
-        </nav>
-
-        {/* Mobile Menu */}
-        <div className="block lg:hidden">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link to={logo.url} className="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
-              <img src={logo.src} className="max-h-8" alt={logo.alt} />
-            </Link>
-            <div className="flex items-center gap-2">
+    <>
+      <section className="py-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
+        <div className="mx-auto container">
+          {/* Desktop Menu */}
+          <nav className="hidden justify-between items-center lg:flex">
+            <div className="flex items-center gap-6">
+              {/* Logo with hidden admin access */}
+              <Link 
+                to={logo.url} 
+                className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
+                onClick={handleLogoClick}
+              >
+                <img src={logo.src} className="max-h-40" alt={logo.alt} />
+              </Link>
+            </div>
+            <div className="flex items-center">
+              <NavigationMenu>
+                <NavigationMenuList className="text-xl flex items-center gap-8">
+                  {menu.map((item) => renderMenuItem(item))}
+                </NavigationMenuList>
+              </NavigationMenu>
+            </div>
+            <div className="flex items-center gap-4">
+              {/* Admin Panel Button (only visible when authenticated) */}
+              {isAuthenticated && (
+                <button
+                  onClick={() => setShowAdminPanel(true)}
+                  className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-300"
+                  title="Admin Panel"
+                >
+                  <Shield className="size-5" />
+                </button>
+              )}
               <ThemeToggle />
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-400">
-                    <Menu className="size-4" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="overflow-y-auto bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-                  <SheetHeader>
-                    <SheetTitle>
-                      <Link to={logo.url} className="flex items-center gap-2">
-                        <img src={logo.src} className="max-h-8" alt={logo.alt} />
-                      </Link>
-                    </SheetTitle>
-                  </SheetHeader>
-                  <div className="flex flex-col gap-6 p-4">
-                    <Accordion
-                      type="single"
-                      collapsible
-                      className="flex w-full flex-col gap-4"
-                    >
-                      {menu.map((item) => renderMobileMenuItem(item))}
-                    </Accordion>
+              <Link
+                to="/contact"
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-blue-600 dark:hover:from-blue-400 dark:hover:to-blue-500 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
+              >
+                Get a quote
+              </Link>
+            </div>
+          </nav>
 
-                    <div className="flex flex-col gap-3">
+          {/* Mobile Menu */}
+          <div className="block lg:hidden">
+            <div className="flex items-center justify-between">
+              {/* Logo with hidden admin access */}
+              <Link 
+                to={logo.url} 
+                className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
+                onClick={handleLogoClick}
+              >
+                <img src={logo.src} className="max-h-8" alt={logo.alt} />
+              </Link>
+              <div className="flex items-center gap-2">
+                {/* Admin Panel Button (only visible when authenticated) */}
+                {isAuthenticated && (
+                  <button
+                    onClick={() => setShowAdminPanel(true)}
+                    className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-300"
+                    title="Admin Panel"
+                  >
+                    <Shield className="size-4" />
+                  </button>
+                )}
+                <ThemeToggle />
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="icon" className="border-slate-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-400">
+                      <Menu className="size-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="overflow-y-auto bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                    <SheetHeader>
+                      <SheetTitle>
+                        <Link to={logo.url} className="flex items-center gap-2">
+                          <img src={logo.src} className="max-h-8" alt={logo.alt} />
+                        </Link>
+                      </SheetTitle>
+                    </SheetHeader>
+                    <div className="flex flex-col gap-6 p-4">
+                      <Accordion
+                        type="single"
+                        collapsible
+                        className="flex w-full flex-col gap-4"
+                      >
+                        {menu.map((item) => renderMobileMenuItem(item))}
+                      </Accordion>
+
+                      <div className="flex flex-col gap-3">
                         <Link
                           to="/contact"
                           className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-blue-600 dark:hover:from-blue-400 dark:hover:to-blue-500 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 text-center"
                         >
                           Get a quote
                         </Link>
+                      </div>
                     </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
+                  </SheetContent>
+                </Sheet>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Admin Login Modal */}
+      <AdminLogin 
+        isOpen={showAdminLogin} 
+        onClose={() => setShowAdminLogin(false)} 
+      />
+
+      {/* Admin Panel Modal */}
+      <AdminPanel 
+        isOpen={showAdminPanel} 
+        onClose={() => setShowAdminPanel(false)} 
+      />
+    </>
   );
 };
 

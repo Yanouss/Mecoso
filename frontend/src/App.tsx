@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import { ThemeProvider } from "./components/ThemeContext";
+import { AuthProvider } from "../context/AuthContext";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import Services from "./components/Services";
@@ -10,7 +11,7 @@ import AboutPage from "./components/AboutPage";
 import ServicePage from "./components/ServicePage";
 import GalleryPage from "./components/GalleryPage";
 import MachinesPage from "./components/MachinesPage";
-import { Toaster } from "sonner"; // Import the Toaster component
+import { Toaster } from "sonner";
 
 function Home() {
   return (
@@ -23,7 +24,7 @@ function Home() {
         buttons={{
           primary: {
             text: "Our Services",
-            url: "https://example.com/components",
+            url: "/services",
           }
         }}
         image={{
@@ -40,28 +41,28 @@ function Home() {
 function App() {
   return (
     <ThemeProvider defaultTheme="light">
-      <BrowserRouter>
-        <div className="mx-auto min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-500">
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/services" element={<ServicePage />} />
-            <Route path="/gallery" element={<GalleryPage />} />
-            <Route path="/machines" element={<MachinesPage />} />
-            {/* Add more routes as needed */}
-          </Routes>
-          <Footer />
-          {/* Add the Toaster component here */}
-          <Toaster 
-            position="top-right"
-            richColors
-            closeButton
-            duration={4000}
-          />
-        </div>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <div className="mx-auto min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-500">
+            <Navbar />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/services" element={<ServicePage />} />
+              <Route path="/gallery" element={<GalleryPage />} />
+              <Route path="/machines" element={<MachinesPage />} />
+            </Routes>
+            <Footer />
+            <Toaster 
+              position="top-right"
+              richColors
+              closeButton
+              duration={4000}
+            />
+          </div>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
