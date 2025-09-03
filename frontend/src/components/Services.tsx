@@ -1,101 +1,151 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Edit3, Trash2, Plus, X, Save, Image, Type, FileText, Grid3X3, Upload, File } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit3, Trash2, Plus, X, Save, Image, Type, FileText, Grid3X3, Upload, File, Loader2, CheckCircle, Clock, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { API_URL as API_BASE_URL } from '../../config/api';
 
-interface Feature {
-  id?: number;
+interface Service {
+  _id?: string;
+  id: string;
   title: string;
   description: string;
   image: string;
+  features: string[];
+  duration: string;
+  price: string;
+  category: string;
+  order?: number;
 }
 
 interface ServicesCarouselProps {
   heading?: string;
   description?: string;
-  features?: Feature[];
   isModerator?: boolean;
 }
 
-type ModalMode = 'add' | 'edit' | 'delete' | 'manage' | null;
+type ModalMode = 'add' | 'edit' | 'delete' | 'manage' | 'detail' | null;
 
 interface ServiceFormData {
   title: string;
   description: string;
   image: string;
+  features: string[];
+  duration: string;
+  price: string;
+  category: string;
 }
 
 const ServicesCarousel = ({
   heading = "Our Core Services",
   description = "MECOSO delivers complete industrial solutions. From design and fabrication to installation and maintenance. Serving the mining, energy, and heavy industry sectors with a focus on quality, safety, and innovation.",
-  features: initialFeatures = [
-    {
-      id: 1,
-      title: "Thickener Manufacturing & Assembly",
-      description: "Designing and assembling high-performance thickeners for efficient solid-liquid separation in industrial and mining applications.",
-      image: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-    },
-    {
-      id: 2,
-      title: "Tank Manufacturing & Assembly",
-      description: "Expert fabrication and on-site assembly of storage tanks and cement silos, ensuring durability, safety, and compliance.",
-      image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-    },
-    {
-      id: 3,
-      title: "Room Bin & Storage Hopper Manufacturing",
-      description: "Custom-engineered bins and hoppers for optimal material storage and flow, tailored to your operational needs.",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-    },
-    {
-      id: 4,
-      title: "Steel Structure Fabrication & Erection",
-      description: "Precision fabrication and erection of steel frameworks for industrial facilities, built to endure and perform.",
-      image: "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-    },
-    {
-      id: 5,
-      title: "Industrial Equipment Installation & Commissioning",
-      description: "Professional setup and calibration of industrial machinery, ensuring seamless startup and optimal performance.",
-      image: "https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-    },
-  ],
-  isModerator = true,
+  isModerator: initialIsModerator = false,
 }: ServicesCarouselProps) => {
-  const [features, setFeatures] = useState<Feature[]>(initialFeatures);
+  const [services, setServices] = useState<Service[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [modalMode, setModalMode] = useState<ModalMode>(null);
-  const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [formData, setFormData] = useState<ServiceFormData>({
     title: '',
     description: '',
-    image: ''
+    image: '',
+    features: [''],
+    duration: '',
+    price: '',
+    category: ''
   });
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+  
+  const { user, isAuthenticated } = useAuth();
+  const isModerator = initialIsModerator || (isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin'));
 
-  const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB in bytes
-  const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/mov', 'video/avi'];
+  const MAX_FILE_SIZE = 200 * 1024 * 1024;
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+
+  // Fetch services on component mount
+  useEffect(() => {
+    fetchServices();
+  }, []);
+
+  // Disable body scroll when modal is open
+  useEffect(() => {
+    if (modalMode) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [modalMode]);
+
+  // Outside click handler for modals
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalMode && modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        closeModal();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [modalMode]);
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/services`);
+      const servicesData = response.data.data.map((service: any) => ({
+        ...service,
+        id: service._id || service.id
+      }));
+      setServices(servicesData);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      toast.error('Failed to load services');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    };
+  };
 
   useEffect(() => {
-    if (!isPlaying || modalMode) return;
+    if (!isPlaying || modalMode || services.length === 0) return;
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % features.length);
+      setCurrentIndex((prev) => (prev + 1) % services.length);
     }, 4500);
     return () => clearInterval(interval);
-  }, [isPlaying, features.length, modalMode]);
+  }, [isPlaying, services.length, modalMode]);
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index);
   };
 
   const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + features.length) % features.length);
+    setCurrentIndex((prev) => (prev - 1 + services.length) % services.length);
   };
 
   const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % features.length);
+    setCurrentIndex((prev) => (prev + 1) % services.length);
   };
 
   const handleInputChange = (field: keyof ServiceFormData, value: string) => {
@@ -115,7 +165,7 @@ const ServicesCarousel = ({
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
       toast.error("Invalid file type", {
-        description: "Please upload an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM, MOV, AVI).",
+        description: "Please upload an image (JPEG, PNG, GIF, WebP).",
       });
       return false;
     }
@@ -128,7 +178,6 @@ const ServicesCarousel = ({
 
     setUploadedFile(file);
     
-    // Create a temporary URL for preview
     const fileUrl = URL.createObjectURL(file);
     handleInputChange('image', fileUrl);
 
@@ -165,117 +214,273 @@ const ServicesCarousel = ({
   };
 
   const openAddModal = () => {
-    setFormData({ title: '', description: '', image: '' });
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to add services."
+      });
+      return;
+    }
+
+    setFormData({ 
+      title: '', 
+      description: '', 
+      image: '', 
+      features: [''], 
+      duration: '', 
+      price: '', 
+      category: '' 
+    });
     setUploadedFile(null);
     setModalMode('add');
   };
 
-  const openEditModal = (feature: Feature) => {
-    setEditingFeature(feature);
+  const openEditModal = (service: Service) => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to edit services."
+      });
+      return;
+    }
+
+    setEditingService(service);
     setFormData({
-      title: feature.title,
-      description: feature.description,
-      image: feature.image
+      title: service.title,
+      description: service.description,
+      image: service.image,
+      features: [...service.features],
+      duration: service.duration,
+      price: service.price,
+      category: service.category
     });
     setUploadedFile(null);
     setModalMode('edit');
   };
 
-  const openDeleteModal = (feature: Feature) => {
-    setEditingFeature(feature);
+  const openDeleteModal = (service: Service) => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to delete services."
+      });
+      return;
+    }
+
+    setEditingService(service);
     setModalMode('delete');
   };
 
+  const openDetailModal = (service: Service) => {
+    setSelectedService(service);
+    setModalMode('detail');
+  };
+
   const openManageModal = () => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to manage services."
+      });
+      return;
+    }
+
     setModalMode('manage');
   };
 
   const closeModal = () => {
     setModalMode(null);
-    setEditingFeature(null);
-    setFormData({ title: '', description: '', image: '' });
+    setEditingService(null);
+    setSelectedService(null);
+    setFormData({ 
+      title: '', 
+      description: '', 
+      image: '', 
+      features: [''], 
+      duration: '', 
+      price: '', 
+      category: '' 
+    });
     setUploadedFile(null);
     
-    // Clean up any object URLs
     if (formData.image && formData.image.startsWith('blob:')) {
       URL.revokeObjectURL(formData.image);
     }
     
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  const handleAdd = () => {
-    const newId = Math.max(...features.map(f => f.id || 0), 0) + 1;
-    const newFeature: Feature = {
-      id: newId,
-      ...formData
-    };
-    setFeatures([...features, newFeature]);
-    
-    toast.success("Service added successfully", {
-      description: `${formData.title} has been added to your services.`,
-    });
-    
-    console.log('Adding new service:', newFeature);
-    // TODO: Add API call to Node.js backend
-    closeModal();
+  const handleAdd = async () => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to add services."
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const cleanedFeatures = formData.features.filter(f => f.trim() !== '');
+      const formDataToSend = new FormData();
+      
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('duration', formData.duration);
+      formDataToSend.append('price', formData.price);
+      formDataToSend.append('category', formData.category);
+      cleanedFeatures.forEach((feature) => {
+        formDataToSend.append('features', feature);
+      });
+      
+      if (uploadedFile) {
+        formDataToSend.append('image', uploadedFile);
+      }
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/services`, 
+        formDataToSend, 
+        getAuthHeaders()
+      );
+      
+      const newService = response.data.data;
+      setServices(prev => [...prev, {...newService, id: newService._id || newService.id}]);
+      
+      toast.success("Service added successfully", {
+        description: `${formData.title} has been added to your services.`,
+      });
+      
+      closeModal();
+    } catch (error: any) {
+      console.error('Error adding service:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to add service";
+      toast.error(errorMessage);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleEdit = () => {
-    if (!editingFeature) return;
-    const updatedFeatures = features.map(f => 
-      f.id === editingFeature.id ? { ...f, ...formData } : f
-    );
-    setFeatures(updatedFeatures);
-    
-    toast.success("Service updated successfully", {
-      description: `${formData.title} has been updated.`,
-    });
-    
-    console.log('Updating service:', { id: editingFeature.id, ...formData });
-    // TODO: Add API call to Node.js backend
-    closeModal();
+  const handleEdit = async () => {
+    if (!isModerator || !editingService) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to edit services."
+      });
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const cleanedFeatures = formData.features.filter(f => f.trim() !== '');
+      const formDataToSend = new FormData();
+      
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('duration', formData.duration);
+      formDataToSend.append('price', formData.price);
+      formDataToSend.append('category', formData.category);
+      cleanedFeatures.forEach((feature) => {
+        formDataToSend.append('features', feature);
+      });
+      
+      if (uploadedFile) {
+        formDataToSend.append('image', uploadedFile);
+      }
+      
+      const response = await axios.put(
+        `${API_BASE_URL}/services/${editingService.id}`, 
+        formDataToSend, 
+        getAuthHeaders()
+      );
+      
+      const updatedService = response.data.data;
+      setServices(prev => prev.map(s => 
+        s.id === editingService.id ? {...updatedService, id: updatedService._id || updatedService.id} : s
+      ));
+      
+      toast.success("Service updated successfully", {
+        description: `${formData.title} has been updated.`,
+      });
+      
+      closeModal();
+    } catch (error: any) {
+      console.error('Error updating service:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to update service";
+      toast.error(errorMessage);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = () => {
-    if (!editingFeature) return;
-    const updatedFeatures = features.filter(f => f.id !== editingFeature.id);
-    setFeatures(updatedFeatures);
+  const handleDelete = async () => {
+    if (!isModerator || !editingService) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to delete services."
+      });
+      return;
+    }
+
+    try {
+      await axios.delete(`${API_BASE_URL}/services/${editingService.id}`, getAuthHeaders());
+      setServices(prev => prev.filter(s => s.id !== editingService.id));
+      
+      if (currentIndex >= services.length - 1 && services.length > 1) {
+        setCurrentIndex(services.length - 2);
+      } else if (services.length === 1) {
+        setCurrentIndex(0);
+      }
+      
+      toast.error("Service deleted", {
+        description: `${editingService.title} has been removed from your services.`,
+      });
+      
+      closeModal();
+    } catch (error: any) {
+      console.error('Error deleting service:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to delete service";
+      toast.error(errorMessage);
+    }
+  };
+
+  const addFeature = () => {
+    setFormData(prev => ({ ...prev, features: [...prev.features, ''] }));
+  };
+
+  const updateFeature = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features.map((f, i) => i === index ? value : f)
+    }));
+  };
+
+  const removeFeature = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features.filter((_, i) => i !== index)
+    }));
+  };
+
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return '';
+    if (imagePath.startsWith('http')) return imagePath;
     
-    // Adjust current index if necessary
-    if (currentIndex >= updatedFeatures.length && updatedFeatures.length > 0) {
-      setCurrentIndex(updatedFeatures.length - 1);
-    } else if (updatedFeatures.length === 0) {
-      setCurrentIndex(0);
+    if (imagePath.startsWith('/uploads')) {
+      const backendUrl = API_BASE_URL.replace('/api', '');
+      return `${backendUrl}${imagePath}`;
     }
     
-    toast.error("Service deleted", {
-      description: `${editingFeature.title} has been removed from your services.`,
-    });
-    
-    console.log('Deleting service:', editingFeature.id);
-    // TODO: Add API call to Node.js backend
-    closeModal();
+    return imagePath;
   };
 
-  const reorderFeatures = (fromIndex: number, toIndex: number) => {
-    const newFeatures = [...features];
-    const [movedItem] = newFeatures.splice(fromIndex, 1);
-    newFeatures.splice(toIndex, 0, movedItem);
-    setFeatures(newFeatures);
-    
-    toast.success("Services reordered", {
-      description: "Service order has been updated successfully.",
-    });
-    
-    console.log('Reordering services from', fromIndex, 'to', toIndex);
-    // TODO: Add API call to Node.js backend
-  };
+  if (loading) {
+    return (
+      <section className="py-32 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden transition-all duration-300">
+        <div className="container px-6 mx-auto relative z-10 text-center">
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
-  if (features.length === 0) {
+  if (services.length === 0) {
     return (
       <section className="py-32 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden transition-all duration-300">
         <div className="container px-6 mx-auto relative z-10 text-center">
@@ -347,9 +552,9 @@ const ServicesCarousel = ({
             <div className="relative h-[600px] rounded-3xl overflow-hidden shadow-2xl dark:shadow-slate-900/50">
               
               {/* Background Slides */}
-              {features.map((feature, index) => (
+              {services.map((service, index) => (
                 <div
-                  key={feature.id}
+                  key={service.id}
                   className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
                     index === currentIndex 
                       ? 'opacity-100 scale-100' 
@@ -357,33 +562,15 @@ const ServicesCarousel = ({
                   }`}
                 >
                   <img
-                    src={feature.image}
-                    alt={feature.title}
+                    src={getImageUrl(service.image)}
+                    alt={service.title}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30 dark:from-black/80 dark:via-black/60 dark:to-black/40" />
                 </div>
               ))}
 
-              {/* Current Slide Edit Controls */}
-              {isModerator && features[currentIndex] && (
-                <div className="absolute top-4 left-4 z-30 flex gap-2">
-                  <button
-                    onClick={() => openEditModal(features[currentIndex])}
-                    className="bg-blue-600/90 backdrop-blur-sm border border-blue-500/30 rounded-lg p-2 text-white hover:bg-blue-500/90 transition-all duration-300 shadow-lg group"
-                    title="Edit This Service"
-                  >
-                    <Edit3 className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                  </button>
-                  <button
-                    onClick={() => openDeleteModal(features[currentIndex])}
-                    className="bg-red-600/90 backdrop-blur-sm border border-red-500/30 rounded-lg p-2 text-white hover:bg-red-500/90 transition-all duration-300 shadow-lg group"
-                    title="Delete This Service"
-                  >
-                    <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                  </button>
-                </div>
-              )}
+              
 
               {/* Content Overlay */}
               <div className="relative z-20 h-full flex items-center">
@@ -412,7 +599,7 @@ const ServicesCarousel = ({
                           key={currentIndex}
                           className="text-4xl lg:text-6xl font-bold leading-tight animate-slide-up text-white dark:text-slate-100"
                         >
-                          {features[currentIndex].title}
+                          {services[currentIndex].title}
                         </h2>
                       </div>
 
@@ -422,13 +609,16 @@ const ServicesCarousel = ({
                           key={`desc-${currentIndex}`}
                           className="text-xl text-white/90 dark:text-slate-200/90 leading-relaxed max-w-lg animate-slide-up-delayed"
                         >
-                          {features[currentIndex].description}
+                          {services[currentIndex].description}
                         </p>
                       </div>
 
                       {/* CTA Button */}
                       <div className="pt-4">
-                        <button className="group inline-flex items-center gap-3 px-8 py-4 bg-blue-600 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-400 text-white rounded-2xl font-semibold transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl dark:shadow-slate-900/50">
+                        <button 
+                          onClick={() => openDetailModal(services[currentIndex])}
+                          className="group inline-flex items-center gap-3 px-8 py-4 bg-blue-600 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-400 text-white rounded-2xl font-semibold transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl dark:shadow-slate-900/50"
+                        >
                           <span>Learn More</span>
                           <ChevronRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
                         </button>
@@ -460,7 +650,7 @@ const ServicesCarousel = ({
 
             {/* Slide Indicators */}
             <div className="absolute bottom-6 right-6 z-30 flex gap-2">
-              {features.map((_, index) => (
+              {services.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
@@ -499,245 +689,232 @@ const ServicesCarousel = ({
 
       {/* Modals */}
       {modalMode && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
           
           {/* Add/Edit Modal */}
           {(modalMode === 'add' || modalMode === 'edit') && (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                    {modalMode === 'add' ? (
-                      <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    ) : (
-                      <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    )}
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+            <div className="w-full flex items-center justify-center min-h-screen py-4">
+              <div ref={modalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                     {modalMode === 'add' ? 'Add New Service' : 'Edit Service'}
-                  </h2>
+                  </h3>
+                  <button
+                    onClick={closeModal}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
-                <button
-                  onClick={closeModal}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-
-              {/* Modal Body */}
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                
                 <div className="space-y-6">
-                  {/* Title */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Type className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Service Title
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      value={formData.title}
-                      onChange={(e) => handleInputChange('title', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
-                      placeholder="Enter service title..."
-                    />
-                  </div>
-
-                  {/* Description */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Description
-                      </label>
-                    </div>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none transition-all duration-200"
-                      placeholder="Enter service description..."
-                    />
-                  </div>
-
                   {/* Image Upload */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Image className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Service Image or Video
-                      </label>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {/* Drag & Drop Zone */}
-                      <div
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-all duration-300 cursor-pointer hover:border-blue-400 ${
-                          isDragging 
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                            : 'border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/50'
-                        }`}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*,video/*"
-                          onChange={handleFileInputChange}
-                          className="hidden"
-                        />
-                        
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                      Service Image
+                    </label>
+                    <div
+                      className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${
+                        isDragging
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                      }`}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileInputChange}
+                      />
+                      
+                      {formData.image ? (
                         <div className="space-y-4">
-                          <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center transition-colors ${
-                            isDragging 
-                              ? 'bg-blue-100 dark:bg-blue-900/50' 
-                              : 'bg-gray-100 dark:bg-slate-600'
-                          }`}>
-                            {uploadedFile ? (
-                              <File className="w-8 h-8 text-green-600 dark:text-green-400" />
-                            ) : (
-                              <Upload className={`w-8 h-8 ${
-                                isDragging 
-                                  ? 'text-blue-600 dark:text-blue-400' 
-                                  : 'text-gray-400 dark:text-gray-500'
-                              }`} />
-                            )}
-                          </div>
-                          
-                          <div>
-                            {uploadedFile ? (
-                              <div className="space-y-2">
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                  {uploadedFile.name} ({(uploadedFile.size / (1024 * 1024)).toFixed(1)}MB)
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setUploadedFile(null);
-                                    handleInputChange('image', '');
-                                    if (fileInputRef.current) {
-                                      fileInputRef.current.value = '';
-                                    }
-                                  }}
-                                  className="text-sm text-red-600 hover:text-red-700 font-medium"
-                                >
-                                  Remove file
-                                </button>
-                              </div>
-                            ) : isDragging ? (
-                              <div className="space-y-2">
-                                <p className="text-lg font-semibold text-blue-600 dark:text-blue-400">
-                                  Drop your file here
-                                </p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  Images and videos up to 200MB
-                                </p>
-                              </div>
-                            ) : (
-                              <div className="space-y-2">
-                                <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                                  Drop files here or click to upload
-                                </p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  Supports: JPEG, PNG, GIF, WebP, MP4, WebM, MOV, AVI (max 200MB)
-                                </p>
-                              </div>
-                            )}
-                          </div>
+                          <img
+                            src={formData.image}
+                            alt="Preview"
+                            className="w-32 h-32 object-cover rounded-xl mx-auto"
+                          />
+                          <p className="text-sm text-gray-600 dark:text-slate-400">
+                            {uploadedFile?.name || 'Current image'}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-slate-500">
+                            Click or drag to replace
+                          </p>
                         </div>
-                      </div>
-
-                      {/* Image Preview */}
-                      {formData.image && (
-                        <div className="space-y-3">
-                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
-                            Preview
-                          </label>
-                          <div className="relative w-full h-48 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
-                            {uploadedFile?.type.startsWith('video/') ? (
-                              <video
-                                src={formData.image}
-                                className="w-full h-full object-cover"
-                                controls
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                  e.currentTarget.nextElementSibling.style.display = 'flex';
-                                }}
-                              />
-                            ) : (
-                              <img
-                                src={formData.image}
-                                alt="Preview"
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                  e.currentTarget.nextElementSibling.style.display = 'flex';
-                                }}
-                              />
-                            )}
-                            <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
-                              Failed to load media
-                            </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+                            <Upload className="w-8 h-8 text-gray-400 dark:text-slate-500" />
+                          </div>
+                          <div>
+                            <p className="text-gray-600 dark:text-slate-400">
+                              <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
+                              SVG, PNG, JPG or GIF (max. 200MB)
+                            </p>
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Modal Footer */}
-              <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
-                <button
-                  onClick={closeModal}
-                  className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={modalMode === 'add' ? handleAdd : handleEdit}
-                  disabled={!formData.title || !formData.description || !formData.image}
-                  className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Save className="w-4 h-4" />
-                  {modalMode === 'add' ? 'Add Service' : 'Save Changes'}
-                </button>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Service Title
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => handleInputChange('title', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Category
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.category}
+                        onChange={(e) => handleInputChange('category', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={formData.description}
+                      onChange={(e) => handleInputChange('description', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Duration
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.duration}
+                        onChange={(e) => handleInputChange('duration', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                        Price
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.price}
+                        onChange={(e) => handleInputChange('price', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                      Features
+                    </label>
+                    <div className="space-y-2">
+                      {formData.features.map((feature, index) => (
+                        <div key={index} className="flex gap-2">
+                          <input
+                            type="text"
+                            value={feature}
+                            onChange={(e) => updateFeature(index, e.target.value)}
+                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                            placeholder={`Feature ${index + 1}`}
+                          />
+                          {formData.features.length > 1 && (
+                            <button
+                              onClick={() => removeFeature(index)}
+                              className="px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button
+                        onClick={addFeature}
+                        className="flex items-center gap-2 px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Feature
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-4 mt-8">
+                  <button
+                    onClick={closeModal}
+                    className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={modalMode === 'add' ? handleAdd : handleEdit}
+                    disabled={saving}
+                    className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        {modalMode === 'add' ? 'Add Service' : 'Update Service'}
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           {/* Delete Confirmation Modal */}
-          {modalMode === 'delete' && editingFeature && (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full">
-              <div className="p-6 text-center">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 mb-4">
-                  <Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Delete Service
+          {modalMode === 'delete' && editingService && (
+            <div className="w-full flex items-center justify-center min-h-screen py-4">
+              <div ref={modalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 my-4">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                  Confirm Deletion
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Are you sure you want to delete "{editingFeature.title}"? This action cannot be undone.
+                
+                <p className="text-gray-600 dark:text-slate-300 mb-6">
+                  Are you sure you want to delete the service "{editingService.title}"? This action cannot be undone.
                 </p>
-                <div className="flex gap-3 justify-center">
+                
+                <div className="flex justify-end gap-4">
                   <button
                     onClick={closeModal}
-                    className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium"
+                    className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2"
+                    className="px-4 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
                   >
-                    <Trash2 className="w-4 h-4" />
                     Delete Service
                   </button>
                 </div>
@@ -745,156 +922,138 @@ const ServicesCarousel = ({
             </div>
           )}
 
-          {/* Manage Services Modal */}
-          {modalMode === 'manage' && (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                    <Grid3X3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Manage Services ({features.length})
-                  </h2>
-                </div>
-                <button
-                  onClick={closeModal}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-                <div className="mb-4 flex justify-between items-center">
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Drag and drop to reorder services, or use the action buttons to edit/delete.
-                  </p>
+          {/* Service Detail Modal */}
+          {modalMode === 'detail' && selectedService && (
+            <div className="w-full flex items-center justify-center min-h-screen py-4">
+              <div ref={modalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full p-6 my-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {selectedService.title}
+                  </h3>
                   <button
-                    onClick={openAddModal}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-all duration-200"
+                    onClick={closeModal}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
-                    Add Service
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-
-                <div className="space-y-3">
-                  {features.map((feature, index) => (
-                    <div
-                      key={feature.id}
-                      className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl border border-gray-200 dark:border-slate-600 hover:shadow-md transition-all duration-200"
-                    >
-                      {/* Drag Handle */}
-                      <div className="flex-shrink-0 cursor-move text-gray-400 dark:text-gray-500">
+                
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <img
+                      src={getImageUrl(selectedService.image)}
+                      alt={selectedService.title}
+                      className="w-full h-64 object-cover rounded-xl"
+                    />
+                    
+                    <div className="mt-6 space-y-4">
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-slate-300">
+                        <Clock className="w-5 h-5" />
+                        <span>{selectedService.duration}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-slate-300">
+                        <DollarSign className="w-5 h-5" />
+                        <span>{selectedService.price}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 text-gray-600 dark:text-slate-300">
                         <Grid3X3 className="w-5 h-5" />
-                      </div>
-
-                      {/* Service Number */}
-                      <div className="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center text-sm font-semibold text-blue-600 dark:text-blue-400">
-                        {index + 1}
-                      </div>
-
-                      {/* Service Image */}
-                      <div className="flex-shrink-0 w-16 h-16 bg-gray-200 dark:bg-slate-600 rounded-lg overflow-hidden">
-                        <img
-                          src={feature.image}
-                          alt={feature.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling.style.display = 'flex';
-                          }}
-                        />
-                        <div className="w-full h-full bg-gray-300 dark:bg-slate-500 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400 hidden">
-                          No Image
-                        </div>
-                      </div>
-
-                      {/* Service Info */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 dark:text-white truncate">
-                          {feature.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                          {feature.description}
-                        </p>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex-shrink-0 flex gap-2">
-                        <button
-                          onClick={() => openEditModal(feature)}
-                          className="p-2 bg-blue-100 dark:bg-blue-900/50 hover:bg-blue-200 dark:hover:bg-blue-900/70 text-blue-600 dark:text-blue-400 rounded-lg transition-all duration-200 group"
-                          title="Edit Service"
-                        >
-                          <Edit3 className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                        </button>
-                        <button
-                          onClick={() => openDeleteModal(feature)}
-                          className="p-2 bg-red-100 dark:bg-red-900/50 hover:bg-red-200 dark:hover:bg-red-900/70 text-red-600 dark:text-red-400 rounded-lg transition-all duration-200 group"
-                          title="Delete Service"
-                        >
-                          <Trash2 className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
-                        </button>
-                        
-                        {/* Reorder Buttons */}
-                        <div className="flex flex-col gap-1">
-                          <button
-                            onClick={() => index > 0 && reorderFeatures(index, index - 1)}
-                            disabled={index === 0}
-                            className="p-1 bg-gray-100 dark:bg-slate-600 hover:bg-gray-200 dark:hover:bg-slate-500 text-gray-600 dark:text-gray-400 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                            title="Move Up"
-                          >
-                            <ChevronLeft className="w-3 h-3 rotate-90" />
-                          </button>
-                          <button
-                            onClick={() => index < features.length - 1 && reorderFeatures(index, index + 1)}
-                            disabled={index === features.length - 1}
-                            className="p-1 bg-gray-100 dark:bg-slate-600 hover:bg-gray-200 dark:hover:bg-slate-500 text-gray-600 dark:text-gray-400 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                            title="Move Down"
-                          >
-                            <ChevronRight className="w-3 h-3 rotate-90" />
-                          </button>
-                        </div>
+                        <span>{selectedService.category}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-
-                {features.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mb-4">
-                      <Grid3X3 className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                      No Services Available
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6">
-                      Get started by adding your first service.
-                    </p>
-                    <button
-                      onClick={openAddModal}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all duration-200"
-                    >
-                      <Plus className="w-5 h-5" />
-                      Add First Service
-                    </button>
                   </div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
-                <button
-                  onClick={closeModal}
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 font-medium"
-                >
-                  Done
-                </button>
+                  
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      Description
+                    </h4>
+                    <p className="text-gray-600 dark:text-slate-300 mb-8 leading-relaxed">
+                      {selectedService.description}
+                    </p>
+                    
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      Key Features
+                    </h4>
+                    <ul className="space-y-2">
+                      {selectedService.features.map((feature, index) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-gray-600 dark:text-slate-300">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
+          {/* Manage Services Modal */}
+          {modalMode === 'manage' && (
+            <div className="w-full flex items-center justify-center min-h-screen py-4">
+              <div ref={modalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full p-6 my-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Manage Services
+                  </h3>
+                  <button
+                    onClick={closeModal}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  {services.map((service, index) => (
+                    <div key={service.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-slate-700 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={getImageUrl(service.image)}
+                          alt={service.title}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                        <div>
+                          <h4 className="font-semibold text-gray-900 dark:text-white">
+                            {service.title}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-slate-400">
+                            {service.category}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => openEditModal(service)}
+                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => openDeleteModal(service)}
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={openAddModal}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add New Service
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </>
