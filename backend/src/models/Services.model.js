@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const serviceSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   description: {
     type: String,
@@ -12,6 +13,23 @@ const serviceSchema = new mongoose.Schema({
   image: {
     type: String,
     required: true
+  },
+  features: [{
+    type: String,
+    trim: true
+  }],
+  duration: {
+    type: String,
+    required: true
+  },
+  price: {
+    type: String,
+    required: true
+  },
+  category: {
+    type: String,
+    required: true,
+    trim: true
   },
   order: {
     type: Number,

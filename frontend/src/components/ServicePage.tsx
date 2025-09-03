@@ -23,12 +23,19 @@ import {
   DollarSign,
   Settings,
   Upload,
-  File
+  File,
+  Loader2,
+  Shield
 } from 'lucide-react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
+import { API_URL as API_BASE_URL } from '../../config/api'
+
 
 interface Service {
+  _id?: string;
   id: string;
   title: string;
   description: string;
@@ -40,6 +47,7 @@ interface Service {
 }
 
 interface Testimonial {
+  _id?: string;
   name: string;
   role: string;
   company: string;
@@ -59,7 +67,6 @@ interface ServicePageProps {
     label: string;
     icon: React.ReactNode;
   }>;
-  isModerator?: boolean;
 }
 
 interface ServiceFormData {
@@ -88,60 +95,13 @@ interface MainContentFormData {
   description: string;
 }
 
+
 const ServicePage = ({
   badge = "Our Services",
   heading = "Our Core Services",
   description = "MECOSO delivers complete industrial solutions. From design and fabrication to installation and maintenance. Serving the mining, energy, and heavy industry sectors with a focus on quality, safety, and innovation.",
-  services = [
-    {
-      id: '1',
-      title: "Thickener Manufacturing & Assembly",
-      description: "Designing and assembling high-performance thickeners for efficient solid-liquid separation in industrial and mining applications.",
-      image: "images/service1.jpg",
-      features: ["High-Performance Design", "Solid-Liquid Separation", "Industrial Applications", "Mining Solutions"],
-      duration: "6-12 weeks",
-      price: "Custom quotes",
-      category: "Manufacturing"
-    },
-    {
-      id: '2',
-      title: "Tank Manufacturing & Assembly",
-      description: "Expert fabrication and on-site assembly of storage tanks and cement silos, ensuring durability, safety, and compliance.",
-      image: "images/service2.jpg",
-      features: ["Storage Solutions", "Cement Silos", "On-site Assembly", "Safety Compliance"],
-      duration: "4-10 weeks",
-      price: "Starting at $15,000",
-      category: "Manufacturing"
-    },
-    {
-      id: '3',
-      title: "Room Bin & Storage Hopper Manufacturing",
-      description: "Custom-engineered bins and hoppers for optimal material storage and flow, tailored to your operational needs.",
-      image: "images/service3.jpg",
-      features: ["Custom Engineering", "Optimal Flow Design", "Material Storage", "Operational Efficiency"],
-      duration: "3-8 weeks",
-      price: "Starting at $8,000",
-      category: "Manufacturing"
-    }
-  ],
-  testimonials = [
-    {
-      name: "Ahmed Hassan",
-      role: "Operations Manager",
-      company: "Morocco Mining Corp",
-      content: "MECOSO's thickener manufacturing service exceeded our expectations. Their expertise in solid-liquid separation technology significantly improved our mining operations efficiency.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
-    },
-    {
-      name: "Fatima Benali",
-      role: "Project Director",
-      company: "Atlas Energy Solutions",
-      content: "Outstanding steel structure fabrication and erection services. MECOSO delivered our industrial facility framework on time and with exceptional quality standards.",
-      rating: 5,
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face"
-    }
-  ],
+  services = [],
+  testimonials = [],
   stats = [
     {
       number: "50+",
@@ -163,18 +123,21 @@ const ServicePage = ({
       label: "Expert Team",
       icon: <Users className="size-6" />
     }
-  ],
-  isModerator = true
+  ]
 }: ServicePageProps) => {
+  const { user, isAuthenticated } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const testimonialRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   // Edit states
   const [isMainContentModalOpen, setIsMainContentModalOpen] = useState(false);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isTestimonialModalOpen, setIsTestimonialModalOpen] = useState(false);
+  const [isServiceDetailModalOpen, setIsServiceDetailModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
 
@@ -184,7 +147,7 @@ const ServicePage = ({
     heading,
     description
   });
-  const [currentServices, setCurrentServices] = useState(services);
+  const [currentServices, setCurrentServices] = useState<Service[]>(services);
   const [currentTestimonials, setCurrentTestimonials] = useState(testimonials);
 
   // Form data states
@@ -220,6 +183,12 @@ const ServicePage = ({
   const serviceFileInputRef = useRef<HTMLInputElement>(null);
   const testimonialFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Modal refs for outside click detection
+  const mainContentModalRef = useRef<HTMLDivElement>(null);
+  const serviceModalRef = useRef<HTMLDivElement>(null);
+  const testimonialModalRef = useRef<HTMLDivElement>(null);
+  const serviceDetailModalRef = useRef<HTMLDivElement>(null);
+  const deleteModalRef = useRef<HTMLDivElement>(null);
 
   // Delete confirmation states
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -230,12 +199,86 @@ const ServicePage = ({
   } | null>(null);
 
   const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB in bytes
-  const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/mov', 'video/avi'];
+  const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
   const categories = ['All', ...Array.from(new Set(currentServices.map(s => s.category)))];
   const filteredServices = selectedCategory === 'All' 
     ? currentServices 
     : currentServices.filter(s => s.category === selectedCategory);
+
+  // Check if user is moderator or admin
+  const isModerator = isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin');
+
+  // Fetch services on component mount
+  useEffect(() => {
+    fetchServices();
+    fetchTestimonials(); // Add this line
+  }, []);
+
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/services`);
+      const servicesData = response.data.data.map((service: any) => ({
+        ...service,
+        id: service._id || service.id
+      }));
+      setCurrentServices(servicesData);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      toast.error('Failed to load services');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTestimonials = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/testimonials`);
+      setCurrentTestimonials(response.data.data);
+    } catch (error) {
+      console.error('Error fetching testimonials:', error);
+      toast.error('Failed to load testimonials');
+    }
+  };
+
+  // Get auth token for authenticated requests
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    };
+  };
+
+  // Outside click handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMainContentModalOpen && mainContentModalRef.current && !mainContentModalRef.current.contains(event.target as Node)) {
+        cancelMainContent();
+      }
+      if (isServiceModalOpen && serviceModalRef.current && !serviceModalRef.current.contains(event.target as Node)) {
+        setIsServiceModalOpen(false);
+      }
+      if (isTestimonialModalOpen && testimonialModalRef.current && !testimonialModalRef.current.contains(event.target as Node)) {
+        setIsTestimonialModalOpen(false);
+      }
+      if (isServiceDetailModalOpen && serviceDetailModalRef.current && !serviceDetailModalRef.current.contains(event.target as Node)) {
+        setIsServiceDetailModalOpen(false);
+        setSelectedService(null);
+      }
+      if (deleteModalOpen && deleteModalRef.current && !deleteModalRef.current.contains(event.target as Node)) {
+        setDeleteModalOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMainContentModalOpen, isServiceModalOpen, isTestimonialModalOpen, isServiceDetailModalOpen, deleteModalOpen]);
 
   // Auto-scroll testimonials
   useEffect(() => {
@@ -265,7 +308,7 @@ const ServicePage = ({
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
       toast.error("Invalid file type", {
-        description: "Please upload an image (JPEG, PNG, GIF, WebP) or video (MP4, WebM, MOV, AVI).",
+        description: "Please upload an image (JPEG, PNG, GIF, WebP).",
       });
       return false;
     }
@@ -376,9 +419,25 @@ const ServicePage = ({
 
   // Service handlers
   const openServiceModal = (service?: Service) => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to edit services."
+      });
+      return;
+    }
+
     if (service) {
       setEditingService(service);
-      setServiceForm(service);
+      setServiceForm({
+        id: service.id,
+        title: service.title,
+        description: service.description,
+        image: service.image,
+        features: [...service.features],
+        duration: service.duration,
+        price: service.price,
+        category: service.category
+      });
       setUploadedServiceFile(null);
     } else {
       setEditingService(null);
@@ -397,10 +456,16 @@ const ServicePage = ({
     setIsServiceModalOpen(true);
   };
 
+  // Service detail modal handler
+  const openServiceDetailModal = (service: Service) => {
+    setSelectedService(service);
+    setIsServiceDetailModalOpen(true);
+  };
+
   // Delete Confirmation Modal
   const DeleteConfirmationModal = () => (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-60">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
+      <div ref={deleteModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
           Confirm Deletion
         </h3>
@@ -437,34 +502,108 @@ const ServicePage = ({
     </div>
   );
 
-  const saveService = () => {
-    const cleanedFeatures = serviceForm.features.filter(f => f.trim() !== '');
-    const updatedService = { ...serviceForm, features: cleanedFeatures };
-
-    if (editingService) {
-      setCurrentServices(prev => prev.map(s => s.id === editingService.id ? updatedService : s));
-      toast.success("Service updated successfully");
-    } else {
-      setCurrentServices(prev => [...prev, updatedService]);
-      toast.success("Service added successfully");
+  const saveService = async () => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to edit services."
+      });
+      return;
     }
-    setIsServiceModalOpen(false);
-    setEditingService(null);
-    
-    // Clean up object URL if created
-    if (uploadedServiceFile) {
-      URL.revokeObjectURL(serviceForm.image);
+
+    try {
+      setSaving(true);
+      const cleanedFeatures = serviceForm.features.filter(f => f.trim() !== '');
+      const formData = new FormData();
+      
+      formData.append('title', serviceForm.title);
+      formData.append('description', serviceForm.description);
+      formData.append('duration', serviceForm.duration);
+      formData.append('price', serviceForm.price);
+      formData.append('category', serviceForm.category);
+      cleanedFeatures.forEach((feature) => {
+        formData.append('features', feature);
+      });
+      
+      if (uploadedServiceFile) {
+        formData.append('image', uploadedServiceFile);
+      }
+      
+      let response;
+      if (editingService) {
+        response = await axios.put(
+          `${API_BASE_URL}/services/${editingService.id}`, 
+          formData, 
+          getAuthHeaders()
+        );
+        toast.success("Service updated successfully");
+      } else {
+        response = await axios.post(
+          `${API_BASE_URL}/services`, 
+          formData, 
+          getAuthHeaders()
+        );
+        toast.success("Service added successfully");
+      }
+      
+      // Update local state with the response data
+      const updatedService = response.data.data;
+      if (editingService) {
+        setCurrentServices(prev => prev.map(s => s.id === editingService.id ? {...updatedService, id: updatedService._id || updatedService.id} : s));
+      } else {
+        setCurrentServices(prev => [...prev, {...updatedService, id: updatedService._id || updatedService.id}]);
+      }
+      
+      setIsServiceModalOpen(false);
+      setEditingService(null);
+      
+      // Clean up object URL if created
+      if (uploadedServiceFile) {
+        URL.revokeObjectURL(serviceForm.image);
+      }
+    } catch (error: any) {
+      console.error('Error saving service:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to save service";
+      toast.error(errorMessage);
+      
+      // Handle unauthorized access
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error("Session expired or insufficient permissions");
+        // Optionally trigger logout
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
-  const deleteService = (id: string) => {
-    setCurrentServices(prev => prev.filter(s => s.id !== id));
-    toast.error("Service deleted", {
-      description: "The service has been permanently removed.",
-    });
+  const deleteService = async (id: string) => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to delete services."
+      });
+      return;
+    }
+
+    try {
+      await axios.delete(`${API_BASE_URL}/services/${id}`, getAuthHeaders());
+      setCurrentServices(prev => prev.filter(s => s.id !== id));
+      toast.error("Service deleted", {
+        description: "The service has been permanently removed.",
+      });
+    } catch (error: any) {
+      console.error('Error deleting service:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to delete service";
+      toast.error(errorMessage);
+    }
   };
 
   const confirmDeleteService = (id: string, name: string) => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to delete services."
+      });
+      return;
+    }
+
     setItemToDelete({ type: 'service', id, name });
     setDeleteModalOpen(true);
   };
@@ -489,6 +628,13 @@ const ServicePage = ({
 
   // Testimonial handlers
   const openTestimonialModal = (testimonial?: Testimonial) => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to edit testimonials."
+      });
+      return;
+    }
+
     if (testimonial) {
       setEditingTestimonial(testimonial);
       setTestimonialForm(testimonial);
@@ -508,36 +654,126 @@ const ServicePage = ({
     setIsTestimonialModalOpen(true);
   };
 
-  const saveTestimonial = () => {
-    if (editingTestimonial) {
-      setCurrentTestimonials(prev => prev.map(t => 
-        t.name === editingTestimonial.name ? testimonialForm : t
-      ));
-      toast.success("Testimonial updated successfully");
-    } else {
-      setCurrentTestimonials(prev => [...prev, testimonialForm]);
-      toast.success("Testimonial added successfully");
+  const saveTestimonial = async () => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to edit testimonials."
+      });
+      return;
     }
-    setIsTestimonialModalOpen(false);
-    setEditingTestimonial(null);
-    
-    // Clean up object URL if created
-    if (uploadedTestimonialFile) {
-      URL.revokeObjectURL(testimonialForm.image);
+
+    try {
+      setSaving(true);
+      const formData = new FormData();
+      
+      formData.append('name', testimonialForm.name);
+      formData.append('role', testimonialForm.role);
+      formData.append('company', testimonialForm.company);
+      formData.append('content', testimonialForm.content);
+      formData.append('rating', testimonialForm.rating.toString());
+      
+      if (uploadedTestimonialFile) {
+        formData.append('image', uploadedTestimonialFile);
+      }
+      
+      let response;
+      if (editingTestimonial && editingTestimonial._id) {
+        response = await axios.put(
+          `${API_BASE_URL}/testimonials/${editingTestimonial._id}`, 
+          formData, 
+          getAuthHeaders()
+        );
+        toast.success("Testimonial updated successfully");
+      } else {
+        response = await axios.post(
+          `${API_BASE_URL}/testimonials`, 
+          formData, 
+          getAuthHeaders()
+        );
+        toast.success("Testimonial added successfully");
+      }
+      
+      // Update local state
+      const updatedTestimonial = response.data.data;
+      if (editingTestimonial) {
+        setCurrentTestimonials(prev => prev.map(t => 
+          t._id === editingTestimonial._id ? updatedTestimonial : t
+        ));
+      } else {
+        setCurrentTestimonials(prev => [...prev, updatedTestimonial]);
+      }
+      
+      setIsTestimonialModalOpen(false);
+      setEditingTestimonial(null);
+      
+      // Clean up object URL if created
+      if (uploadedTestimonialFile) {
+        URL.revokeObjectURL(testimonialForm.image);
+      }
+    } catch (error: any) {
+      console.error('Error saving testimonial:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to save testimonial";
+      toast.error(errorMessage);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const deleteTestimonial = (name: string) => {
-    setCurrentTestimonials(prev => prev.filter(t => t.name !== name));
-    toast.error("Testimonial deleted", {
-      description: "The testimonial has been permanently removed.",
-    });
+  const deleteTestimonial = async (id: string) => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to delete testimonials."
+      });
+      return;
+    }
+
+    try {
+      await axios.delete(`${API_BASE_URL}/testimonials/${id}`, getAuthHeaders());
+      setCurrentTestimonials(prev => prev.filter(t => t._id !== id));
+      toast.error("Testimonial deleted", {
+        description: "The testimonial has been permanently removed.",
+      });
+    } catch (error: any) {
+      console.error('Error deleting testimonial:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to delete testimonial";
+      toast.error(errorMessage);
+    }
   };
 
-  const confirmDeleteTestimonial = (name: string) => {
-    setItemToDelete({ type: 'testimonial', id: name, name });
+  const confirmDeleteTestimonial = (id: string, name: string) => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to delete testimonials."
+      });
+      return;
+    }
+
+    setItemToDelete({ type: 'testimonial', id, name });
     setDeleteModalOpen(true);
   };
+
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return '';
+    if (imagePath.startsWith('http')) return imagePath;
+    
+    // If it's a relative path starting with /uploads, prepend the backend URL
+    if (imagePath.startsWith('/uploads')) {
+      const backendUrl = API_BASE_URL.replace('/api', '');
+      return `${backendUrl}${imagePath}`;
+    }
+    
+    return imagePath;
+  };
+
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -636,17 +872,17 @@ const ServicePage = ({
               >
                 {/* Edit Controls */}
                 {isModerator && (
-                  <div className="absolute top-2 right-2 z-10 flex gap-2">
+                  <div className="absolute top-2 right-2 z-20 flex gap-2">
                     <button
                       onClick={() => openServiceModal(service)}
-                      className="p-2 bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm rounded-lg hover:bg-white dark:hover:bg-slate-600 transition-colors text-blue-600 dark:text-blue-400"
+                      className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-blue-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
                       title="Edit Service"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => confirmDeleteService(service.id, service.title)}
-                      className="p-2 bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm rounded-lg hover:bg-white dark:hover:bg-slate-600 transition-colors text-red-600 dark:text-red-400"
+                      className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-red-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
                       title="Delete Service"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -655,61 +891,61 @@ const ServicePage = ({
                 )}
 
                 {/* Service Image */}
-                <div className="relative h-64 overflow-hidden">
-                  <img 
-                    src={service.image} 
+                <div className="relative overflow-hidden">
+                  <img
+                    src={getImageUrl(service.image)}
                     alt={service.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                  
-                  {/* Category Badge */}
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm text-gray-800 dark:text-slate-200 text-sm font-medium rounded-full">
+                  <div className="absolute bottom-4 left-4">
+                    <span className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded-full">
                       {service.category}
-                    </span>
-                  </div>
-
-                  {/* Price Badge */}
-                  <div className="absolute top-4 right-4 mr-16">
-                    <span className="px-3 py-1 bg-blue-600/90 dark:bg-blue-500/90 backdrop-blur-sm text-white text-sm font-medium rounded-full">
-                      {service.price}
                     </span>
                   </div>
                 </div>
 
                 {/* Service Content */}
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">
                     {service.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-slate-400 leading-relaxed mb-6">
+                  <p className="text-gray-600 dark:text-slate-400 mb-4 line-clamp-2">
                     {service.description}
                   </p>
-
+                  
                   {/* Features */}
                   <div className="space-y-2 mb-6">
-                    {service.features.slice(0, 3).map((feature, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <CheckCircle className="size-4 text-green-500 dark:text-green-400" />
-                        <span className="text-gray-700 dark:text-slate-300 text-sm">{feature}</span>
+                    {service.features.slice(0, 3).map((feature, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                        <span className="text-sm text-gray-600 dark:text-slate-400">{feature}</span>
                       </div>
                     ))}
+                    {service.features.length > 3 && (
+                      <div className="text-sm text-gray-500 dark:text-slate-500">
+                        +{service.features.length - 3} more features
+                      </div>
+                    )}
                   </div>
 
-                  {/* Duration */}
-                  <div className="flex items-center gap-2 mb-6 text-gray-600 dark:text-slate-400">
-                    <Clock className="size-4" />
-                    <span className="text-sm">{service.duration}</span>
+                  {/* Footer */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-gray-600 dark:text-slate-400 text-sm">
+                      <Clock className="w-4 h-4 inline mr-1" />
+                      {service.duration}
+                    </div>
+                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      {service.price}
+                    </div>
                   </div>
 
-                  {/* CTA Button */}
-                  <button 
-                    onClick={() => setSelectedService(service)}
-                    className="w-full py-3 bg-gray-900 dark:bg-slate-700 hover:bg-blue-600 dark:hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 group-hover:shadow-lg flex items-center justify-center gap-2"
+                  {/* Action Button */}
+                  <button
+                    onClick={() => openServiceDetailModal(service)}
+                    className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
-                    Learn More
-                    <ArrowUpRight className="size-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
+                    View Details
                   </button>
                 </div>
               </div>
@@ -718,39 +954,8 @@ const ServicePage = ({
         </div>
       </section>
 
-      {/* Process Section */}
-      <section className="py-20 bg-gray-900 dark:bg-slate-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(59,130,246,0.1),transparent_50%)] dark:bg-[radial-gradient(circle_at_30%_40%,rgba(59,130,246,0.2),transparent_50%)]" />
-        
-        <div className="container px-6 mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">Our Process</h2>
-            <p className="text-xl text-gray-300 dark:text-slate-400 max-w-2xl mx-auto">
-              A streamlined approach that ensures quality, efficiency, and client satisfaction at every step.
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-4 gap-8">
-            {[
-              { step: "01", title: "Consultation", desc: "Understanding your industrial needs and project requirements" },
-              { step: "02", title: "Design & Planning", desc: "Detailed engineering design and comprehensive project planning" },
-              { step: "03", title: "Fabrication", desc: "Precision manufacturing using advanced technology and quality materials" },
-              { step: "04", title: "Installation", desc: "Professional on-site assembly and commissioning by expert teams" }
-            ].map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="w-20 h-20 bg-blue-600 dark:bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl font-bold">
-                  {item.step}
-                </div>
-                <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
-                <p className="text-gray-300 dark:text-slate-400">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Testimonials Section */}
-      <section className="py-20">
+      <section className="py-20 bg-gradient-to-br from-slate-100 to-gray-100 dark:from-slate-800 dark:to-slate-900">
         <div className="container px-6 mx-auto">
           
           {/* Testimonials Header with Add Button */}
@@ -767,149 +972,160 @@ const ServicePage = ({
             )}
           </div>
 
-          <div className="relative max-w-4xl mx-auto">
-            <div 
-              ref={testimonialRef}
-              className="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 lg:p-12 border border-gray-100 dark:border-slate-700"
-            >
-              {currentTestimonials.map((testimonial, index) => (
-                <div 
-                  key={index}
-                  className={`transition-all duration-500 ease-in-out ${
-                    index === currentTestimonial ? 'opacity-100 translate-y-0' : 'opacity-0 absolute translate-y-8 pointer-events-none'
-                  }`}
-                >
-                  {/* Edit Controls */}
-                  {isModerator && (
-                    <div className="absolute top-4 right-4 z-10 flex gap-2">
-                      <button
-                        onClick={() => openTestimonialModal(testimonial)}
-                        className="p-2 bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm rounded-lg hover:bg-white dark:hover:bg-slate-600 transition-colors text-blue-600 dark:text-blue-400"
-                        title="Edit Testimonial"
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => confirmDeleteTestimonial(testimonial.name)}
-                        className="p-2 bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm rounded-lg hover:bg-white dark:hover:bg-slate-600 transition-colors text-red-600 dark:text-red-400"
-                        title="Delete Testimonial"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-4 mb-6">
-                    <img 
-                      src={testimonial.image} 
-                      alt={testimonial.name}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                    <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-slate-100">{testimonial.name}</h4>
-                      <p className="text-gray-600 dark:text-slate-400">{testimonial.role}, {testimonial.company}</p>
-                    </div>
+          <div className="max-w-4xl mx-auto">
+            <div ref={testimonialRef} className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 min-h-[300px]">
+              {currentTestimonials.length === 0 ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center text-gray-500 dark:text-slate-400">
+                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No testimonials yet</p>
+                    {isModerator && (
+                      <p className="text-sm mt-2">Click "Add Testimonial" to get started</p>
+                    )}
                   </div>
-                  
-                  <div className="flex mb-4">
-                    {renderStars(testimonial.rating)}
-                  </div>
-                  
-                  <blockquote className="text-xl lg:text-2xl text-gray-700 dark:text-slate-300 leading-relaxed italic">
-                    "{testimonial.content}"
-                  </blockquote>
                 </div>
-              ))}
-            </div>
-
-            {/* Navigation Dots */}
-            <div className="flex justify-center gap-2 mt-8">
-              {currentTestimonials.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentTestimonial(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentTestimonial 
-                      ? 'bg-blue-600 dark:bg-blue-500 scale-125' 
-                      : 'bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500'
-                  }`}
-                />
-              ))}
+              ) : (
+                <>
+                  {currentTestimonials.map((testimonial, index) => (
+                    <div
+                      key={testimonial._id || testimonial.name}
+                      className={`absolute inset-0 p-8 transition-all duration-500 ease-in-out ${
+                        index === currentTestimonial
+                          ? 'opacity-100 translate-y-0 z-10'
+                          : 'opacity-0 translate-y-8 pointer-events-none z-0'
+                      }`}
+                    >
+                      <div className="flex flex-col md:flex-row items-start gap-6 h-full">
+                        <img
+                          src={getImageUrl(testimonial.image)}
+                          alt={testimonial.name}
+                          className="w-16 h-16 rounded-2xl object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-gray-900 dark:text-slate-100 truncate">
+                                {testimonial.name}
+                              </h4>
+                              <p className="text-gray-600 dark:text-slate-400 text-sm truncate">
+                                {testimonial.role}, {testimonial.company}
+                              </p>
+                            </div>
+                            <div className="flex gap-1 flex-shrink-0">
+                              {renderStars(testimonial.rating)}
+                            </div>
+                          </div>
+                          <p className="text-gray-700 dark:text-slate-300 leading-relaxed line-clamp-4">
+                            "{testimonial.content}"
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Edit Controls */}
+                      {isModerator && (
+                        <div className="absolute top-4 right-4 flex gap-2">
+                          <button
+                            onClick={() => openTestimonialModal(testimonial)}
+                            className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-blue-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
+                            title="Edit Testimonial"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => confirmDeleteTestimonial(testimonial._id || '', testimonial.name)}
+                            className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-red-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
+                            title="Delete Testimonial"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {/* Navigation Dots */}
+                  <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
+                    {currentTestimonials.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentTestimonial(index)}
+                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                          index === currentTestimonial
+                            ? 'bg-blue-600 dark:bg-blue-500 scale-125'
+                            : 'bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-700 dark:from-blue-700 dark:to-purple-800 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.1),transparent_50%)] dark:bg-[radial-gradient(circle_at_70%_30%,rgba(0,0,0,0.2),transparent_50%)]" />
-        
-        <div className="container px-6 mx-auto relative z-10">
-          <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">Ready to Transform Your Operations?</h2>
-            <p className="text-xl text-blue-100 dark:text-blue-200 mb-12">
-              Let's discuss how our industrial solutions can optimize your processes and drive efficiency.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 bg-white text-blue-600 dark:text-blue-700 rounded-2xl font-semibold hover:bg-gray-100 dark:hover:bg-gray-200 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                Schedule Consultation
-              </button>
-              <button className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-2xl font-semibold hover:bg-white hover:text-blue-600 dark:hover:text-blue-700 transition-all duration-300 transform hover:scale-105">
-                Request Quote
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Modals */}
       {/* Main Content Modal */}
       {isMainContentModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Main Content</h3>
+          <div ref={mainContentModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Main Content</h3>
+              <button
+                onClick={cancelMainContent}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div className="p-6 space-y-4">
+            
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Badge Text</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Badge Text
+                </label>
                 <input
                   type="text"
                   value={mainContentForm.badge}
-                  onChange={(e) => setMainContentForm({...mainContentForm, badge: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  onChange={(e) => setMainContentForm(prev => ({ ...prev, badge: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Heading</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Heading
+                </label>
                 <input
                   type="text"
                   value={mainContentForm.heading}
-                  onChange={(e) => setMainContentForm({...mainContentForm, heading: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  onChange={(e) => setMainContentForm(prev => ({ ...prev, heading: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
                 />
               </div>
+              
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Description
+                </label>
                 <textarea
                   rows={4}
                   value={mainContentForm.description}
-                  onChange={(e) => setMainContentForm({...mainContentForm, description: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
+                  onChange={(e) => setMainContentForm(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
                 />
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
+            
+            <div className="flex justify-end gap-4 mt-6">
               <button
                 onClick={cancelMainContent}
-                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+                className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={saveMainContent}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
               >
                 Save Changes
               </button>
@@ -920,97 +1136,30 @@ const ServicePage = ({
 
       {/* Service Modal */}
       {isServiceModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div ref={serviceModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                 {editingService ? 'Edit Service' : 'Add New Service'}
               </h3>
+              <button
+                onClick={() => setIsServiceModalOpen(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
-                <input
-                  type="text"
-                  value={serviceForm.title}
-                  onChange={(e) => setServiceForm({...serviceForm, title: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                <textarea
-                  rows={4}
-                  value={serviceForm.description}
-                  onChange={(e) => setServiceForm({...serviceForm, description: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
-                <input
-                  type="text"
-                  value={serviceForm.category}
-                  onChange={(e) => setServiceForm({...serviceForm, category: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Duration</label>
-                <input
-                  type="text"
-                  value={serviceForm.duration}
-                  onChange={(e) => setServiceForm({...serviceForm, duration: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Price</label>
-                <input
-                  type="text"
-                  value={serviceForm.price}
-                  onChange={(e) => setServiceForm({...serviceForm, price: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                />
-              </div>
-              
-              {/* Features */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Features</label>
-                <div className="space-y-2">
-                  {serviceForm.features.map((feature, index) => (
-                    <div key={index} className="flex gap-2">
-                      <input
-                        type="text"
-                        value={feature}
-                        onChange={(e) => updateFeature(index, e.target.value)}
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                        placeholder="Enter feature"
-                      />
-                      <button
-                        onClick={() => removeFeature(index)}
-                        className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  onClick={addFeature}
-                  className="mt-2 px-4 py-2 bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-500"
-                >
-                  Add Feature
-                </button>
-              </div>
-
+            
+            <div className="space-y-6">
               {/* Image Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Service Image</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Service Image
+                </label>
                 <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                    isDraggingService 
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                  className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${
+                    isDraggingService
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                       : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
                   }`}
                   onDragOver={handleServiceDragOver}
@@ -1022,61 +1171,237 @@ const ServicePage = ({
                     ref={serviceFileInputRef}
                     type="file"
                     className="hidden"
+                    accept="image/*"
                     onChange={handleServiceFileInputChange}
-                    accept="image/*,video/*"
                   />
-                  <div className="space-y-4">
-                    <div className="flex justify-center">
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                        <Upload className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  
+                  {serviceForm.image ? (
+                    <div className="space-y-4">
+                      <img
+                        src={serviceForm.image}
+                        alt="Preview"
+                        className="w-32 h-32 object-cover rounded-xl mx-auto"
+                      />
+                      <p className="text-sm text-gray-600 dark:text-slate-400">
+                        {uploadedServiceFile?.name || 'Current image'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-slate-500">
+                        Click or drag to replace
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+                        <Upload className="w-8 h-8 text-gray-400 dark:text-slate-500" />
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-slate-400">
+                          <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
+                          SVG, PNG, JPG or GIF (max. 200MB)
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        Drag and drop or click to upload
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Upload an image or video (max 200MB)
-                      </p>
-                    </div>
-                  </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    Service Title
+                  </label>
+                  <input
+                    type="text"
+                    value={serviceForm.title}
+                    onChange={(e) => setServiceForm(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  />
                 </div>
                 
-                {serviceForm.image && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
-                    <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700">
-                      {serviceForm.image.startsWith('data:video') || serviceForm.image.endsWith('.mp4') || serviceForm.image.endsWith('.webm') || serviceForm.image.endsWith('.mov') || serviceForm.image.endsWith('.avi') ? (
-                        <video 
-                          src={serviceForm.image} 
-                          className="w-full h-48 object-cover"
-                          controls
-                        />
-                      ) : (
-                        <img 
-                          src={serviceForm.image} 
-                          alt="Preview" 
-                          className="w-full h-48 object-cover"
-                        />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    Category
+                  </label>
+                  <input
+                    type="text"
+                    value={serviceForm.category}
+                    onChange={(e) => setServiceForm(prev => ({ ...prev, category: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={serviceForm.description}
+                  onChange={(e) => setServiceForm(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    Duration
+                  </label>
+                  <input
+                    type="text"
+                    value={serviceForm.duration}
+                    onChange={(e) => setServiceForm(prev => ({ ...prev, duration: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    Price
+                  </label>
+                  <input
+                    type="text"
+                    value={serviceForm.price}
+                    onChange={(e) => setServiceForm(prev => ({ ...prev, price: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Features
+                </label>
+                <div className="space-y-2">
+                  {serviceForm.features.map((feature, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={feature}
+                        onChange={(e) => updateFeature(index, e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                        placeholder={`Feature ${index + 1}`}
+                      />
+                      {serviceForm.features.length > 1 && (
+                        <button
+                          onClick={() => removeFeature(index)}
+                          className="px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       )}
                     </div>
-                  </div>
-                )}
+                  ))}
+                  <button
+                    onClick={addFeature}
+                    className="flex items-center gap-2 px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Feature
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
+            
+            <div className="flex justify-end gap-4 mt-8">
               <button
                 onClick={() => setIsServiceModalOpen(false)}
-                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+                className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={saveService}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={saving}
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {editingService ? 'Update Service' : 'Add Service'}
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    {editingService ? 'Update Service' : 'Add Service'}
+                  </>
+                )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Service Detail Modal */}
+      {isServiceDetailModalOpen && selectedService && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div ref={serviceDetailModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full p-6 my-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedService.title}</h3>
+              <button
+                onClick={() => {
+                  setIsServiceDetailModalOpen(false);
+                  setSelectedService(null);
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <img
+                  src={selectedService.image}
+                  alt={selectedService.title}
+                  className="w-full h-96 object-cover rounded-2xl shadow-lg"
+                />
+              </div>
+              
+              <div>
+                <div className="mb-6">
+                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm rounded-full">
+                    {selectedService.category}
+                  </span>
+                </div>
+                
+                <p className="text-gray-600 dark:text-slate-400 mb-6 leading-relaxed">
+                  {selectedService.description}
+                </p>
+                
+                <div className="space-y-4 mb-8">
+                  <h4 className="font-bold text-gray-900 dark:text-slate-100">Key Features</h4>
+                  <div className="space-y-2">
+                    {selectedService.features.map((feature, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span className="text-gray-600 dark:text-slate-400">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
+                    <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400 mb-2" />
+                    <div className="text-sm text-gray-600 dark:text-slate-400">Duration</div>
+                    <div className="font-semibold text-gray-900 dark:text-slate-100">{selectedService.duration}</div>
+                  </div>
+                  
+                  <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
+                    <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400 mb-2" />
+                    <div className="text-sm text-gray-600 dark:text-slate-400">Price</div>
+                    <div className="font-semibold text-gray-900 dark:text-slate-100">{selectedService.price}</div>
+                  </div>
+                </div>
+                
+                <button className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                  Get Started
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1085,76 +1410,29 @@ const ServicePage = ({
       {/* Testimonial Modal */}
       {isTestimonialModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div ref={testimonialModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                 {editingTestimonial ? 'Edit Testimonial' : 'Add New Testimonial'}
               </h3>
+              <button
+                onClick={() => setIsTestimonialModalOpen(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
-                  <input
-                    type="text"
-                    value={testimonialForm.name}
-                    onChange={(e) => setTestimonialForm({...testimonialForm, name: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
-                  <input
-                    type="text"
-                    value={testimonialForm.role}
-                    onChange={(e) => setTestimonialForm({...testimonialForm, role: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company</label>
-                <input
-                  type="text"
-                  value={testimonialForm.company}
-                  onChange={(e) => setTestimonialForm({...testimonialForm, company: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content</label>
-                <textarea
-                  rows={4}
-                  value={testimonialForm.content}
-                  onChange={(e) => setTestimonialForm({...testimonialForm, content: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-700 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</label>
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setTestimonialForm({...testimonialForm, rating: star})}
-                      className="text-2xl focus:outline-none"
-                    >
-                      <Star 
-                        className={`w-8 h-8 ${star <= testimonialForm.rating ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600'}`} 
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
+            
+            <div className="space-y-6">
               {/* Image Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Profile Image</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Client Photo
+                </label>
                 <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                    isDraggingTestimonial 
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+                  className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${
+                    isDraggingTestimonial
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                       : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
                   }`}
                   onDragOver={handleTestimonialDragOver}
@@ -1166,50 +1444,126 @@ const ServicePage = ({
                     ref={testimonialFileInputRef}
                     type="file"
                     className="hidden"
-                    onChange={handleTestimonialFileInputChange}
                     accept="image/*"
+                    onChange={handleTestimonialFileInputChange}
                   />
-                  <div className="space-y-4">
-                    <div className="flex justify-center">
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                        <Upload className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  
+                  {testimonialForm.image ? (
+                    <div className="space-y-4">
+                      <img
+                        src={testimonialForm.image}
+                        alt="Preview"
+                        className="w-32 h-32 object-cover rounded-xl mx-auto"
+                      />
+                      <p className="text-sm text-gray-600 dark:text-slate-400">
+                        {uploadedTestimonialFile?.name || 'Current image'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-slate-500">
+                        Click or drag to replace
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+                        <Upload className="w-8 h-8 text-gray-400 dark:text-slate-500" />
+                      </div>
+                      <div>
+                        <p className="text-gray-600 dark:text-slate-400">
+                          <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
+                          SVG, PNG, JPG or GIF (max. 200MB)
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        Drag and drop or click to upload
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Upload a profile image (max 200MB)
-                      </p>
-                    </div>
-                  </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    Client Name
+                  </label>
+                  <input
+                    type="text"
+                    value={testimonialForm.name}
+                    onChange={(e) => setTestimonialForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  />
                 </div>
                 
-                {testimonialForm.image && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview:</p>
-                    <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-slate-700 w-32 h-32">
-                      <img 
-                        src={testimonialForm.image} 
-                        alt="Preview" 
-                        className="w-full h-full object-cover"
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                    Role
+                  </label>
+                  <input
+                    type="text"
+                    value={testimonialForm.role}
+                    onChange={(e) => setTestimonialForm(prev => ({ ...prev, role: e.target.value }))}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Company
+                </label>
+                <input
+                  type="text"
+                  value={testimonialForm.company}
+                  onChange={(e) => setTestimonialForm(prev => ({ ...prev, company: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Rating
+                </label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setTestimonialForm(prev => ({ ...prev, rating: star }))}
+                      className="p-1 hover:scale-110 transition-transform duration-200"
+                    >
+                      <Star
+                        className={`w-6 h-6 ${
+                          star <= testimonialForm.rating
+                            ? 'text-yellow-400 fill-current'
+                            : 'text-gray-300 dark:text-slate-600'
+                        }`}
                       />
-                    </div>
-                  </div>
-                )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Testimonial Content
+                </label>
+                <textarea
+                  rows={4}
+                  value={testimonialForm.content}
+                  onChange={(e) => setTestimonialForm(prev => ({ ...prev, content: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                />
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
+            
+            <div className="flex justify-end gap-4 mt-6">
               <button
                 onClick={() => setIsTestimonialModalOpen(false)}
-                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white"
+                className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={saveTestimonial}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
               >
                 {editingTestimonial ? 'Update Testimonial' : 'Add Testimonial'}
               </button>

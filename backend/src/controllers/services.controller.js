@@ -1,6 +1,8 @@
 const Service = require('../models/Services.model');
 const asyncHandler = require('../utils/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');
+const path = require('path');
+const fs = require('fs');
 
 // @desc    Get all services
 // @route   GET /api/services
@@ -36,10 +38,17 @@ exports.getService = asyncHandler(async (req, res, next) => {
 // @access  Private (Moderator/Admin)
 exports.createService = asyncHandler(async (req, res, next) => {
   // Get the count to set order
+  const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
   const count = await Service.countDocuments();
+  
+  // Handle file upload
+  if (!req.file) {
+    return next(new ErrorResponse('Please upload an image', 400));
+  }
   
   const service = await Service.create({
     ...req.body,
+    image: `${baseUrl}/uploads/${req.file.filename}`,
     order: count,
     updatedBy: req.user.id
   });
@@ -55,18 +64,34 @@ exports.createService = asyncHandler(async (req, res, next) => {
 // @access  Private (Moderator/Admin)
 exports.updateService = asyncHandler(async (req, res, next) => {
   let service = await Service.findById(req.params.id);
-  
+  const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+
   if (!service) {
     return next(new ErrorResponse(`Service not found with id of ${req.params.id}`, 404));
   }
   
+  // Handle file upload if new file is provided
+  const updateData = { 
+    ...req.body,
+    lastUpdated: Date.now(),
+    updatedBy: req.user.id 
+  };
+  
+  if (req.file) {
+    // Delete old image if it exists - FIXED PATH
+    if (service.image) {
+      const filename = service.image.split('/').pop(); // Get just the filename
+      const oldImagePath = path.join(__dirname, '..', 'uploads', filename);
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+    updateData.image = `${baseUrl}/uploads/${req.file.filename}`;
+  }
+  
   service = await Service.findByIdAndUpdate(
     req.params.id,
-    { 
-      ...req.body,
-      lastUpdated: Date.now(),
-      updatedBy: req.user.id 
-    },
+    updateData,
     {
       new: true,
       runValidators: true
@@ -89,6 +114,15 @@ exports.deleteService = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Service not found with id of ${req.params.id}`, 404));
   }
   
+  // Delete associated image
+  if (service.image) {
+    const filename = service.image.split('/').pop(); // Get just the filename
+    const imagePath = path.join(__dirname, '..', 'uploads', filename);
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath);
+    }
+  }
+
   await Service.findByIdAndDelete(req.params.id);
   
   res.status(200).json({

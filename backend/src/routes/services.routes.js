@@ -8,13 +8,14 @@ const {
   reorderServices
 } = require('../controllers/services.controller');
 const { protect, authorize } = require('../middleware/auth');
+const { uploadServiceImage } = require('../middleware/upload');
 
 const router = express.Router();
 
 router
   .route('/')
   .get(getServices)
-  .post(protect, authorize('moderator', 'admin'), createService);
+  .post(protect, authorize('moderator', 'admin'), uploadServiceImage, createService);
 
 router
   .route('/reorder')
@@ -23,7 +24,7 @@ router
 router
   .route('/:id')
   .get(getService)
-  .put(protect, authorize('moderator', 'admin'), updateService)
+  .put(protect, authorize('moderator', 'admin'), uploadServiceImage, updateService)
   .delete(protect, authorize('moderator', 'admin'), deleteService);
 
 module.exports = router;

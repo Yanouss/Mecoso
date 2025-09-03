@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -13,7 +14,7 @@ const authRoutes = require('./routes/auth.routes');
 const aboutRoutes = require('./routes/about.routes');
 const heroRoutes = require('./routes/hero.routes');
 const servicesRoutes = require('./routes/services.routes');
-// const uploadRoutes = require('./routes/upload.routes');
+const testimonialsRoutes = require('./routes/testimonials.routes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -39,9 +40,10 @@ const allowedOrigins = [
   process.env.CLIENT_URL
 ].filter(Boolean); // Remove any undefined values
 
+// server.js - Update CORS configuration
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, curl, or image requests)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -53,20 +55,27 @@ app.use(cors({
   credentials: true
 }));
 
+// Add specific headers for images
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+});
+
 
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Static files
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/about', aboutRoutes);
 app.use('/api/hero', heroRoutes);
 app.use('/api/services', servicesRoutes);
-// app.use('/api/upload', uploadRoutes);
+app.use('/api/testimonials', testimonialsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
