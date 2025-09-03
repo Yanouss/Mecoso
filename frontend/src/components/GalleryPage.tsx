@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, Eye, Filter, X, Edit3, Save, Plus, Trash2, Image, Type, FileText, Tag, Layers } from 'lucide-react';
-import confetti from 'canvas-confetti';
+// import confetti from 'canvas-confetti';
 
 interface GalleryItem {
   id: string;
