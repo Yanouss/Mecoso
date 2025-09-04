@@ -199,7 +199,23 @@ const ServicePage = ({
   } | null>(null);
 
   const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB in bytes
-  const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  const ACCEPTED_TYPES = [
+    // Images
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+
+    // Videos
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/quicktime',   // .mov
+    'video/x-msvideo',   // .avi
+    'video/x-matroska',  // .mkv
+  ];
+
 
   const categories = ['All', ...Array.from(new Set(currentServices.map(s => s.category)))];
   const filteredServices = selectedCategory === 'All' 
@@ -1171,7 +1187,7 @@ const ServicePage = ({
                     ref={serviceFileInputRef}
                     type="file"
                     className="hidden"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     onChange={handleServiceFileInputChange}
                   />
                   
@@ -1444,7 +1460,7 @@ const ServicePage = ({
                     ref={testimonialFileInputRef}
                     type="file"
                     className="hidden"
-                    accept="image/*"
+                    accept="image/*,video/*"
                     onChange={handleTestimonialFileInputChange}
                   />
                   

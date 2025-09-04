@@ -1,6 +1,8 @@
 const Hero = require('../models/Hero.model');
 const asyncHandler = require('../utils/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');
+const path = require('path');
+const fs = require('fs');
 
 // @desc    Get hero content
 // @route   GET /api/hero
@@ -27,22 +29,57 @@ exports.updateHero = asyncHandler(async (req, res, next) => {
     badge,
     heading,
     description,
-    image,
-    buttons
+    imageAlt,
+    primaryButtonText,
+    primaryButtonUrl,
+    secondaryButtonText,
+    secondaryButtonUrl
   } = req.body;
 
-  let hero = await Hero.findOne();
+  const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+  let hero = await Hero.findOne({ isActive: true });
   
   if (!hero) {
     hero = new Hero({});
   }
   
-  // Update fields if provided
+  // Update text fields if provided
   if (badge !== undefined) hero.badge = badge;
   if (heading !== undefined) hero.heading = heading;
   if (description !== undefined) hero.description = description;
-  if (image !== undefined) hero.image = image;
-  if (buttons !== undefined) hero.buttons = buttons;
+  if (imageAlt !== undefined) hero.image.alt = imageAlt;
+  
+  // Update button configurations
+  if (primaryButtonText !== undefined || primaryButtonUrl !== undefined) {
+    if (!hero.buttons) hero.buttons = { primary: {}, secondary: {} };
+    if (!hero.buttons.primary) hero.buttons.primary = {};
+    
+    if (primaryButtonText !== undefined) hero.buttons.primary.text = primaryButtonText;
+    if (primaryButtonUrl !== undefined) hero.buttons.primary.url = primaryButtonUrl;
+  }
+  
+  if (secondaryButtonText !== undefined || secondaryButtonUrl !== undefined) {
+    if (!hero.buttons) hero.buttons = { primary: {}, secondary: {} };
+    if (!hero.buttons.secondary) hero.buttons.secondary = {};
+    
+    if (secondaryButtonText !== undefined) hero.buttons.secondary.text = secondaryButtonText;
+    if (secondaryButtonUrl !== undefined) hero.buttons.secondary.url = secondaryButtonUrl;
+  }
+  
+  // Handle file upload if new file is provided
+  if (req.file) {
+    // Delete old image if it exists and it's a local upload
+    if (hero.image && hero.image.src && hero.image.src.includes('/uploads/')) {
+      const filename = hero.image.src.split('/').pop();
+      const oldImagePath = path.join(__dirname, '..', 'uploads', filename);
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+    
+    // Set new image
+    hero.image.src = `${baseUrl}/uploads/${req.file.filename}`;
+  }
   
   hero.lastUpdated = Date.now();
   hero.updatedBy = req.user.id;
@@ -52,5 +89,142 @@ exports.updateHero = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     data: hero
+  });
+});
+
+// @desc    Reset hero to default
+// @route   POST /api/hero/reset
+// @access  Private (Admin only)
+exports.resetHero = asyncHandler(async (req, res, next) => {
+  let hero = await Hero.findOne({ isActive: true });
+  
+  if (hero) {
+    // Delete associated image if it's a local upload
+    if (hero.image && hero.image.src && hero.image.src.includes('/uploads/')) {
+      const filename = hero.image.src.split('/').pop();
+      const imagePath = path.join(__dirname, '..', 'uploads', filename);
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+    
+    await Hero.findByIdAndDelete(hero._id);
+  }
+  
+  // Create new default hero
+  hero = await Hero.create({
+    lastUpdated: Date.now(),
+    updatedBy: req.user.id
+  });
+  
+  res.status(200).json({
+    success: true,
+    message: 'Hero section has been reset to default values',
+    data: hero
+  });
+});
+
+// @desc    Get hero history/versions
+// @route   GET /api/hero/history
+// @access  Private (Moderator/Admin)
+exports.getHeroHistory = asyncHandler(async (req, res, next) => {
+  const heroes = await Hero.find()
+    .sort({ lastUpdated: -1 })
+    .populate('updatedBy', 'name email')
+    .limit(10);
+  
+  res.status(200).json({
+    success: true,
+    count: heroes.length,
+    data: heroes
+  });
+});
+
+// @desc    Restore hero from history
+// @route   PUT /api/hero/restore/:id
+// @access  Private (Admin only)
+exports.restoreHero = asyncHandler(async (req, res, next) => {
+  const heroToRestore = await Hero.findById(req.params.id);
+  
+  if (!heroToRestore) {
+    return next(new ErrorResponse(`Hero version not found with id of ${req.params.id}`, 404));
+  }
+  
+  // Deactivate current hero
+  await Hero.updateMany({}, { isActive: false });
+  
+  // Create new hero with restored data
+  const restoredHero = await Hero.create({
+    badge: heroToRestore.badge,
+    heading: heroToRestore.heading,
+    description: heroToRestore.description,
+    image: heroToRestore.image,
+    buttons: heroToRestore.buttons,
+    isActive: true,
+    lastUpdated: Date.now(),
+    updatedBy: req.user.id
+  });
+  
+  res.status(200).json({
+    success: true,
+    message: 'Hero section has been restored from history',
+    data: restoredHero
+  });
+});
+
+// @desc    Upload hero image
+// @route   POST /api/hero/upload-image
+// @access  Private (Moderator/Admin)
+exports.uploadHeroImage = asyncHandler(async (req, res, next) => {
+  if (!req.file) {
+    return next(new ErrorResponse('Please upload an image', 400));
+  }
+  
+  const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+  const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+  
+  res.status(200).json({
+    success: true,
+    message: 'Image uploaded successfully',
+    data: {
+      url: imageUrl,
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      size: req.file.size
+    }
+  });
+});
+
+// @desc    Delete uploaded image
+// @route   DELETE /api/hero/delete-image/:filename
+// @access  Private (Moderator/Admin)
+exports.deleteHeroImage = asyncHandler(async (req, res, next) => {
+  const { filename } = req.params;
+  
+  if (!filename) {
+    return next(new ErrorResponse('Please provide a filename', 400));
+  }
+  
+  const imagePath = path.join(__dirname, '..', 'uploads', filename);
+  
+  if (!fs.existsSync(imagePath)) {
+    return next(new ErrorResponse('Image file not found', 404));
+  }
+  
+  // Check if the image is currently being used by the hero
+  const hero = await Hero.findOne({ 
+    isActive: true,
+    'image.src': { $regex: filename }
+  });
+  
+  if (hero) {
+    return next(new ErrorResponse('Cannot delete image that is currently in use by the hero section', 400));
+  }
+  
+  fs.unlinkSync(imagePath);
+  
+  res.status(200).json({
+    success: true,
+    message: 'Image deleted successfully'
   });
 });

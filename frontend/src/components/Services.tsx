@@ -67,7 +67,23 @@ const ServicesCarousel = ({
   const isModerator = initialIsModerator || (isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin'));
 
   const MAX_FILE_SIZE = 200 * 1024 * 1024;
-  const ACCEPTED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  const ACCEPTED_TYPES = [
+    // Images
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+
+    // Videos
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/quicktime',   // .mov
+    'video/x-msvideo',   // .avi
+    'video/x-matroska',  // .mkv
+  ];
+
 
   // Fetch services on component mount
   useEffect(() => {
@@ -728,7 +744,7 @@ const ServicesCarousel = ({
                         ref={fileInputRef}
                         type="file"
                         className="hidden"
-                        accept="image/*"
+                        accept="image/*,video/*"
                         onChange={handleFileInputChange}
                       />
                       

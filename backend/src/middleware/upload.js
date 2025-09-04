@@ -22,19 +22,35 @@ const storage = multer.diskStorage({
 
 // Check file type
 function checkFileType(file, cb) {
-  // Allowed ext
-  const filetypes = /jpeg|jpg|png|gif|webp/;
-  // Check ext
+  // Allowed file types (extensions and mimetypes)
+  const filetypes = /jpeg|jpg|png|gif|webp|mp4|webm|ogg|mov|avi|mkv/;
+  const mimetypes = [
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/quicktime',   // .mov
+    'video/x-msvideo',   // .avi
+    'video/x-matroska'   // .mkv
+  ];
+
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  // Check mime
-  const mimetype = filetypes.test(file.mimetype);
+  const mimetype = mimetypes.includes(file.mimetype);
 
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb(new ErrorResponse('Error: Images only! (JPEG, JPG, PNG, GIF, WebP)', 400));
+    cb(new ErrorResponse(
+      'Error: Only images (JPEG, PNG, GIF, WebP) and videos (MP4, WebM, OGG, MOV, AVI, MKV) are allowed!',
+      400
+    ));
   }
 }
+
 
 // Init upload
 const upload = multer({

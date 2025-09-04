@@ -1,7 +1,10 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Link } from "react-router";
-import { Edit3, X, Save, Image, Type, FileText, Upload, Trash2 } from 'lucide-react';
+import { Edit3, X, Save, Image, Type, FileText, Upload, Trash2, Loader2, AlertCircle, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { API_URL as API_BASE_URL } from '../../config/api';
 
 interface Hero1Props {
   badge?: string;
@@ -24,47 +27,159 @@ interface Hero1Props {
   isModerator?: boolean;
 }
 
+interface HeroData {
+  _id?: string;
+  badge: string;
+  heading: string;
+  description: string;
+  image: {
+    src: string;
+    alt: string;
+  };
+  buttons: {
+    primary: {
+      text: string;
+      url: string;
+    };
+    secondary: {
+      text: string;
+      url: string;
+    };
+  };
+  isActive: boolean;
+  lastUpdated: string;
+  updatedBy?: string;
+}
+
 interface HeroFormData {
+  badge: string;
   heading: string;
   description: string;
   imageSrc: string;
   imageAlt: string;
   primaryButtonText: string;
   primaryButtonUrl: string;
+  secondaryButtonText: string;
+  secondaryButtonUrl: string;
   imageFile?: File;
 }
 
 const Hero = ({
-  heading = "Blocks Built With Shadcn & Tailwind",
-  description = "Finely crafted components built with React, Tailwind and Shadcn UI. Developers can copy and paste these blocks directly into their project.",
-  image = {
+  heading: initialHeading = "Blocks Built With Shadcn & Tailwind",
+  description: initialDescription = "Finely crafted components built with React, Tailwind and Shadcn UI. Developers can copy and paste these blocks directly into their project.",
+  image: initialImage = {
     src: "https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2574&q=80",
     alt: "Hero section demo image showing interface components",
   },
-  isModerator = true,
+  isModerator: initialIsModerator = false,
 }: Hero1Props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [heroData, setHeroData] = useState<HeroData | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const { user, isAuthenticated } = useAuth();
+  const isModerator = initialIsModerator || (isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin'));
+
   const [formData, setFormData] = useState<HeroFormData>({
-    heading,
-    description,
-    imageSrc: image.src,
-    imageAlt: image.alt,
+    badge: "Industrial Excellence",
+    heading: initialHeading,
+    description: initialDescription,
+    imageSrc: initialImage.src,
+    imageAlt: initialImage.alt,
     primaryButtonText: "Start Your Project",
-    primaryButtonUrl: "/contact"
+    primaryButtonUrl: "/contact",
+    secondaryButtonText: "View Portfolio",
+    secondaryButtonUrl: "/portfolio"
   });
-  
-  const [currentData, setCurrentData] = useState({
-    heading,
-    description,
-    image,
-    primaryButton: {
-      text: "Start Your Project",
-      url: "/contact"
+
+  const MAX_FILE_SIZE = 200 * 1024 * 1024;
+  const ACCEPTED_TYPES = [
+    // Images
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+
+    // Videos
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/quicktime',   // .mov
+    'video/x-msvideo',   // .avi
+    'video/x-matroska',  // .mkv
+  ];
+
+
+  // Fetch hero data on component mount
+  useEffect(() => {
+    fetchHeroData();
+  }, []);
+
+  // Disable body scroll when modal is open
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
     }
-  });
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen]);
+
+  const fetchHeroData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/hero`);
+      const data = response.data.data;
+      setHeroData(data);
+      
+      // Update form data with fetched data
+      setFormData({
+        badge: data.badge || "Industrial Excellence",
+        heading: data.heading || initialHeading,
+        description: data.description || initialDescription,
+        imageSrc: data.image?.src || initialImage.src,
+        imageAlt: data.image?.alt || initialImage.alt,
+        primaryButtonText: data.buttons?.primary?.text || "Start Your Project",
+        primaryButtonUrl: data.buttons?.primary?.url || "/contact",
+        secondaryButtonText: data.buttons?.secondary?.text || "View Portfolio",
+        secondaryButtonUrl: data.buttons?.secondary?.url || "/portfolio"
+      });
+    } catch (error) {
+      console.error('Error fetching hero data:', error);
+      toast.error('Failed to load hero data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    };
+  };
+
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return '';
+    if (imagePath.startsWith('http')) return imagePath;
+    
+    if (imagePath.startsWith('/uploads')) {
+      const backendUrl = API_BASE_URL.replace('/api', '');
+      return `${backendUrl}${imagePath}`;
+    }
+    
+    return imagePath;
+  };
 
   const handleInputChange = (field: keyof HeroFormData, value: string) => {
     setFormData(prev => ({
@@ -73,37 +188,39 @@ const Hero = ({
     }));
   };
 
-  // File upload handlers
-  const handleFileUpload = useCallback((file: File) => {
-    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-      toast.error("Invalid file type", {
-        description: "Please upload an image or video file.",
-      });
-      return;
-    }
-
-    if (file.size > 200 * 1024 * 1024) { // 200MB limit
+  const validateFile = (file: File): boolean => {
+    if (file.size > MAX_FILE_SIZE) {
       toast.error("File too large", {
         description: `File size must be less than 200MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
       });
-      return;
+      return false;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setFormData(prev => ({
-        ...prev,
-        imageSrc: result,
-        imageFile: file,
-        imageAlt: prev.imageAlt || `Uploaded ${file.type.startsWith('video/') ? 'video' : 'image'}: ${file.name}`
-      }));
-      
-      toast.success("File uploaded successfully", {
-        description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error("Invalid file type", {
+        description: "Please upload an image (JPEG, PNG, GIF, WebP).",
       });
-    };
-    reader.readAsDataURL(file);
+      return false;
+    }
+
+    return true;
+  };
+
+  // File upload handlers
+  const handleFileUpload = useCallback((file: File) => {
+    if (!validateFile(file)) return;
+
+    const fileUrl = URL.createObjectURL(file);
+    setFormData(prev => ({
+      ...prev,
+      imageSrc: fileUrl,
+      imageFile: file,
+      imageAlt: prev.imageAlt || `Uploaded image: ${file.name}`
+    }));
+    
+    toast.success("File uploaded successfully", {
+      description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
+    });
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -136,62 +253,92 @@ const Hero = ({
   const removeImage = () => {
     setFormData(prev => ({
       ...prev,
-      imageSrc: '',
+      imageSrc: heroData?.image?.src || initialImage.src,
       imageFile: undefined,
-      imageAlt: ''
+      imageAlt: heroData?.image?.alt || initialImage.alt
     }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
     
-    toast.info("Media removed", {
-      description: "The background media has been removed.",
+    toast.info("Image reset", {
+      description: "The image has been reset to the current saved version.",
     });
   };
 
-  const handleSave = () => {
-    // Update the current data with form data
-    setCurrentData({
-      heading: formData.heading,
-      description: formData.description,
-      image: {
-        src: formData.imageSrc,
-        alt: formData.imageAlt
-      },
-      primaryButton: {
-        text: formData.primaryButtonText,
-        url: formData.primaryButtonUrl
-      }
-    });
-    
-    // Here you would make the API call to Node.js backend
-    console.log('Saving hero data:', formData);
-    if (formData.imageFile) {
-      console.log('Image file to upload:', formData.imageFile);
-      // TODO: Add file upload to your backend
-      // const formDataToSend = new FormData();
-      // formDataToSend.append('image', formData.imageFile);
-      // formDataToSend.append('heroData', JSON.stringify(formData));
-      // await uploadHeroData(formDataToSend);
+  const handleSave = async () => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to update the hero section."
+      });
+      return;
     }
-    
-    toast.success("Hero section updated", {
-      description: "Your changes have been saved successfully.",
-    });
-    
-    setIsModalOpen(false);
+
+    try {
+      setSaving(true);
+      const formDataToSend = new FormData();
+      
+      // Append text data
+      formDataToSend.append('badge', formData.badge);
+      formDataToSend.append('heading', formData.heading);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('imageAlt', formData.imageAlt);
+      formDataToSend.append('primaryButtonText', formData.primaryButtonText);
+      formDataToSend.append('primaryButtonUrl', formData.primaryButtonUrl);
+      formDataToSend.append('secondaryButtonText', formData.secondaryButtonText);
+      formDataToSend.append('secondaryButtonUrl', formData.secondaryButtonUrl);
+      
+      // Append image file if new one is uploaded
+      if (formData.imageFile) {
+        formDataToSend.append('image', formData.imageFile);
+      }
+      
+      const response = await axios.put(
+        `${API_BASE_URL}/hero`, 
+        formDataToSend, 
+        getAuthHeaders()
+      );
+      
+      const updatedData = response.data.data;
+      setHeroData(updatedData);
+      
+      // Update form data to reflect saved state
+      setFormData(prev => ({
+        ...prev,
+        imageSrc: updatedData.image?.src || prev.imageSrc,
+        imageFile: undefined
+      }));
+      
+      toast.success("Hero section updated", {
+        description: "Your changes have been saved successfully.",
+      });
+      
+      setIsModalOpen(false);
+    } catch (error: any) {
+      console.error('Error saving hero data:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to save hero section";
+      toast.error(errorMessage);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
-    // Reset form data to current data
+    if (!heroData) return;
+    
+    // Reset form data to current saved data
     setFormData({
-      heading: currentData.heading,
-      description: currentData.description,
-      imageSrc: currentData.image.src,
-      imageAlt: currentData.image.alt,
-      primaryButtonText: currentData.primaryButton.text,
-      primaryButtonUrl: currentData.primaryButton.url
+      badge: heroData.badge || "Industrial Excellence",
+      heading: heroData.heading || initialHeading,
+      description: heroData.description || initialDescription,
+      imageSrc: heroData.image?.src || initialImage.src,
+      imageAlt: heroData.image?.alt || initialImage.alt,
+      primaryButtonText: heroData.buttons?.primary?.text || "Start Your Project",
+      primaryButtonUrl: heroData.buttons?.primary?.url || "/contact",
+      secondaryButtonText: heroData.buttons?.secondary?.text || "View Portfolio",
+      secondaryButtonUrl: heroData.buttons?.secondary?.url || "/portfolio"
     });
+    
     setIsDragOver(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -204,32 +351,92 @@ const Hero = ({
     setIsModalOpen(false);
   };
 
+  const openEditModal = () => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to edit the hero section."
+      });
+      return;
+    }
+    setIsModalOpen(true);
+  };
+
+  // Use current data or fallback to props/defaults
+  const currentData = heroData || {
+    badge: "Industrial Excellence",
+    heading: initialHeading,
+    description: initialDescription,
+    image: initialImage,
+    buttons: {
+      primary: {
+        text: "Start Your Project",
+        url: "/contact"
+      },
+      secondary: {
+        text: "View Portfolio", 
+        url: "/portfolio"
+      }
+    }
+  };
+
+  const isVideo = (src: string) => {
+    return /\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(src);
+  };
+
+  if (loading) {
+    return (
+      <section className="relative py-44 bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </section>
+    );
+  }
+
   return (
     <>
-      <section 
-        className="relative py-44 bg-cover bg-center bg-no-repeat transition-all duration-500"
-        style={{ backgroundImage: `url(${currentData.image.src})` }}
-      >
+      <section className="relative py-44 overflow-hidden">
+        {isVideo(currentData.image.src) ? (
+          <video
+            className="absolute inset-0 w-full h-full object-cover"
+            src={getImageUrl(currentData.image.src)}
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
+        ) : (
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-500"
+            style={{ backgroundImage: `url(${getImageUrl(currentData.image.src)})` }}
+          />
+        )}
+
         {/* Enhanced overlay with gradient for better visual appeal */}
         <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/50 to-blue-900/40 dark:from-slate-900/80 dark:via-slate-800/70 dark:to-blue-900/60"></div>
-        
+
         {/* Animated background elements */}
         <div className="absolute inset-0 bg-gradient-to-t from-transparent via-blue-500/5 to-transparent dark:from-transparent dark:via-blue-400/10 dark:to-transparent animate-pulse"></div>
-        
+
         {/* Edit Button for Moderators */}
         {isModerator && (
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={openEditModal}
             className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-white hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl group"
             title="Edit Hero Section"
           >
             <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
           </button>
         )}
-        
+
         <div className="mx-auto container relative z-10">
           <div className="flex flex-col items-center text-center max-w-4xl mx-auto">
-            
+            {/* Badge */}
+            {currentData.badge && (
+              <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-100 bg-blue-500/20 backdrop-blur-sm rounded-full border border-blue-400/30">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+                {currentData.badge}
+              </div>
+            )}
+
             <h1 className="my-6 text-pretty text-4xl font-bold lg:text-6xl text-white dark:text-slate-100 drop-shadow-2xl animate-fade-in-up">
               {currentData.heading}
             </h1>
@@ -237,27 +444,58 @@ const Hero = ({
               {currentData.description}
             </p>
 
-            <div className="flex w-full flex-col justify-center gap-2 sm:flex-row max-w-md">
-              <div className="text-center mt-16 animate-fade-in-up animation-delay-400">
+            <div className="flex w-full flex-col justify-center gap-4 sm:flex-row max-w-md">
+              <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-6 animate-fade-in-up animation-delay-400">
+                {/* Primary Button */}
                 <Link
-                  to={currentData.primaryButton.url}
-                  className="relative px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 text-white rounded-2xl font-semibold hover:from-blue-500 hover:to-blue-600 dark:hover:from-blue-400 dark:hover:to-blue-500 transform hover:scale-105 transition-all duration-700 shadow-xl hover:shadow-2xl cursor-pointer group overflow-hidden"
+                  to={currentData.buttons.primary.url}
+                  className="relative px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 
+                            dark:from-blue-500 dark:to-blue-600 text-white rounded-2xl font-semibold
+                            shadow-xl overflow-hidden inline-block
+                            transform transition-transform duration-300 ease-in-out
+                            hover:scale-105"
                 >
-                  <span className="relative z-10">{currentData.primaryButton.text}</span>
-                  {/* Animated shine effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <span className="relative z-10">{currentData.buttons.primary.text}</span>
+                  {/* Smooth animated shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
+                                  transform -skew-x-12 -translate-x-full 
+                                  group-hover:translate-x-full transition-transform duration-700 ease-out"></div>
                 </Link>
+
+                {/* Secondary Button */}
+                <button
+                  onClick={() => {
+                    // Trigger file download
+                    const link = document.createElement("a");
+                    link.href = "/portfolio/MECOSO-Portfolio.pptx";
+                    link.download = "MECOSO-Portfolio.pptx";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // Show success toast
+                    toast.success("Portfolio downloaded successfully!");
+                  }}
+                  className="relative px-8 py-4 flex items-center justify-center gap-2
+                            bg-white/10 backdrop-blur-sm border border-white/30 
+                            text-white rounded-2xl font-semibold shadow-xl overflow-hidden
+                            transform transition-transform duration-300 ease-in-out
+                            hover:scale-105 hover:bg-white/20"
+                >
+                  <Download className="w-5 h-5" />
+                  <span className="relative z-10">{currentData.buttons.secondary.text || "Download Portfolio"}</span>
+                </button>
               </div>
             </div>
-            
           </div>
         </div>
       </section>
 
+
       {/* Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden my-4">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
               <div className="flex items-center gap-3">
@@ -277,6 +515,24 @@ const Hero = ({
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
               <div className="space-y-6">
+                
+                {/* Badge Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Badge Text
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.badge}
+                    onChange={(e) => handleInputChange('badge', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                    placeholder="Enter badge text..."
+                  />
+                </div>
+
                 {/* Heading Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
@@ -311,19 +567,19 @@ const Hero = ({
                   />
                 </div>
 
-                {/* Media Section - Drag & Drop Only */}
+                {/* Media Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Image className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Background Media
+                      Background Image
                     </label>
                   </div>
                   
                   <div className="space-y-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                        Upload Image or Video File
+                        Upload New Image
                       </label>
                       
                       {/* Drag & Drop Area */}
@@ -334,7 +590,7 @@ const Hero = ({
                         className={`relative w-full min-h-[120px] border-2 border-dashed rounded-lg transition-all duration-200 flex flex-col items-center justify-center p-6 cursor-pointer group ${
                           isDragOver
                             ? 'border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                            : formData.imageSrc
+                            : formData.imageFile
                             ? 'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/20'
                             : 'border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                         }`}
@@ -348,11 +604,11 @@ const Hero = ({
                           className="hidden"
                         />
                         
-                        {formData.imageSrc ? (
+                        {formData.imageFile ? (
                           <div className="flex items-center gap-3 text-green-600 dark:text-green-400">
                             <Upload className="w-6 h-6" />
                             <div>
-                              <p className="font-medium">Media uploaded successfully!</p>
+                              <p className="font-medium">New image uploaded!</p>
                               <p className="text-sm opacity-75">Click to change or drag a new file</p>
                             </div>
                           </div>
@@ -361,9 +617,9 @@ const Hero = ({
                             <Upload className="w-6 h-6" />
                             <div className="text-center">
                               <p className="font-medium">
-                                {isDragOver ? 'Drop your media file here!' : 'Click to upload or drag & drop'}
+                                {isDragOver ? 'Drop your image here!' : 'Click to upload or drag & drop'}
                               </p>
-                              <p className="text-sm opacity-75">Images & Videos up to 200MB</p>
+                              <p className="text-sm opacity-75">Images up to 200MB</p>
                             </div>
                           </div>
                         )}
@@ -379,88 +635,127 @@ const Hero = ({
                         value={formData.imageAlt}
                         onChange={(e) => handleInputChange('imageAlt', e.target.value)}
                         className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                        placeholder="Describe the media..."
+                        placeholder="Describe the image..."
                       />
                     </div>
 
-                    {/* Media Preview */}
-                    {formData.imageSrc && (
-                      <div className="mt-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
-                            Preview
-                          </label>
+                    {/* Image Preview */}
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
+                          Current Preview
+                        </label>
+                        {formData.imageFile && (
                           <button
                             type="button"
                             onClick={removeImage}
                             className="flex items-center gap-1 px-2 py-1 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                           >
                             <Trash2 className="w-3 h-3" />
-                            Remove
+                            Reset
                           </button>
-                        </div>
-                        <div className="relative w-full h-32 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
-                          {formData.imageFile && formData.imageFile.type.startsWith('video/') ? (
-                            <video
-                              src={formData.imageSrc}
-                              className="w-full h-full object-cover"
-                              controls
-                              muted
-                            />
-                          ) : (
-                            <img
-                              src={formData.imageSrc}
-                              alt={formData.imageAlt}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                e.currentTarget.nextElementSibling.style.display = 'flex';
-                              }}
-                            />
-                          )}
-                          <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
-                            Failed to load media
-                          </div>
+                        )}
+                      </div>
+                      <div className="relative w-full h-32 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
+                        {isVideo(formData.imageSrc) ? (
+                          <video
+                            src={getImageUrl(formData.imageSrc)}
+                            controls
+                            className="w-full h-full object-cover"
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        ) : (
+                          <img
+                            src={getImageUrl(formData.imageSrc)}
+                            alt={formData.imageAlt}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
+                          <AlertCircle className="w-4 h-4 mr-2" />
+                          Failed to load media
                         </div>
                       </div>
-                    )}
+
+                    </div>
                   </div>
                 </div>
 
-                {/* Button Section */}
-                <div className="space-y-4">
+                {/* Buttons Section */}
+                <div className="space-y-6">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded"></div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Primary Button
+                      Action Buttons
                     </label>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                        Button Text
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.primaryButtonText}
-                        onChange={(e) => handleInputChange('primaryButtonText', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                        placeholder="Button text..."
-                      />
+                  {/* Primary Button */}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Primary Button</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          Button Text
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.primaryButtonText}
+                          onChange={(e) => handleInputChange('primaryButtonText', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                          placeholder="Button text..."
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          Button URL
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.primaryButtonUrl}
+                          onChange={(e) => handleInputChange('primaryButtonUrl', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                          placeholder="/path or https://..."
+                        />
+                      </div>
                     </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                        Button URL
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.primaryButtonUrl}
-                        onChange={(e) => handleInputChange('primaryButtonUrl', e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                        placeholder="/path or https://..."
-                      />
+                  </div>
+
+                  {/* Secondary Button */}
+                  <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg">
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Secondary Button</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          Button Text
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.secondaryButtonText}
+                          onChange={(e) => handleInputChange('secondaryButtonText', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                          placeholder="Button text..."
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+                          Button URL
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.secondaryButtonUrl}
+                          onChange={(e) => handleInputChange('secondaryButtonUrl', e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                          placeholder="/path or https://..."
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -477,10 +772,20 @@ const Hero = ({
               </button>
               <button
                 onClick={handleSave}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl"
+                disabled={saving}
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Save className="w-4 h-4" />
-                Save Changes
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
               </button>
             </div>
           </div>
