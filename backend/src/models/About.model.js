@@ -50,7 +50,41 @@ const valueSchema = new mongoose.Schema({
   }
 });
 
+const teamMemberSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    required: true
+  },
+  image: {
+    type: String,
+    default: ''
+  },
+  bio: {
+    type: String,
+    default: ''
+  },
+  expertise: [{
+    type: String
+  }]
+});
+
+const partnerSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  src: {
+    type: String,
+    required: true
+  }
+});
+
 const aboutSchema = new mongoose.Schema({
+  // Common fields for both home section and full page
   badge: {
     type: String,
     default: 'About Our Company'
@@ -71,6 +105,10 @@ const aboutSchema = new mongoose.Schema({
     type: String,
     default: 'To provide comprehensive, high-quality metalwork solutions that meet the evolving needs of modern industry while maintaining the highest standards of safety, quality, and customer satisfaction'
   },
+  stats: [statSchema],
+  values: [valueSchema],
+  
+  // Fields primarily for home section
   image: {
     type: String,
     default: '/images/team.jpg'
@@ -79,8 +117,20 @@ const aboutSchema = new mongoose.Schema({
     type: String,
     default: 'MECOSO-Portfolio.pptx'
   },
-  stats: [statSchema],
-  values: [valueSchema],
+  
+  // Fields primarily for full about page
+  vision: {
+    type: String,
+    default: 'To be the leading construction company that shapes the future of our cities through sustainable, innovative, and transformative building solutions.'
+  },
+  heroImage: {
+    type: String,
+    default: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=800&fit=crop'
+  },
+  team: [teamMemberSchema],
+  partners: [partnerSchema],
+  
+  // Metadata
   lastUpdated: {
     type: Date,
     default: Date.now

@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Building, Lightbulb, Heart, Shield, Star, Trophy, MapPin, Phone, Mail, X, Edit3, Save, Plus, Trash2, Type, Upload } from 'lucide-react';
+import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Building, Lightbulb, Heart, Shield, Star, Trophy, MapPin, Phone, Mail, X, Edit3, Save, Plus, Trash2, Type, Upload, Video, Image } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
+import { toast } from 'sonner';
+import axios from 'axios';
+import { API_URL as API_BASE_URL } from '../../config/api'; // Adjust path as needed
+
 
 interface Stat {
   number: string;
@@ -23,6 +28,7 @@ interface Value {
   title: string;
   description: string;
   icon: React.ReactNode;
+  videoUrl?: string;
 }
 
 interface Partner {
@@ -30,32 +36,24 @@ interface Partner {
   name: string;
 }
 
-interface AboutPageProps {
-  badge?: string;
-  heading?: string;
-  description?: string;
-  story?: string;
-  stats?: Stat[];
-  values?: Value[];
-  team?: TeamMember[];
-  mission?: string;
-  vision?: string;
-  heroImage?: string;
-  partners?: Partner[];
-  isModerator?: boolean;
-}
-
-interface AboutPageFormData {
+interface AboutData {
   badge: string;
   heading: string;
   description: string;
   story: string;
   mission: string;
   vision: string;
+  image: string;
   heroImage: string;
   stats: Stat[];
   values: Value[];
+  team: TeamMember[];
   partners: Partner[];
+  portfolioFileName?: string;
+}
+
+interface AboutPageProps {
+  isModerator?: boolean;
 }
 
 const iconOptions = [
@@ -70,148 +68,71 @@ const iconOptions = [
   { name: 'Lightbulb', component: Lightbulb },
 ];
 
-const AboutPage = ({
-  badge = "About Our Company",
-  heading = "Leading Industrial Solutions in Morocco",
-  story = "Founded in 2005 by KACEMY Abderahman, MECOSO has grown from a specialized boilermaking workshop into Morocco's leading provider of comprehensive industrial metalwork solutions. With two decades of experience, we've built our reputation on delivering quality, safety, and innovation to clients across diverse industries.",
-  description = "MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we've been delivering excellence in metal structure design, manufacturing, and assembly across all industries",
-  
-  stats = [
-      {
-        number: "50+",
-        label: "Projects Completed",
-        icon: <Target className="size-6" />,
-        backgroundImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop",
-        popupImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop",
-        popupTitle: "50+ Projects Completed",
-        popupDescription: "Over the years, we have successfully completed more than 50 major industrial projects across Morocco, ranging from manufacturing facilities to complex structural installations. Each project showcases our commitment to excellence and innovation."
-      },
-      {
-        number: "20+",
-        label: "Years Experience",
-        icon: <Clock className="size-6" />,
-        backgroundImage: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&h=300&fit=crop",
-        popupImage: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=600&fit=crop",
-        popupTitle: "20+ Years of Excellence",
-        popupDescription: "Since 2005, MECOSO has been at the forefront of industrial metalwork solutions in Morocco. Our two decades of experience have shaped us into the trusted partner that industries rely on for quality and innovation."
-      },
-      {
-        number: "2,000 m²",
-        label: "Advanced manufacturing facility",
-        icon: <Building className="size-6" />,
-        backgroundImage: "https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=400&h=300&fit=crop",
-        popupImage: "https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=800&h=600&fit=crop",
-        popupTitle: "2,000 m² Manufacturing Facility",
-        popupDescription: "Our state-of-the-art 2,000 square meter manufacturing facility is equipped with the latest technology and machinery, enabling us to handle projects of any scale with precision and efficiency."
-      },
-      {
-        number: "ISO 9001",
-        label: "2015 certified",
-        icon: <Award className="size-6" />,
-        backgroundImage: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop",
-        popupImage: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop",
-        popupTitle: "ISO 9001:2015 Certified",
-        popupDescription: "Our commitment to quality is validated by our ISO 9001:2015 certification. This international standard ensures that our quality management systems meet the highest global standards for customer satisfaction and continuous improvement."
-      }
+const defaultData: AboutData = {
+  badge: "About Our Company",
+  heading: "Leading Industrial Solutions in Morocco",
+  description: "MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we've been delivering excellence in metal structure design, manufacturing, and assembly across all industries",
+  story: "Founded in 2005 by KACEMY Abderahman, MECOSO has grown from a specialized boilermaking workshop into Morocco's leading provider of comprehensive industrial metalwork solutions. With two decades of experience, we've built our reputation on delivering quality, safety, and innovation to clients across diverse industries.",
+  mission: "To provide comprehensive, high-quality metalwork solutions that meet the evolving needs of modern industry while maintaining the highest standards of safety, quality, and customer satisfaction",
+  vision: "To be the leading construction company that shapes the future of our cities through sustainable, innovative, and transformative building solutions.",
+  image: "/images/team.jpg",
+  heroImage: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=800&fit=crop",
+  stats: [
+    {
+      number: "50+",
+      label: "Projects Completed",
+      icon: <Target className="size-6" />,
+      backgroundImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop",
+      popupImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop",
+      popupTitle: "50+ Projects Completed",
+      popupDescription: "Over the years, we have successfully completed more than 50 major industrial projects across Morocco, ranging from manufacturing facilities to complex structural installations."
+    }
   ],
-  
-  values = [
-      {
-        title: "Complete Solutions",
-        description: "From initial design to final commissioning and ongoing maintenance, MECOSO delivers seamless, end-to-end industrial solutions tailored to your needs.",
-        icon: <Target className="size-6" />
-      },
-      {
-        title: "Advanced Technology",
-        description: "We leverage state-of-the-art machinery and cutting-edge processes to ensure efficiency, precision, and innovation at every stage.",
-        icon: <Award className="size-6" />
-      },
-      {
-        title: "Quality Assurance",
-        description: "Certified to ISO 9001:2015 standards, our rigorous quality control systems guarantee consistent excellence across all operations.",
-        icon: <Users className="size-6" />
-      },
-      {
-        title: "Safety First",
-        description: "We prioritize safety above all, adhering to the highest industry standards to protect our people, partners, and projects.",
-        icon: <Shield className="size-6" />
-      },
-      {
-        title: "Experienced Team",
-        description: "Our multidisciplinary team brings deep expertise and hands-on experience, ensuring professional execution and reliable support every step of the way.",
-        icon: <Users className="size-6" />
-      },
-      {
-        title: "Client Partnership",
-        description: "Building lasting relationships through collaborative approach.",
-        icon: <Heart className="size-6" />
-      }
+  values: [
+    {
+      title: "Complete Solutions",
+      description: "From initial design to final commissioning and ongoing maintenance, MECOSO delivers seamless, end-to-end industrial solutions tailored to your needs.",
+      icon: <Target className="size-6" />
+    }
   ],
-  
-  partners = [
-    { src: "/images/partners/Partner1.jpg", name: "Partner 1" },
-    { src: "/images/partners/Partner2.jpg", name: "Partner 2" },
-    { src: "/images/partners/Partner3.jpg", name: "Partner 3" },
-    { src: "/images/partners/Partner4.jpg", name: "Partner 4" },
-    { src: "/images/partners/Partner5.jpg", name: "Partner 5" },
-    { src: "/images/partners/Partner5.png", name: "Partner 6" },
-    { src: "/images/partners/Partner6.webp", name: "Partner 7" },
-    { src: "/images/partners/Partner7.png", name: "Partner 8" },
-    { src: "/images/partners/Partner8.jpg", name: "Partner 9" },
-    { src: "/images/partners/Partner9.png", name: "Partner 10" },
-    { src: "/images/partners/Partner10.jpg", name: "Partner 11" },
-    { src: "/images/partners/Partner11.png", name: "Partner 12" },
-    { src: "/images/partners/Partner12.png", name: "Partner 13" },
-    { src: "/images/partners/Partner13.jpg", name: "Partner 14" }
-  ],
-  
-  mission = "To provide comprehensive, high-quality metalwork solutions that meet the evolving needs of modern industry while maintaining the highest standards of safety, quality, and customer satisfaction",
-  
-  vision = "To be the leading construction company that shapes the future of our cities through sustainable, innovative, and transformative building solutions.",
-  heroImage = "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=800&fit=crop",
-  isModerator = true
-}: AboutPageProps) => {
+  team: [],
+  partners: []
+};
+
+const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = false }) => {
+
+  const [data, setData] = useState<AboutData>(defaultData);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [activeValue, setActiveValue] = useState(0);
   const [scrollY, setScrollY] = useState(0);
   const [selectedStat, setSelectedStat] = useState<Stat | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'stats' | 'values' | 'partners'>('general');
+  const [formData, setFormData] = useState<AboutData>(defaultData);
   
-  const [formData, setFormData] = useState<AboutPageFormData>({
-    badge,
-    heading,
-    description,
-    story,
-    mission,
-    vision,
-    heroImage,
-    stats,
-    values,
-    partners
-  });
+  // File handling states
+  const [fileUploads, setFileUploads] = useState<{[key: string]: File}>({});
+  const [previewUrls, setPreviewUrls] = useState<{[key: string]: string}>({});
 
-  const [currentData, setCurrentData] = useState({
-    badge,
-    heading,
-    description,
-    story,
-    mission,
-    vision,
-    heroImage,
-    stats,
-    values,
-    partners
-  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [currentUploadKey, setCurrentUploadKey] = useState<string>('');
+
+
+  const { user, isAuthenticated } = useAuth();
+  const isModerator = propIsModerator || (isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin'));
+
+  const API_URL = 'http://localhost:5000/api'; // Adjust to your backend URL
+
+  useEffect(() => {
+    fetchAboutData();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const closePopup = () => {
-    setSelectedStat(null);
-  };
 
   useEffect(() => {
     if (selectedStat) {
@@ -225,11 +146,68 @@ const AboutPage = ({
     };
   }, [selectedStat]);
 
-  const handleInputChange = (field: keyof AboutPageFormData, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+  };
+
+
+  const fetchAboutData = async () => {
+    try {
+      const response = await fetch(`${API_URL}/about`);
+      const result = await response.json();
+      
+      if (result.success) {
+        const aboutData = result.data;
+        
+        // Process stats to convert icon strings to components
+        if (aboutData.stats) {
+          aboutData.stats = aboutData.stats.map((stat: any) => ({
+            ...stat,
+            icon: getIconComponent(stat.icon || 'Target')
+          }));
+        }
+        
+        // Process values to convert icon strings to components
+        if (aboutData.values) {
+          aboutData.values = aboutData.values.map((value: any) => ({
+            ...value,
+            icon: getIconComponent(value.icon || 'Target')
+          }));
+        }
+        
+        setData({ ...defaultData, ...aboutData });
+        setFormData({ ...defaultData, ...aboutData });
+      }
+    } catch (error) {
+      console.error('Error fetching about data:', error);
+      // Use default data on error
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  const getIconComponent = (iconName: string) => {
+    const iconOption = iconOptions.find(option => option.name === iconName);
+    return iconOption ? <iconOption.component className="size-6" /> : <Target className="size-6" />;
+  };
+
+  const handleFileChange = (key: string, file: File) => {
+    if (!validateFile(file)) return;
+    setFileUploads(prev => ({ ...prev, [key]: file }));
+    
+    // Create preview URL
+    const url = URL.createObjectURL(file);
+    setPreviewUrls(prev => ({ ...prev, [key]: url }));
+  };
+
+  const handleInputChange = (field: keyof AboutData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleStatChange = (index: number, field: keyof Stat, value: any) => {
@@ -272,7 +250,8 @@ const AboutPage = ({
     const newValue: Value = {
       title: "",
       description: "",
-      icon: <Target className="size-6" />
+      icon: <Target className="size-6" />,
+      videoUrl: ""
     };
     handleInputChange('values', [...formData.values, newValue]);
   };
@@ -295,29 +274,267 @@ const AboutPage = ({
     handleInputChange('partners', newPartners);
   };
 
-  const getIconComponent = (iconName: string) => {
-    const iconOption = iconOptions.find(option => option.name === iconName);
-    return iconOption ? <iconOption.component className="size-6" /> : <Target className="size-6" />;
+
+  const handleSave = async () => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to update the about page."
+      });
+      return;
+    }
+
+    setSaving(true);
+    
+    try {
+      const formDataToSend = new FormData();
+      
+      // Add text fields
+      formDataToSend.append('badge', formData.badge);
+      formDataToSend.append('heading', formData.heading);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('story', formData.story);
+      formDataToSend.append('mission', formData.mission);
+      formDataToSend.append('vision', formData.vision);
+      
+      // Add hero image URL if not uploading file
+      if (!fileUploads.heroImage) {
+        formDataToSend.append('heroImage', formData.heroImage);
+      }
+      
+      // Process stats (convert icons back to strings)
+      const processedStats = formData.stats.map(stat => ({
+        ...stat,
+        icon: iconOptions.find(opt => opt.component === stat.icon)?.name || 'Target'
+      }));
+      formDataToSend.append('stats', JSON.stringify(processedStats));
+      
+      // Process values (convert icons back to strings)
+      const processedValues = formData.values.map(value => ({
+        ...value,
+        icon: iconOptions.find(opt => opt.component === value.icon)?.name || 'Target'
+      }));
+      formDataToSend.append('values', JSON.stringify(processedValues));
+      
+      // Add partners
+      formDataToSend.append('partners', JSON.stringify(formData.partners));
+      
+      // Add file uploads
+      Object.entries(fileUploads).forEach(([key, file]) => {
+        formDataToSend.append(key, file);
+      });
+      
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/about`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataToSend
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        await fetchAboutData(); // Refresh data
+        setIsEditModalOpen(false);
+        setFileUploads({});
+        setPreviewUrls({});
+        toast.success('About page updated successfully!');
+      } else {
+        throw new Error(result.message || 'Update failed');
+      }
+    } catch (error) {
+      console.error('Error saving about data:', error);
+      toast.error('Error saving data: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSave = () => {
-    setCurrentData(formData);
-    console.log('Saving about page data:', formData);
-    // TODO: Add API call to Node.js backend
-    setIsEditModalOpen(false);
-  };
 
   const handleCancel = () => {
-    setFormData(currentData);
+    setFormData(data);
+    setFileUploads({});
+    setPreviewUrls({});
     setIsEditModalOpen(false);
   };
+
+  const openEditModal = () => {
+    if (!isModerator) {
+      toast.error("Access denied", {
+        description: "You need moderator or admin privileges to edit the about page."
+      });
+      return;
+    }
+    setIsEditModalOpen(true);
+  };
+
+  const closePopup = () => {
+    setSelectedStat(null);
+  };
+
+
+  const getMediaPreview = (mediaUrl: string, isVideo: boolean = false, autoPlayWithoutControls: boolean = false) => {
+
+    if (!mediaUrl) {
+      return (
+        <div className="w-full h-48 bg-gray-100 dark:bg-slate-700 flex items-center justify-center rounded-lg">
+          <Image className="w-12 h-12 mx-auto text-gray-400 dark:text-slate-500 mb-2" />
+          <p className="text-sm text-gray-500 dark:text-slate-400">No media available</p>
+        </div>
+      );
+    }
+
+    const resolvedUrl = getMediaUrl(mediaUrl);
+    const isVideoFile = isVideo || isVideoUrl(mediaUrl);
+
+    if (isVideoFile) {
+      return (
+        <div className="w-full">
+          <video
+            className="w-full h-48 object-cover rounded-lg"
+            autoPlay={autoPlayWithoutControls}
+            muted
+            loop
+            playsInline
+            controls={!autoPlayWithoutControls}
+            preload="metadata"
+            key={resolvedUrl}
+            onError={(e) => {
+              console.error('Video loading error:', resolvedUrl);
+              e.currentTarget.style.display = 'none';
+              const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+              if (fallback) fallback.style.display = 'flex';
+            }}
+          >
+            <source src={resolvedUrl} type="video/mp4" />
+            <source src={resolvedUrl} type="video/webm" />
+            <source src={resolvedUrl} type="video/ogg" />
+            Your browser does not support the video tag.
+          </video>
+          <div className="hidden w-full h-48 bg-gray-200 dark:bg-slate-600 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+            Failed to load video
+          </div>
+        </div>
+      );
+    }
+
+    // Otherwise image
+    return (
+      <div className="w-full">
+        <img
+          src={resolvedUrl}
+          alt="Preview"
+          className="w-full h-48 object-cover rounded-lg"
+          key={resolvedUrl}
+          onError={(e) => {
+            console.error('Image loading error:', resolvedUrl);
+            e.currentTarget.style.display = 'none';
+            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+            if (fallback) fallback.style.display = 'flex';
+          }}
+        />
+        <div className="hidden w-full h-48 bg-gray-200 dark:bg-slate-600 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+          Failed to load image
+        </div>
+      </div>
+    );
+  };
+
+
+
+  const handleDragOver = (e: React.DragEvent, key: string) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setCurrentUploadKey(key);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    setCurrentUploadKey('');
+  };
+
+  const handleDrop = (e: React.DragEvent, key: string) => {
+    e.preventDefault();
+    setIsDragging(false);
+    setCurrentUploadKey('');
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileChange(key, files[0]);
+    }
+  };
+
+  const validateFile = (file: File): boolean => {
+    const MAX_FILE_SIZE = 200 * 1024 * 1024;
+    const ACCEPTED_TYPES = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 
+      'video/x-msvideo', 'video/x-matroska'
+    ];
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File too large", {
+        description: `File size must be less than 200MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
+      });
+      return false;
+    }
+
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error("Invalid file type", {
+        description: "Please upload an image or video file.",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+
+  // Helper function to check if URL is a video
+  const isVideoUrl = (url: string): boolean => {
+    if (!url) return false;
+    
+    // Check common video extensions
+    const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv'];
+    const urlLower = url.toLowerCase();
+    
+    return videoExtensions.some(ext => urlLower.includes(ext));
+  };
+
+  // Helper function to get proper media URL
+  const getMediaUrl = (url: string): string => {
+    if (!url) return '';
+    
+    if (url.startsWith('http')) {
+      return url;
+    }
+    
+    // Handle local uploads
+    if (url.startsWith('/uploads/')) {
+      return `${API_URL.replace('/api', '')}${url}`;
+    }
+    
+    return url;
+  };
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900 relative">
-      {/* Edit Button for Moderators - Fixed to be more visible */}
+      {/* Edit Button for Moderators */}
       {isModerator && (
         <button
-          onClick={() => setIsEditModalOpen(true)}
+          onClick={openEditModal}
           className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-gray-800 dark:text-white hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 shadow-lg hover:shadow-xl group"
           title="Edit About Page"
         >
@@ -325,83 +542,124 @@ const AboutPage = ({
         </button>
       )}
 
+
       {/* Hero Section */}
-      <section 
-        className="relative py-32 lg:py-44 bg-cover bg-center bg-no-repeat overflow-hidden"
-        style={{ backgroundImage: `url(${currentData.heroImage})` }}
-      >
+      <section className="relative py-32 lg:py-44 overflow-hidden">
+        {/* Video/Image background */}
+        {isVideoUrl(data.heroImage) ? (
+          // Video background
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ zIndex: 0 }}
+            key={data.heroImage}
+            onError={(e) => {
+              console.error('Video loading error:', data.heroImage);
+              // Fallback to image if video fails
+              const videoElement = e.currentTarget;
+              videoElement.style.display = 'none';
+              const fallbackDiv = videoElement.nextElementSibling as HTMLElement;
+              if (fallbackDiv) fallbackDiv.style.display = 'block';
+            }}
+          >
+            <source 
+              src={getMediaUrl(data.heroImage)} 
+              type="video/mp4" 
+            />
+            Your browser does not support the video tag.
+          </video>
+        ) : (
+          // Image background
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ 
+              backgroundImage: `url(${getMediaUrl(data.heroImage)})`, 
+              zIndex: -2 
+            }}
+          />
+        )}
+        
+        {/* Fallback for video errors - hidden by default */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-300"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat hidden"
           style={{ 
-            backgroundImage: `url(${currentData.heroImage})`,
+            backgroundImage: `url(${getMediaUrl(data.heroImage)})`, 
+            zIndex: -1 
           }}
         />
         
+        {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30 dark:from-slate-900/80 dark:via-slate-800/60 dark:to-blue-900/40" />
         
+        {/* Animated elements */}
         <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/20 dark:bg-blue-400/30 rounded-full blur-xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-48 h-48 bg-purple-500/20 dark:bg-purple-400/30 rounded-full blur-xl animate-pulse delay-1000" />
         
+        {/* Content */}
         <div className="container px-6 mx-auto relative z-10">
           <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-300 dark:text-blue-200 bg-blue-900/30 dark:bg-blue-800/40 backdrop-blur-sm rounded-full border border-blue-500/30 dark:border-blue-400/40">
               <div className="w-2 h-2 bg-blue-400 dark:bg-blue-300 rounded-full animate-pulse" />
-              {currentData.badge}
+              {data.badge}
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold text-white dark:text-slate-100 mb-6 leading-tight">
-              {currentData.heading}
+              {data.heading}
             </h1>
             
             <p className="text-xl text-white/90 dark:text-slate-200/90 leading-relaxed max-w-3xl mb-8">
-              {currentData.description}
+              {data.description}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
-              <button className="px-8 py-4 bg-blue-600 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-400 text-white rounded-2xl font-semibold transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl inline-flex items-center gap-2 group">
-                <span>Learn Our Story</span>
-                <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
+              <button className="px-8 py-4 bg-blue-600 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-400 text-white rounded-2xl font-semibold transform transition-transform duration-500 shadow-xl hover:shadow-2xl inline-flex items-center gap-2 group relative overflow-hidden cursor-pointer">
+                <span className="relative z-10 transition-colors duration-500">Learn Our Story</span>
+                <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-500 relative z-10" />
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-700/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
               </button>
+
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section with Image Backgrounds and Popups */}
+
+      {/* Stats Section */}
       <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
         
         <div className="container px-6 mx-auto relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {currentData.stats.map((stat, index) => (
+            {data.stats.map((stat, index) => (
               <div 
                 key={index}
                 className="group cursor-pointer"
                 onClick={() => setSelectedStat(stat)}
               >
-                <div className="relative bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border border-gray-100 dark:border-slate-700 hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 text-center overflow-hidden h-60">
+                <div className="relative bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border border-gray-100 dark:border-slate-700 transition-all duration-700 ease-in-out hover:shadow-2xl dark:hover:shadow-2xl transform text-center overflow-hidden h-60">
+                  
                   {/* Background Image */}
                   {stat.backgroundImage && (
                     <div 
-                      className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 group-hover:opacity-30 dark:opacity-30 dark:group-hover:opacity-40 transition-opacity duration-500"
+                      className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 group-hover:opacity-30 dark:opacity-30 dark:group-hover:opacity-40 transition-opacity duration-700 ease-in-out"
                       style={{ backgroundImage: `url(${stat.backgroundImage})` }}
                     />
                   )}
-                  
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-purple-50/80 dark:from-blue-900/40 dark:to-purple-900/40 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
-                  
-                  {/* Hover Effects */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-800/30 dark:to-purple-800/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  
+
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 to-purple-50/80 dark:from-blue-900/40 dark:to-purple-900/40 opacity-60 group-hover:opacity-40 transition-opacity duration-700 ease-in-out" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-800/30 dark:to-purple-800/30 opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out" />
+
                   <div className="relative z-10 h-full flex flex-col justify-center">
-                    <div className="inline-flex p-4 mb-4 bg-gradient-to-br from-blue-100/90 to-purple-100/90 dark:from-blue-800/90 dark:to-purple-800/90 rounded-2xl group-hover:scale-110 transition-transform duration-500 mx-auto backdrop-blur-sm">
-                      <div className="text-blue-600 dark:text-blue-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-500">
+                    <div className="inline-flex p-4 mb-4 bg-gradient-to-br from-blue-100/90 to-purple-100/90 dark:from-blue-800/90 dark:to-purple-800/90 rounded-2xl transition-colors duration-700 ease-in-out mx-auto backdrop-blur-sm">
+                      <div className="text-blue-600 dark:text-blue-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-700 ease-in-out">
                         {stat.icon}
                       </div>
                     </div>
                     
-                    <div className="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-500">
+                    <div className="text-4xl font-bold text-gray-900 dark:text-slate-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-700 ease-in-out">
                       {stat.number}
                     </div>
                     
@@ -409,8 +667,7 @@ const AboutPage = ({
                       {stat.label}
                     </div>
                     
-                    {/* Click indicator */}
-                    <div className="mt-3 text-xs text-gray-500 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="mt-3 text-xs text-gray-500 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out">
                       Click to learn more
                     </div>
                   </div>
@@ -421,11 +678,11 @@ const AboutPage = ({
         </div>
       </section>
 
+
       {/* Popup Modal */}
       {selectedStat && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-800 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300">
-            {/* Close Button */}
             <button
               onClick={closePopup}
               className="absolute top-6 right-6 p-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-full transition-colors duration-200 z-10"
@@ -433,9 +690,7 @@ const AboutPage = ({
               <X className="size-6 text-gray-600 dark:text-slate-400" />
             </button>
             
-            {/* Popup Content */}
             <div className="p-8">
-              {/* Header */}
               <div className="flex items-center gap-4 mb-6">
                 <div className="p-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-800 dark:to-purple-800 rounded-2xl">
                   <div className="text-blue-600 dark:text-blue-400">
@@ -449,7 +704,6 @@ const AboutPage = ({
                 </div>
               </div>
               
-              {/* Main Image */}
               {selectedStat.popupImage && (
                 <div className="mb-6 rounded-2xl overflow-hidden shadow-xl">
                   <img 
@@ -460,14 +714,12 @@ const AboutPage = ({
                 </div>
               )}
               
-              {/* Description */}
               {selectedStat.popupDescription && (
                 <div className="text-lg text-gray-700 dark:text-slate-300 leading-relaxed">
                   {selectedStat.popupDescription}
                 </div>
               )}
               
-              {/* Stats Display */}
               <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl border border-gray-200/50 dark:border-slate-600/50">
                 <div className="text-center">
                   <div className="text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2">
@@ -483,17 +735,26 @@ const AboutPage = ({
         </div>
       )}
 
+
       {/* Story Section */}
       <section className="py-24 bg-white dark:bg-slate-900">
         <div className="container px-6 mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
             <div className="relative order-2 lg:order-1">
               <div className="relative overflow-hidden rounded-3xl shadow-2xl group">
-                <img 
-                  src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=600&fit=crop" 
-                  alt="Our story" 
-                  className="w-full h-[500px] object-cover group-hover:scale-110 transition-transform duration-700"
-                />
+                {data.image ? (
+                  <img 
+                    src={data.image.startsWith('/') ? `${API_URL.replace('/api', '')}${data.image}` : data.image}
+                    alt="Our story" 
+                    className="w-full h-[500px] object-cover transition-transform duration-1500 ease-in-out"
+                  />
+                ) : (
+                  <img 
+                    src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=600&fit=crop" 
+                    alt="Our story" 
+                    className="w-full h-[500px] object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
               </div>
             </div>
@@ -510,7 +771,7 @@ const AboutPage = ({
                 </h2>
                 
                 <p className="text-lg text-gray-700 dark:text-slate-300 leading-relaxed mb-8">
-                  {currentData.story}
+                  {data.story}
                 </p>
               </div>
 
@@ -523,7 +784,7 @@ const AboutPage = ({
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Our Mission</h3>
                       <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
-                        {currentData.mission}
+                        {data.mission}
                       </p>
                     </div>
                   </div>
@@ -537,7 +798,7 @@ const AboutPage = ({
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Our Vision</h3>
                       <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
-                        {currentData.vision}
+                        {data.vision}
                       </p>
                     </div>
                   </div>
@@ -547,6 +808,7 @@ const AboutPage = ({
           </div>
         </div>
       </section>
+
 
       {/* Values Section */}
       <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden">
@@ -569,40 +831,53 @@ const AboutPage = ({
           </div>
           
           <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {currentData.values.map((value, index) => (
+            {data.values.map((value, index) => (
               <div 
                 key={index}
-                className={`group cursor-pointer transition-all duration-500 ${
-                  activeValue === index ? 'scale-105' : 'hover:scale-102'
+                className={`group cursor-pointer transition-transform duration-700 ease-in-out ${
+                  activeValue === index ? 'scale-[1.01]' : 'hover:scale-[1.005]'
                 }`}
                 onMouseEnter={() => setActiveValue(index)}
               >
-                <div className={`bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border transition-all duration-500 h-full ${
+                <div className={`bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border transition-all duration-700 ease-in-out h-full ${
                   activeValue === index 
                     ? 'shadow-2xl border-blue-200 dark:border-blue-600 bg-gradient-to-br from-blue-50/50 to-purple-50/50 dark:from-blue-900/30 dark:to-purple-900/30' 
-                    : 'border-gray-100 dark:border-slate-700 hover:shadow-xl'
+                    : 'border-gray-100 dark:border-slate-700 hover:shadow-xl hover:border-blue-200/50 dark:hover:border-blue-600/40'
                 }`}>
-                  <div className={`inline-flex p-4 mb-6 rounded-2xl transition-all duration-500 ${
+                  <div className={`inline-flex p-4 mb-6 rounded-2xl transition-all duration-700 ease-in-out ${
                     activeValue === index 
-                      ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg scale-110' 
-                      : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-purple-100 dark:group-hover:from-blue-800/50 dark:group-hover:to-purple-800/50'
+                      ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg scale-105' 
+                      : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-purple-100 dark:group-hover:from-blue-800/40 dark:group-hover:to-purple-800/40'
                   }`}>
                     {value.icon}
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4 transition-colors duration-700 ease-in-out group-hover:text-blue-600 dark:group-hover:text-blue-400">
                     {value.title}
                   </h3>
                   
-                  <p className="text-gray-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-gray-600 dark:text-slate-400 leading-relaxed mb-4 transition-colors duration-700 ease-in-out group-hover:text-gray-800 dark:group-hover:text-slate-200">
                     {value.description}
                   </p>
+
+                  {/* Video Preview for Value */}
+                  {value.videoUrl && (
+                    <div className="mt-4">
+                      {getMediaPreview(
+                        value.videoUrl,
+                        true, // Explicitly mark as video
+                        true  // Auto-play without controls
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+
 
       {/* Partners Section */}
       <section className="py-32 bg-white dark:bg-slate-900 relative overflow-hidden">
@@ -634,36 +909,38 @@ const AboutPage = ({
             </p>
           </div>
 
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-              {currentData.partners.map((partner, idx) => (
-                <div key={idx} className="group relative">
-                  <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-slate-700 hover:shadow-2xl dark:hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 relative overflow-hidden h-32 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 dark:via-slate-300/20 to-transparent" />
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 dark:from-blue-400/30 dark:via-purple-400/30 dark:to-blue-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-[1px]">
-                      <div className="w-full h-full bg-white dark:bg-slate-800 rounded-2xl" />
-                    </div>
-                    
-                    <div className="relative z-10 flex items-center justify-center w-full h-full">
-                      <img 
-                        src={partner.src} 
-                        alt={partner.name}
-                        className="max-h-16 max-w-[80%] object-contain grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-110"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling.style.display = 'flex';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden rounded-lg">
-                        {partner.name}
+          {data.partners.length > 0 && (
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                {data.partners.map((partner, idx) => (
+                  <div key={idx} className="group relative">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-slate-700 hover:shadow-2xl dark:hover:shadow-lg transition-all duration-500 transform hover:scale-[1.005] relative overflow-hidden h-32 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 dark:from-blue-400/10 dark:to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 dark:via-slate-300/20 to-transparent" />
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 dark:from-blue-400/30 dark:via-purple-400/30 dark:to-blue-400/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-[1px]">
+                        <div className="w-full h-full bg-white dark:bg-slate-800 rounded-2xl" />
+                      </div>
+                      
+                      <div className="relative z-10 flex items-center justify-center w-full h-full">
+                        <img 
+                          src={partner.src.startsWith('/') ? `${API_URL.replace('/api', '')}${partner.src}` : partner.src}
+                          alt={partner.name}
+                          className="max-h-16 max-w-[80%] object-contain grayscale group-hover:grayscale-0 transition-all duration-500 group-hover:scale-[1.01]"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling.style.display = 'flex';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden rounded-lg">
+                          {partner.name}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="text-center mt-20">
             <div className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white rounded-2xl font-semibold shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group cursor-pointer">
@@ -807,36 +1084,142 @@ const AboutPage = ({
                     />
                   </div>
 
+                  {/* Main Story Image */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Story Section Image
+                    </label>
+                    <div
+                      className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 ${
+                        isDragging && currentUploadKey === 'image'
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                      }`}
+                      onDragOver={(e) => handleDragOver(e, 'image')}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, 'image')}
+                      onClick={() => document.getElementById('image-upload')?.click()}
+                    >
+                      <input
+                        id="image-upload"
+                        type="file"
+                        accept="image/*,video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileChange('image', file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      
+                      {previewUrls.image || formData.image ? (
+                        <div className="space-y-4">
+                          {/* Update this container to be wider */}
+                          <div className="relative w-full h-48 mx-auto bg-gray-100 dark:bg-slate-700 rounded-xl overflow-hidden">
+                            {getMediaPreview(
+                              previewUrls.image || (formData.image?.startsWith('/') 
+                                ? `${API_URL.replace('/api', '')}${formData.image}` 
+                                : formData.image),
+                              fileUploads.image?.type?.startsWith('video/') // ✅ Only mark as video if type is video/*
+                            )}
+
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-slate-400">
+                            {fileUploads.image?.name || 'Current image'}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-slate-500">
+                            Click or drag to replace
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+                            <Upload className="w-8 h-8 text-gray-400 dark:text-slate-500" />
+                          </div>
+                          <div>
+                            <p className="text-gray-600 dark:text-slate-400">
+                              <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
+                              Images or videos up to 200MB
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Hero Image */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Hero Image URL
+                      Hero Background Image
                     </label>
+                    <div
+                      className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 ${
+                        isDragging && currentUploadKey === 'heroImage'
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                      }`}
+                      onDragOver={(e) => handleDragOver(e, 'heroImage')}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, 'heroImage')}
+                      onClick={() => document.getElementById('heroImage-upload')?.click()}
+                    >
+                      <input
+                        id="heroImage-upload"
+                        type="file"
+                        accept="image/*,video/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileChange('heroImage', file);
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      
+                      {previewUrls.heroImage || formData.heroImage ? (
+                        <div className="space-y-4">
+                          {/* Update this container to be wider */}
+                          <div className="relative w-full h-48 mx-auto bg-gray-100 dark:bg-slate-700 rounded-xl overflow-hidden">
+                            {getMediaPreview(
+                              previewUrls.heroImage || formData.heroImage,
+                              fileUploads.heroImage?.type?.startsWith('video/') // ✅ Correct detection
+                            )}
+
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-slate-400">
+                            {fileUploads.heroImage?.name || 'Current image'}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-slate-500">
+                            Click or drag to replace
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+                            <Upload className="w-8 h-8 text-gray-400 dark:text-slate-500" />
+                          </div>
+                          <div>
+                            <p className="text-gray-600 dark:text-slate-400">
+                              <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
+                              Images or videos up to 200MB
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
                     <input
                       type="url"
                       value={formData.heroImage}
                       onChange={(e) => handleInputChange('heroImage', e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                      placeholder="https://example.com/hero-image.jpg"
+                      placeholder="Or enter image URL..."
                     />
-                    {formData.heroImage && (
-                      <div className="mt-3">
-                        <div className="relative w-full h-32 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
-                          <img
-                            src={formData.heroImage}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling.style.display = 'flex';
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
-                            Failed to load image
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -890,27 +1273,136 @@ const AboutPage = ({
                           />
                         </div>
 
-                        <div>
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
+                          <select
+                            value={iconOptions.find(opt => opt.component.type === stat.icon.type)?.name || 'Target'}
+                            onChange={(e) => handleStatChange(index, 'icon', getIconComponent(e.target.value))}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                          >
+                            {iconOptions.map(option => (
+                              <option key={option.name} value={option.name}>
+                                {option.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="md:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Background Image</label>
+                          <div
+                            className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 mb-2 ${
+                              isDragging && currentUploadKey === `stat_${index}_backgroundImage`
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                            }`}
+                            onDragOver={(e) => handleDragOver(e, `stat_${index}_backgroundImage`)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, `stat_${index}_backgroundImage`)}
+                            onClick={() => document.getElementById(`stat_${index}_backgroundImage-upload`)?.click()}
+                          >
+                            <input
+                              id={`stat_${index}_backgroundImage-upload`}
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleFileChange(`stat_${index}_backgroundImage`, file);
+                                }
+                              }}
+                              className="hidden"
+                            />
+                            
+                            {previewUrls[`stat_${index}_backgroundImage`] || stat.backgroundImage ? (
+                              <div className="space-y-2">
+                                <div className="relative w-full h-56 mx-auto bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
+                                  <img
+                                    src={previewUrls[`stat_${index}_backgroundImage`] || stat.backgroundImage}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-slate-400 truncate">
+                                  {fileUploads[`stat_${index}_backgroundImage`]?.name || 'Current image'}
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <Upload className="w-6 h-6 mx-auto text-gray-400 dark:text-slate-500" />
+                                <p className="text-xs text-gray-600 dark:text-slate-400">
+                                  Click or drag to upload
+                                </p>
+                              </div>
+                            )}
+                          </div>
                           <input
                             type="url"
                             value={stat.backgroundImage || ''}
                             onChange={(e) => handleStatChange(index, 'backgroundImage', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="https://example.com/bg.jpg"
+                            placeholder="Or enter image URL..."
                           />
                         </div>
 
-                        <div>
+
+                        <div className="md:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Image</label>
+                          <div
+                            className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 mb-2 ${
+                              isDragging && currentUploadKey === `stat_${index}_popupImage`
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                            }`}
+                            onDragOver={(e) => handleDragOver(e, `stat_${index}_popupImage`)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, `stat_${index}_popupImage`)}
+                            onClick={() => document.getElementById(`stat_${index}_popupImage-upload`)?.click()}
+                          >
+                            <input
+                              id={`stat_${index}_popupImage-upload`}
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleFileChange(`stat_${index}_popupImage`, file);
+                                }
+                              }}
+                              className="hidden"
+                            />
+                            
+                            {previewUrls[`stat_${index}_popupImage`] || stat.popupImage ? (
+                              <div className="space-y-2">
+                                <div className="relative w-full h-56 mx-auto bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
+                                  <img
+                                    src={previewUrls[`stat_${index}_popupImage`] || stat.popupImage}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-slate-400 truncate">
+                                  {fileUploads[`stat_${index}_popupImage`]?.name || 'Current image'}
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                <Upload className="w-6 h-6 mx-auto text-gray-400 dark:text-slate-500" />
+                                <p className="text-xs text-gray-600 dark:text-slate-400">
+                                  Click or drag to upload
+                                </p>
+                              </div>
+                            )}
+                          </div>
                           <input
                             type="url"
                             value={stat.popupImage || ''}
                             onChange={(e) => handleStatChange(index, 'popupImage', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="https://example.com/popup.jpg"
+                            placeholder="Or enter image URL..."
                           />
                         </div>
+
 
                         <div className="md:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Title</label>
@@ -939,6 +1431,7 @@ const AboutPage = ({
                 </div>
               )}
 
+
               {/* Values Tab */}
               {activeTab === 'values' && (
                 <div className="space-y-6">
@@ -965,7 +1458,7 @@ const AboutPage = ({
                         </button>
                       </div>
 
-                      <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
                           <input
@@ -978,6 +1471,21 @@ const AboutPage = ({
                         </div>
 
                         <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
+                          <select
+                            value={iconOptions.find(opt => opt.component.type === value.icon.type)?.name || 'Target'}
+                            onChange={(e) => handleValueChange(index, 'icon', getIconComponent(e.target.value))}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                          >
+                            {iconOptions.map(option => (
+                              <option key={option.name} value={option.name}>
+                                {option.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="md:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                           <textarea
                             value={value.description}
@@ -987,11 +1495,81 @@ const AboutPage = ({
                             placeholder="Detailed description of this value..."
                           />
                         </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video (Optional)</label>
+                          <div
+                            className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 mb-2 ${
+                              isDragging && currentUploadKey === `value_${index}_video`
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                            }`}
+                            onDragOver={(e) => handleDragOver(e, `value_${index}_video`)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, `value_${index}_video`)}
+                            onClick={() => document.getElementById(`value_${index}_video-upload`)?.click()}
+                          >
+                            <input
+                              id={`value_${index}_video-upload`}
+                              type="file"
+                              accept="video/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  handleFileChange(`value_${index}_video`, file);
+                                  // Also update the video URL in form data
+                                  handleValueChange(index, 'videoUrl', URL.createObjectURL(file));
+                                }
+                              }}
+                              className="hidden"
+                            />
+                            
+                            {previewUrls[`value_${index}_video`] || value.videoUrl ? (
+                              <div className="space-y-2">
+                                <div className="relative w-full h-48 mx-auto bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
+                                  {getMediaPreview(
+                                    previewUrls[`value_${index}_video`] || value.videoUrl,
+                                    true, // Mark as video
+                                    true  // Auto-play without controls
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-slate-400 truncate">
+                                  {fileUploads[`value_${index}_video`]?.name || 'Current video'}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-slate-500">
+                                  Click or drag to replace
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-4">
+                                <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
+                                  <Video className="w-8 h-8 text-gray-400 dark:text-slate-500" />
+                                </div>
+                                <div>
+                                  <p className="text-gray-600 dark:text-slate-400">
+                                    <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
+                                    Videos up to 200MB
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <input
+                            type="url"
+                            value={value.videoUrl || ''}
+                            onChange={(e) => handleValueChange(index, 'videoUrl', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="Or enter video URL..."
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
+
 
               {/* Partners Tab */}
               {activeTab === 'partners' && (
@@ -1033,23 +1611,69 @@ const AboutPage = ({
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo URL</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo</label>
+                            <div
+                              className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 mb-2 ${
+                                isDragging && currentUploadKey === `partner_${index}_src`
+                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                  : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                              }`}
+                              onDragOver={(e) => handleDragOver(e, `partner_${index}_src`)}
+                              onDragLeave={handleDragLeave}
+                              onDrop={(e) => handleDrop(e, `partner_${index}_src`)}
+                              onClick={() => document.getElementById(`partner_${index}_src-upload`)?.click()}
+                            >
+                              <input
+                                id={`partner_${index}_src-upload`}
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handleFileChange(`partner_${index}_src`, file);
+                                  }
+                                }}
+                                className="hidden"
+                              />
+                              
+                              {previewUrls[`partner_${index}_src`] || partner.src ? (
+                                <div className="space-y-2">
+                                  <div className="relative w-16 h-16 mx-auto bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
+                                    <img
+                                      src={previewUrls[`partner_${index}_src`] || (partner.src?.startsWith('/') ? `${API_URL.replace('/api', '')}${partner.src}` : partner.src)}
+                                      alt={partner.name}
+                                      className="w-full h-full object-contain"
+                                    />
+                                  </div>
+                                  <p className="text-xs text-gray-600 dark:text-slate-400 truncate">
+                                    {fileUploads[`partner_${index}_src`]?.name || 'Current logo'}
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  <Upload className="w-6 h-6 mx-auto text-gray-400 dark:text-slate-500" />
+                                  <p className="text-xs text-gray-600 dark:text-slate-400">
+                                    Click or drag to upload
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                             <input
                               type="url"
                               value={partner.src}
                               onChange={(e) => handlePartnerChange(index, 'src', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                              placeholder="https://example.com/logo.jpg"
+                              placeholder="Or enter logo URL..."
                             />
                           </div>
 
                           {/* Image Preview */}
-                          {partner.src && (
+                          {(previewUrls[`partner_${index}_src`] || (partner.src && !fileUploads[`partner_${index}_src`])) && (
                             <div className="mt-3">
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview</label>
                               <div className="relative w-full h-24 bg-gray-100 dark:bg-slate-600 rounded-lg overflow-hidden flex items-center justify-center">
                                 <img
-                                  src={partner.src}
+                                  src={previewUrls[`partner_${index}_src`] || (partner.src?.startsWith('/') ? `${API_URL.replace('/api', '')}${partner.src}` : partner.src)}
                                   alt={partner.name}
                                   className="max-h-16 max-w-[80%] object-contain"
                                   onError={(e) => {
@@ -1096,10 +1720,20 @@ const AboutPage = ({
               </button>
               <button
                 onClick={handleSave}
-                className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+                disabled={saving}
+                className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                <Save className="inline-block w-4 h-4 mr-2" />
-                Save Changes
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>Save Changes</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -1109,4 +1743,4 @@ const AboutPage = ({
   );
 };
 
-export default AboutPage;
+export default AboutPage
