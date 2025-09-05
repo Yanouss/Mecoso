@@ -34,24 +34,24 @@ app.use(helmet({
 }));
 
 // Rate limiting - Separate limits for uploads vs regular API calls
-const generalLimiter = rateLimit({
-  windowMs: process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000, // 15 minutes
-  max: process.env.RATE_LIMIT_MAX_REQUESTS || 100,
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// const generalLimiter = rateLimit({
+//   windowMs: process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000, // 15 minutes
+//   max: process.env.RATE_LIMIT_MAX_REQUESTS || 100,
+//   message: 'Too many requests from this IP, please try again later.',
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
-const uploadLimiter = rateLimit({
-  windowMs: process.env.UPLOAD_RATE_LIMIT_WINDOW_MS || 60 * 60 * 1000, // 1 hour
-  max: process.env.UPLOAD_RATE_LIMIT_MAX_REQUESTS || 20, // More restrictive for uploads
-  message: 'Too many upload requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// const uploadLimiter = rateLimit({
+//   windowMs: process.env.UPLOAD_RATE_LIMIT_WINDOW_MS || 60 * 60 * 1000, // 1 hour
+//   max: process.env.UPLOAD_RATE_LIMIT_MAX_REQUESTS || 20, // More restrictive for uploads
+//   message: 'Too many upload requests from this IP, please try again later.',
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
 // Apply general rate limiting to all requests
-app.use(generalLimiter);
+// app.use(generalLimiter);
 
 // CORS configuration - Updated to support multiple origins
 const allowedOrigins = [
@@ -123,11 +123,11 @@ app.use('/portfolio', (req, res, next) => {
   next();
 }, express.static(path.join(__dirname, 'public', 'portfolio')));
 
-// Apply upload rate limiting to specific routes
-app.use('/api/about', uploadLimiter);
-app.use('/api/services', uploadLimiter);
-app.use('/api/testimonials', uploadLimiter);
-app.use('/api/hero', uploadLimiter);
+// // Apply upload rate limiting to specific routes
+// app.use('/api/about', uploadLimiter);
+// app.use('/api/services', uploadLimiter);
+// app.use('/api/testimonials', uploadLimiter);
+// app.use('/api/hero', uploadLimiter);
 
 // Routes
 app.use('/api/auth', authRoutes);
