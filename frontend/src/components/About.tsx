@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Download, X, Edit3, Save, Plus, Trash2, Image, Type, FileText, Upload, AlertCircle } from 'lucide-react';
+import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Download, X, Edit3, Save, Plus, Trash2, Image, Loader2, Type, FileText, Upload, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
@@ -89,7 +89,7 @@ const DragDropImageUpload = ({
   onFileChange,
   label, 
   className = "",
-  accept = "image/*"
+  accept = "image/*,video/*"
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -101,6 +101,7 @@ const DragDropImageUpload = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const handleFile = useCallback(async (file: File) => {
     // Check file size
@@ -172,6 +173,11 @@ const DragDropImageUpload = ({
     toast.success('File removed successfully.');
   };
 
+  // Check if the current value is a video
+  const isVideo = value ? 
+    (value.includes('video') || value.endsWith('.mp4') || value.endsWith('.webm') || value.endsWith('.mov')) : 
+    false;
+
   return (
     <div className={`space-y-3 ${className}`}>
       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -201,14 +207,18 @@ const DragDropImageUpload = ({
           <div className="relative">
             {/* Preview */}
             <div className="relative w-full h-32 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden mb-3">
-              {value.startsWith('blob:') || value.includes('video') || accept.includes('video') ? (
+              {isVideo ? (
                 <video
                   src={value}
                   className="w-full h-full object-cover"
                   muted
                   controls
-                  onError={() => {
-                    toast.error('Failed to load video preview.');
+                  onError={(e) => {
+                    console.error('Failed to load video preview:', value);
+                    // Fallback to showing file info if video fails to load
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling;
+                    if (fallback) fallback.style.display = 'flex';
                   }}
                 />
               ) : (
@@ -216,11 +226,18 @@ const DragDropImageUpload = ({
                   src={value}
                   alt="Preview"
                   className="w-full h-full object-cover"
-                  onError={() => {
-                    toast.error('Failed to load image preview.');
+                  onError={(e) => {
+                    console.error('Failed to load image preview:', value);
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling;
+                    if (fallback) fallback.style.display = 'flex';
                   }}
                 />
               )}
+              {/* Fallback element */}
+              <div className="hidden absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
+                Failed to load preview
+              </div>
             </div>
 
             {/* Remove button */}
@@ -465,6 +482,7 @@ const About = ({
     return true;
   };
 
+
   const handleSave = async () => {
     if (!isUserModerator) {
       toast.error("Access denied", { description: "Moderator/admin only" });
@@ -479,21 +497,45 @@ const About = ({
       formDataToSend.append("story", formData.story);
       formDataToSend.append("mission", formData.mission);
 
-      const processedStats = formData.stats.map(stat => ({
-        ...stat,
-        icon: iconOptions.find(opt => opt.component === stat.icon)?.name || "Target",
-      }));
+      // Process stats to convert icon components to strings
+      const processedStats = formData.stats.map((stat, index) => {
+        const statData = {
+          ...stat,
+          icon: iconOptions.find(opt => React.isValidElement(stat.icon) && opt.component === stat.icon.type)?.name || "Target",
+        };
+        
+        // If we have uploaded files for this stat, add them with specific field names
+        if (fileUploads[`statBg-${index}`]) {
+          formDataToSend.append(`statBg${index}`, fileUploads[`statBg-${index}`]);
+        }
+        if (fileUploads[`statPopup-${index}`]) {
+          formDataToSend.append(`statPopup${index}`, fileUploads[`statPopup-${index}`]);
+        }
+        
+        return statData;
+      });
       formDataToSend.append("stats", JSON.stringify(processedStats));
 
-      const processedValues = formData.values.map(value => ({
-        ...value,
-        icon: iconOptions.find(opt => opt.component === value.icon)?.name || "Target",
-      }));
+      // Process values to convert icon components to strings
+      const processedValues = formData.values.map((value, index) => {
+        const valueData = {
+          ...value,
+          icon: iconOptions.find(opt => React.isValidElement(value.icon) && opt.component === value.icon.type)?.name || "Target",
+        };
+        
+        // If we have uploaded video for this value, add it with specific field name
+        if (fileUploads[`valueVideo-${index}`]) {
+          formDataToSend.append(`valueVideo${index}`, fileUploads[`valueVideo-${index}`]);
+        }
+        
+        return valueData;
+      });
       formDataToSend.append("values", JSON.stringify(processedValues));
 
-      Object.entries(fileUploads).forEach(([key, file]) => {
-        formDataToSend.append(key, file);
-      });
+      // Handle main image upload
+      if (fileUploads['mainImage']) {
+        formDataToSend.append('image', fileUploads['mainImage']);
+      }
 
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_URL}/about`, {
@@ -592,7 +634,7 @@ const About = ({
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-3xl" />
         
         {/* Edit Button for Moderators */}
-        {isUserModerator && (
+        {/* {isUserModerator && (
           <button
             onClick={() => setIsEditModalOpen(true)}
             className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-gray-700 dark:text-white hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl group"
@@ -600,7 +642,7 @@ const About = ({
           >
             <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
           </button>
-        )}
+        )} */}
 
         <div className="container px-6 mx-auto relative z-10">
           
@@ -894,111 +936,122 @@ const About = ({
 
       {/* Edit Modal */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-y-auto relative animate-in zoom-in-95 duration-300 border border-gray-200 dark:border-slate-700">
-            {/* Header */}
-            <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 p-6 rounded-t-3xl z-10">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
-                  Edit About Section
-                </h2>
-                <button
-                  onClick={handleCancel}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition-colors duration-200"
-                >
-                  <X className="size-6 text-gray-600 dark:text-slate-300" />
-                </button>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                  <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit About Page</h2>
               </div>
-              
-              {/* Tabs */}
-              <div className="flex gap-4 mt-4">
-                {(['general', 'stats', 'values'] as const).map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                      activeTab === tab
-                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-                        : 'text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-200'
-                    }`}
-                  >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  </button>
-                ))}
-              </div>
+              <button
+                onClick={handleCancel}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
             </div>
-            
-            {/* Content */}
-            <div className="p-6 space-y-6">
+
+            {/* Tab Navigation */}
+            <div className="flex border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+              {[
+                { key: 'general', label: 'General Info', icon: Type },
+                { key: 'stats', label: 'Statistics', icon: Award },
+                { key: 'values', label: 'Values', icon: Target },
+              ].map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key as any)}
+                  className={`flex items-center gap-2 px-6 py-4 font-medium transition-all duration-200 ${
+                    activeTab === key
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-600'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+              {/* General Tab */}
               {activeTab === 'general' && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Badge Text
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.badge}
-                        onChange={(e) => handleInputChange('badge', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        placeholder="Enter badge text"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Heading
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.heading}
-                        onChange={(e) => handleInputChange('heading', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                        placeholder="Enter heading"
-                      />
-                    </div>
+                  {/* Badge */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Badge Text
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.badge}
+                      onChange={(e) => handleInputChange('badge', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+                      placeholder="About Our Company"
+                    />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+
+                  {/* Heading */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Main Heading
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.heading}
+                      onChange={(e) => handleInputChange('heading', e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
+                      placeholder="Leading Industrial Solutions in Morocco"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                       Description
                     </label>
                     <textarea
                       value={formData.description}
                       onChange={(e) => handleInputChange('description', e.target.value)}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-vertical"
-                      placeholder="Enter description"
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
+                      placeholder="Enter description..."
                     />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Story
+
+                  {/* Story */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Company Story
                     </label>
                     <textarea
                       value={formData.story}
                       onChange={(e) => handleInputChange('story', e.target.value)}
-                      rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-vertical"
-                      placeholder="Enter company story"
+                      rows={6}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
+                      placeholder="Enter company story..."
                     />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      Mission
+
+                  {/* Mission */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Mission Statement
                     </label>
                     <textarea
                       value={formData.mission}
                       onChange={(e) => handleInputChange('mission', e.target.value)}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-vertical"
-                      placeholder="Enter mission statement"
+                      rows={4}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none"
+                      placeholder="Enter mission statement..."
                     />
                   </div>
-                  
+
+                  {/* Main Story Image */}
                   <DragDropImageUpload
                     value={previewUrls['mainImage'] || formData.image}
                     onChange={(url) => {
@@ -1006,263 +1059,260 @@ const About = ({
                       handleInputChange('image', url);
                     }}
                     onFileChange={(file) => handleFileUpload('mainImage', file)}
-                    label="Main Image"
+                    label="Story Section Image"
                     accept="image/*"
                   />
                 </div>
               )}
-              
+
+              {/* Stats Tab */}
               {activeTab === 'stats' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
-                      Statistics
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Statistics</h3>
                     <button
                       onClick={addStat}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      <Plus className="size-4" />
-                      Add Statistic
+                      <Plus className="w-4 h-4" />
+                      Add Stat
                     </button>
                   </div>
-                  
-                  <div className="space-y-4">
-                    {formData.stats.map((stat, index) => (
-                      <div key={index} className="bg-gray-50 dark:bg-slate-700/50 rounded-2xl p-6 border border-gray-200 dark:border-slate-600">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-medium text-gray-900 dark:text-slate-100">
-                            Statistic #{index + 1}
-                          </h4>
-                          <button
-                            onClick={() => removeStat(index)}
-                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
+
+                  {formData.stats.map((stat, index) => (
+                    <div key={index} className="p-6 border border-gray-200 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-700/50 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900 dark:text-white">Statistic {index + 1}</h4>
+                        <button
+                          onClick={() => removeStat(index)}
+                          className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Number</label>
+                          <input
+                            type="text"
+                            value={stat.number}
+                            onChange={(e) => handleStatChange(index, 'number', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="50+"
+                          />
                         </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                              Number
-                            </label>
-                            <input
-                              type="text"
-                              value={stat.number}
-                              onChange={(e) => handleStatChange(index, 'number', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                              placeholder="e.g., 100+"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                              Label
-                            </label>
-                            <input
-                              type="text"
-                              value={stat.label}
-                              onChange={(e) => handleStatChange(index, 'label', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                              placeholder="e.g., Projects Completed"
-                            />
-                          </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Label</label>
+                          <input
+                            type="text"
+                            value={stat.label}
+                            onChange={(e) => handleStatChange(index, 'label', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="Projects Completed"
+                          />
                         </div>
-                        
-                        <div className="mb-4">
-                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Icon
-                          </label>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
                           <select
-                            value={iconOptions.find(opt => opt.component === stat.icon)?.name || 'Target'}
+                            value={iconOptions.find(opt => opt.component.type === stat.icon.type)?.name || 'Target'}
                             onChange={(e) => handleStatChange(index, 'icon', getIconComponent(e.target.value))}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
                           >
-                            {iconOptions.map((option) => (
+                            {iconOptions.map(option => (
                               <option key={option.name} value={option.name}>
                                 {option.name}
                               </option>
                             ))}
                           </select>
                         </div>
-                        
-                        <DragDropImageUpload
-                          value={previewUrls[`statBg-${index}`] || stat.backgroundImage || ''}
-                          onChange={(url) => {
-                            setPreviewUrls(prev => ({ ...prev, [`statBg-${index}`]: url }));
-                            handleStatChange(index, 'backgroundImage', url);
-                          }}
-                          onFileChange={(file) => handleFileUpload(`statBg-${index}`, file)}
-                          label="Background Image (Optional)"
-                          accept="image/*"
-                          className="mb-4"
-                        />
-                        
-                        <DragDropImageUpload
-                          value={previewUrls[`statPopup-${index}`] || stat.popupImage || ''}
-                          onChange={(url) => {
-                            setPreviewUrls(prev => ({ ...prev, [`statPopup-${index}`]: url }));
-                            handleStatChange(index, 'popupImage', url);
-                          }}
-                          onFileChange={(file) => handleFileUpload(`statPopup-${index}`, file)}
-                          label="Popup Image (Optional)"
-                          accept="image/*"
-                          className="mb-4"
-                        />
-                        
-                        <div className="grid grid-cols-1 gap-4">
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                              Popup Title (Optional)
-                            </label>
-                            <input
-                              type="text"
-                              value={stat.popupTitle || ''}
-                              onChange={(e) => handleStatChange(index, 'popupTitle', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                              placeholder="Enter popup title"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                              Popup Description (Optional)
-                            </label>
-                            <textarea
-                              value={stat.popupDescription || ''}
-                              onChange={(e) => handleStatChange(index, 'popupDescription', e.target.value)}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-vertical"
-                              placeholder="Enter popup description"
-                            />
-                          </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Background Image</label>
+                          <DragDropImageUpload
+                            value={previewUrls[`statBg-${index}`] || stat.backgroundImage || ''}
+                            onChange={(url) => {
+                              setPreviewUrls(prev => ({ ...prev, [`statBg-${index}`]: url }));
+                              handleStatChange(index, 'backgroundImage', url);
+                            }}
+                            onFileChange={(file) => handleFileUpload(`statBg-${index}`, file)}
+                            label=""
+                            accept="image/*"
+                            className="mb-2"
+                          />
+                          <input
+                            type="url"
+                            value={stat.backgroundImage || ''}
+                            onChange={(e) => handleStatChange(index, 'backgroundImage', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="Or enter image URL..."
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Image</label>
+                          <DragDropImageUpload
+                            value={previewUrls[`statPopup-${index}`] || stat.popupImage || ''}
+                            onChange={(url) => {
+                              setPreviewUrls(prev => ({ ...prev, [`statPopup-${index}`]: url }));
+                              handleStatChange(index, 'popupImage', url);
+                            }}
+                            onFileChange={(file) => handleFileUpload(`statPopup-${index}`, file)}
+                            label=""
+                            accept="image/*"
+                            className="mb-2"
+                          />
+                          <input
+                            type="url"
+                            value={stat.popupImage || ''}
+                            onChange={(e) => handleStatChange(index, 'popupImage', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="Or enter image URL..."
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Title</label>
+                          <input
+                            type="text"
+                            value={stat.popupTitle || ''}
+                            onChange={(e) => handleStatChange(index, 'popupTitle', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="50+ Projects Completed"
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Description</label>
+                          <textarea
+                            value={stat.popupDescription || ''}
+                            onChange={(e) => handleStatChange(index, 'popupDescription', e.target.value)}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm resize-none"
+                            placeholder="Detailed description for the popup..."
+                          />
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               )}
-              
+
+              {/* Values Tab */}
               {activeTab === 'values' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
-                      Values
-                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Company Values</h3>
                     <button
                       onClick={addValue}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200"
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      <Plus className="size-4" />
+                      <Plus className="w-4 h-4" />
                       Add Value
                     </button>
                   </div>
-                  
-                  <div className="space-y-4">
-                    {formData.values.map((value, index) => (
-                      <div key={index} className="bg-gray-50 dark:bg-slate-700/50 rounded-2xl p-6 border border-gray-200 dark:border-slate-600">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-medium text-gray-900 dark:text-slate-100">
-                            Value #{index + 1}
-                          </h4>
-                          <button
-                            onClick={() => removeValue(index)}
-                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
+
+                  {formData.values.map((value, index) => (
+                    <div key={index} className="p-6 border border-gray-200 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-700/50 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-gray-900 dark:text-white">Value {index + 1}</h4>
+                        <button
+                          onClick={() => removeValue(index)}
+                          className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                          <input
+                            type="text"
+                            value={value.title}
+                            onChange={(e) => handleValueChange(index, 'title', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="Complete Solutions"
+                          />
                         </div>
-                        
-                        <div className="grid grid-cols-1 gap-4 mb-4">
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                              Title
-                            </label>
-                            <input
-                              type="text"
-                              value={value.title}
-                              onChange={(e) => handleValueChange(index, 'title', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                              placeholder="e.g., Innovation"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                              Description
-                            </label>
-                            <textarea
-                              value={value.description}
-                              onChange={(e) => handleValueChange(index, 'description', e.target.value)}
-                              rows={3}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-vertical"
-                              placeholder="Enter value description"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="mb-4">
-                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Icon
-                          </label>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
                           <select
-                            value={iconOptions.find(opt => opt.component === value.icon)?.name || 'Target'}
+                            value={iconOptions.find(opt => opt.component.type === value.icon.type)?.name || 'Target'}
                             onChange={(e) => handleValueChange(index, 'icon', getIconComponent(e.target.value))}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
                           >
-                            {iconOptions.map((option) => (
+                            {iconOptions.map(option => (
                               <option key={option.name} value={option.name}>
                                 {option.name}
                               </option>
                             ))}
                           </select>
                         </div>
-                        
-                        <DragDropImageUpload
-                          value={previewUrls[`valueVideo-${index}`] || value.videoUrl || ''}
-                          onChange={(url) => {
-                            setPreviewUrls(prev => ({ ...prev, [`valueVideo-${index}`]: url }));
-                            handleValueChange(index, 'videoUrl', url);
-                          }}
-                          onFileChange={(file) => handleFileUpload(`valueVideo-${index}`, file)}
-                          label="Video Background (Optional)"
-                          accept="video/*"
-                        />
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                          <textarea
+                            value={value.description}
+                            onChange={(e) => handleValueChange(index, 'description', e.target.value)}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm resize-none"
+                            placeholder="Detailed description of this value..."
+                          />
+                        </div>
+
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video (Optional)</label>
+                          <DragDropImageUpload
+                            value={previewUrls[`valueVideo-${index}`] || value.videoUrl || ''}
+                            onChange={(url) => {
+                              setPreviewUrls(prev => ({ ...prev, [`valueVideo-${index}`]: url }));
+                              handleValueChange(index, 'videoUrl', url);
+                            }}
+                            onFileChange={(file) => handleFileUpload(`valueVideo-${index}`, file)}
+                            label=""
+                            accept="video/*"
+                            className="mb-2"
+                          />
+                          <input
+                            type="url"
+                            value={value.videoUrl || ''}
+                            onChange={(e) => handleValueChange(index, 'videoUrl', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
+                            placeholder="Or enter video URL..."
+                          />
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-            
-            {/* Footer */}
-            <div className="sticky bottom-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-6 rounded-b-3xl">
-              <div className="flex items-center justify-end gap-4">
-                <button
-                  onClick={handleCancel}
-                  className="px-6 py-3 text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 font-medium rounded-xl transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="size-4" />
-                      Save Changes
-                    </>
-                  )}
-                </button>
-              </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-4 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+
             </div>
           </div>
         </div>
