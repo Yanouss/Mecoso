@@ -29,8 +29,8 @@ import {
   Upload,
   Loader
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { API_URL } from '../../config/api';
+import { useAuth } from '../contexts/AuthContext';
+import { API_URL } from '../config/api';
 import { toast } from 'sonner';
 
 interface Machine {
@@ -618,99 +618,86 @@ const MachinesPage = () => {
               </div>
             ) : (
               <>
-                <div className="grid lg:grid-cols-3 gap-6 relative">
+                <div className="grid lg:grid-cols-2 gap-8 relative">
                   {visibleMachines.map((machine, index) => {
                     const isNearShowMore = !showAllMachines && hasMoreMachines && index >= initialMachineCount - 2;
                     return (
                       <div 
                         key={machine.id}
-                        className="group relative bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-2"
+                        className={`group relative bg-white dark:bg-slate-800 dark:backdrop-blur-sm rounded-3xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-2 ${
+                          isNearShowMore ? 'opacity-60' : 'opacity-100'
+                        }`}
                       >
-                        {/* Edit Controls */}
-                        {isModerator && (
-                          <div className="absolute top-2 right-2 z-20 flex gap-2">
-                            <button
-                              onClick={() => setIsModalOpen(true)}
-                              className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-blue-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                              title="Edit Machine"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => {/* Add delete handler */}}
-                              className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-red-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                              title="Delete Machine"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Machine Image */}
-                        <div className="relative overflow-hidden">
-                          <img
-                            src={machine.image}
+                        <div className="relative h-80 overflow-hidden">
+                          <img 
+                            src={machine.image} 
                             alt={machine.title}
-                            className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             onError={(e) => {
                               e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&h=600&fit=crop';
                             }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                          <div className="absolute bottom-4 left-4">
-                            <span className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded-full">
+                          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-slate-900/80 dark:via-transparent dark:to-transparent" />
+                          
+                          <div className="absolute top-4 left-4">
+                            <span className="px-3 py-1 bg-white/80 backdrop-blur-sm text-slate-800 dark:bg-slate-700/90 dark:text-slate-100 text-sm font-medium rounded-full border border-slate-200 dark:border-slate-600/50">
                               {machine.category}
                             </span>
                           </div>
+
                           <div className="absolute top-4 right-4">
                             <span className={`px-3 py-1 backdrop-blur-sm text-sm font-medium rounded-full ${getStatusColor(machine.status)}`}>
                               {machine.status}
                             </span>
                           </div>
+
+                          <div className="absolute bottom-4 left-4">
+                            <span className="px-3 py-1 bg-black/50 backdrop-blur-sm text-white dark:bg-black/70 dark:text-slate-100 text-xs font-medium rounded-full border border-slate-400/30 dark:border-slate-500/30">
+                              {machine.model}
+                            </span>
+                          </div>
                         </div>
 
-                        {/* Machine Content */}
                         <div className="p-6">
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">
+                          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-cyan-300 transition-colors duration-300">
                             {machine.title}
                           </h3>
-                          <p className="text-gray-600 dark:text-slate-400 mb-4 line-clamp-2">
+                          <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4 text-sm">
                             {machine.description}
                           </p>
-                          
-                          {/* Specifications */}
-                          <div className="space-y-2 mb-6">
-                            {machine.specifications.filter(spec => spec.trim() !== '').slice(0, 3).map((spec, i) => (
-                              <div key={i} className="flex items-center gap-2">
-                                <CheckCircle className="w-4 h-4 text-green-500" />
-                                <span className="text-sm text-gray-600 dark:text-slate-400">{spec}</span>
+
+                          <div className="space-y-1 mb-4">
+                            {machine.specifications.filter(spec => spec.trim() !== '').slice(0, 2).map((spec, idx) => (
+                              <div key={idx} className="flex items-center gap-2">
+                                <CheckCircle className="size-3 text-green-500 dark:text-green-400" />
+                                <span className="text-slate-700 dark:text-slate-300 text-xs">{spec}</span>
                               </div>
                             ))}
-                            {machine.specifications.filter(spec => spec.trim() !== '').length > 3 && (
-                              <div className="text-sm text-gray-500 dark:text-slate-500">
-                                +{machine.specifications.filter(spec => spec.trim() !== '').length - 3} more specifications
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                              <Target className="size-3 text-blue-500 dark:text-cyan-400" />
+                              <div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400">Capacity</div>
+                                <div className="text-xs font-medium text-slate-800 dark:text-white">{machine.capacity}</div>
                               </div>
-                            )}
-                          </div>
-
-                          {/* Footer */}
-                          <div className="flex items-center justify-between">
-                            <div className="text-gray-600 dark:text-slate-400 text-sm">
-                              <Target className="w-4 h-4 inline mr-1" />
-                              {machine.capacity}
                             </div>
-                            <div className="text-gray-600 dark:text-slate-400 text-sm">
-                              <Zap className="w-4 h-4 inline mr-1" />
-                              {machine.powerRequirement}
+                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                              <Zap className="size-3 text-blue-500 dark:text-cyan-400" />
+                              <div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400">Power</div>
+                                <div className="text-xs font-medium text-slate-800 dark:text-white">{machine.powerRequirement}</div>
+                              </div>
                             </div>
                           </div>
 
-                          {/* Action Button */}
-                          <button
+                          <button 
                             onClick={() => setSelectedMachine(machine)}
-                            className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                            className="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-cyan-600 dark:to-blue-600 hover:from-blue-500 hover:to-indigo-500 dark:hover:from-cyan-500 dark:hover:to-blue-500 text-white rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 group-hover:shadow-lg group-hover:shadow-blue-500/30 dark:group-hover:shadow-cyan-500/25 flex items-center justify-center gap-2 text-sm"
                           >
                             View Details
+                            <ArrowUpRight className="size-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
                           </button>
                         </div>
                       </div>

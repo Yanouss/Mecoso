@@ -55,6 +55,10 @@ const storage = multer.diskStorage({
       prefix = 'service';
     } else if (file.fieldname.startsWith('testimonial')) {
       prefix = 'testimonial';
+    } else if (file.fieldname.startsWith('machine') || file.fieldname === 'machineImage') {
+      // Handle machine image uploads
+      const index = file.fieldname.match(/machine_(\d+)_image/)?.[1] || '';
+      prefix = index ? `machine-${index}` : 'machine';
     }
     
     cb(null, `${prefix}-${uniqueSuffix}${path.extname(file.originalname)}`);
@@ -141,6 +145,19 @@ const aboutFields = [
   { name: 'images', maxCount: 10 } // For multiple file uploads
 ];
 
+// Machine fields configuration (support up to 50 machines)
+const machineFields = [
+  // Individual machine images
+  ...Array.from({ length: 50 }, (_, i) => [
+    { name: `machine_${i}_image`, maxCount: 1 }
+  ]).flat(),
+  
+  // General machine image upload - ADD THIS FOR SINGLE UPLOADS
+  { name: 'image', maxCount: 1 },
+  { name: 'machineImage', maxCount: 1 },
+  { name: 'images', maxCount: 20 } // For multiple machine images
+];
+
 // Middleware functions
 exports.uploadSingle = upload.single('image');
 exports.uploadMultiple = upload.array('images', 10);
@@ -148,6 +165,8 @@ exports.uploadServiceImage = upload.single('image');
 exports.uploadTestimonialImage = upload.single('image');
 exports.uploadAboutFiles = upload.fields(aboutFields);
 exports.uploadPortfolioFile = upload.fields([{ name: 'portfolio', maxCount: 1 }]);
+exports.uploadMachineFiles = upload.fields(machineFields);
+exports.uploadMachineImage = upload.single('image');
 
 // Error handling middleware
 exports.handleUploadError = (error, req, res, next) => {
