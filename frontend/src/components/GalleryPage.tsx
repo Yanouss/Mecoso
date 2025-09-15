@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowUpRight, Eye, Filter, X, Edit3, Save, Plus, Trash2, Image, Type, FileText, Tag, Layers } from 'lucide-react';
-// import confetti from 'canvas-confetti';
+import { ArrowUpRight, Eye, Filter, X, Edit3, Save, Plus, Trash2, Image, Type, FileText, Tag, Layers, Loader } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../config/api';
+import { toast } from 'sonner';
+import { galleryApi } from '../services/galleryApi';
+
 
 interface GalleryItem {
   id: string;
@@ -128,8 +132,12 @@ const GalleryPage = ({
       size: 'small'
     }
   ],
-  isModerator = true // Set to true for demo purposes
 }: GalleryPageProps) => {
+
+  
+  const { user, isAuthenticated } = useAuth();
+  const isModerator = isAuthenticated && user && (user.role === 'moderator' || user.role === 'admin');
+
   const [visibleItems, setVisibleItems] = useState(8);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -148,11 +156,16 @@ const GalleryPage = ({
     galleryItems
   });
   
-  const [currentData, setCurrentData] = useState({
-    badge,
-    heading,
-    description,
-    galleryItems
+  const [currentData, setCurrentData] = useState<{
+    badge: string;
+    heading: string;
+    description: string;
+    galleryItems: GalleryItem[];
+  }>({
+    badge: "Our Portfolio",
+    heading: "Project Gallery",
+    description: "Explore our completed projects...",
+    galleryItems: []
   });
 
   const [newItem, setNewItem] = useState<Partial<GalleryItem>>({
@@ -162,6 +175,34 @@ const GalleryPage = ({
     image: '',
     size: 'medium'
   });
+
+  useEffect(() => {
+    fetchGalleryData();
+  }, []);
+
+  const fetchGalleryData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await galleryApi.getGalleryPage();
+      setCurrentData({
+        badge: response.data.page.badge,
+        heading: response.data.page.heading,
+        description: response.data.page.description,
+        galleryItems: response.data.galleryItems
+      });
+      setFormData({
+        badge: response.data.page.badge,
+        heading: response.data.page.heading,
+        description: response.data.page.description,
+        galleryItems: response.data.galleryItems
+      });
+    } catch (error) {
+      toast.error('Failed to load gallery data');
+      console.error('Error fetching gallery:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Extract unique categories from current data
   const categories = Array.from(new Set(currentData.galleryItems.map(item => item.category)));
@@ -278,19 +319,34 @@ const GalleryPage = ({
     }));
   };
 
-  const handleSave = () => {
-    setCurrentData({
-      badge: formData.badge,
-      heading: formData.heading,
-      description: formData.description,
-      galleryItems: formData.galleryItems
-    });
-    
-    // Here you would make the API call to Node.js backend
-    console.log('Saving gallery data:', formData);
-    // TODO: Add API call to Node.js backend
-    
-    setIsEditModalOpen(false);
+  const handleSave = async () => {
+    try {
+      if (!user) {
+        toast.error('You must be logged in to save changes');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication token not found');
+        return;
+      }
+
+      const response = await galleryApi.updateGalleryPage(formData, token);
+      
+      setCurrentData({
+        badge: response.data.page.badge,
+        heading: response.data.page.heading,
+        description: response.data.page.description,
+        galleryItems: response.data.galleryItems
+      });
+      
+      toast.success('Gallery updated successfully');
+      setIsEditModalOpen(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save gallery changes');
+      console.error('Error saving gallery:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -340,6 +396,21 @@ const GalleryPage = ({
         size: 'medium'
       });
       setIsItemModalOpen(false);
+    }
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication token not found');
+      }
+
+      const response = await galleryApi.uploadImage(file, token);
+      return response.data.url;
+    } catch (error) {
+      toast.error('Failed to upload image');
+      throw error;
     }
   };
 
@@ -882,39 +953,25 @@ const GalleryPage = ({
                   <div className="flex items-center gap-2 mb-2">
                     <Image className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Image URL
+                      Upload Image
                     </label>
                   </div>
                   <input
-                    type="url"
-                    value={newItem.image || ''}
-                    onChange={(e) => setNewItem(prev => ({ ...prev, image: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    placeholder="https://example.com/image.jpg"
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          const imageUrl = await handleImageUpload(file);
+                          setNewItem(prev => ({ ...prev, image: imageUrl }));
+                        } catch (error) {
+                          console.error('Upload failed:', error);
+                        }
+                      }
+                    }}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                   />
-                  
-                  {/* Image Preview */}
-                  {newItem.image && (
-                    <div className="mt-3">
-                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                        Preview
-                      </label>
-                      <div className="relative w-full h-48 bg-gray-100 dark:bg-slate-700 rounded-lg overflow-hidden">
-                        <img
-                          src={newItem.image}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling.style.display = 'flex';
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
-                          Failed to load image
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 <div>

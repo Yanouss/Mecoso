@@ -59,6 +59,8 @@ const storage = multer.diskStorage({
       // Handle machine image uploads
       const index = file.fieldname.match(/machine_(\d+)_image/)?.[1] || '';
       prefix = index ? `machine-${index}` : 'machine';
+    } else if (file.fieldname === 'galleryImage' || file.fieldname.includes('gallery')) {
+      prefix = 'gallery';
     }
     
     cb(null, `${prefix}-${uniqueSuffix}${path.extname(file.originalname)}`);
@@ -158,6 +160,12 @@ const machineFields = [
   { name: 'images', maxCount: 20 } // For multiple machine images
 ];
 
+const galleryFields = [
+  { name: 'galleryImage', maxCount: 1 },
+  { name: 'image', maxCount: 1 },
+  { name: 'images', maxCount: 20 }
+];
+
 // Middleware functions
 exports.uploadSingle = upload.single('image');
 exports.uploadMultiple = upload.array('images', 10);
@@ -167,6 +175,8 @@ exports.uploadAboutFiles = upload.fields(aboutFields);
 exports.uploadPortfolioFile = upload.fields([{ name: 'portfolio', maxCount: 1 }]);
 exports.uploadMachineFiles = upload.fields(machineFields);
 exports.uploadMachineImage = upload.single('image');
+exports.uploadGalleryImage = upload.single('image');
+exports.uploadGalleryFiles = upload.fields(galleryFields);
 
 // Error handling middleware
 exports.handleUploadError = (error, req, res, next) => {
