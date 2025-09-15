@@ -1,4 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext'; 
+import { API_URL as API_BASE_URL } from '../../config/api';
+import { toast } from 'sonner';
 import { 
   MapPin, 
   Phone, 
@@ -32,6 +36,19 @@ interface ContactProps {
   contactInfo?: ContactInfo[];
   officeImage?: string;
   isModerator?: boolean;
+}
+
+interface ContactData {
+  _id?: string;
+  badge: string;
+  heading: string;
+  description: string;
+  contactInfo: Array<{
+    iconType: 'MapPin' | 'Phone' | 'Mail' | 'Clock';
+    title: string;
+    details: string[];
+    accent: boolean;
+  }>;
 }
 
 interface ContactFormData {
@@ -79,8 +96,7 @@ const Contact = ({
       title: "Business Hours",
       details: ["Mon - Sat: 9:00 AM - 6:00 PM", "Sunday: Closed"]
     }
-  ],
-  isModerator = true // Set to true for demo purposes
+  ]
 
 }: ContactProps) => {
   const [formData, setFormData] = useState({
@@ -115,22 +131,92 @@ const Contact = ({
     }))
   });
   
-  const [currentData, setCurrentData] = useState({
+  const [currentData, setCurrentData] = useState<ContactData>({
     badge,
     heading,
     description,
-    contactInfo
+    contactInfo: contactInfo.map(info => ({
+      iconType: getIconType(info.icon),
+      title: info.title,
+      details: [...info.details],
+      accent: info.accent || false
+    }))
   });
 
-  // Helper function to determine icon type from JSX element
-  function getIconType(iconElement: React.ReactNode): 'MapPin' | 'Phone' | 'Mail' | 'Clock' {
+  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthenticated } = useAuth();
+  const isModerator = isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin');
+
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Update the useEffect that fetches contact data
+  useEffect(() => {
+    fetchContactData();
+  }, []);
+
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isEditModalOpen && 
+          modalRef.current && 
+          !modalRef.current.contains(event.target as Node)) {
+        handleEditCancel();
+      }
+    };
+
+    // Add event listener when modal is open
+    if (isEditModalOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Clean up event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isEditModalOpen]);
+
+
+  const fetchContactData = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/contact`);
+      setCurrentData(response.data.data);
+    } catch (error) {
+      console.error('Error fetching contact data:', error);
+      // Fall back to props if API fails
+      setCurrentData({
+        badge,
+        heading,
+        description,
+        contactInfo: contactInfo.map(info => ({
+          iconType: getIconTypeFromElement(info.icon), // You'll need this new function
+          title: info.title,
+          details: [...info.details],
+          accent: info.accent || false
+        }))
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add this new helper function
+  function getIconTypeFromElement(iconElement: React.ReactNode): 'MapPin' | 'Phone' | 'Mail' | 'Clock' {
     if (React.isValidElement(iconElement)) {
-      const elementType = iconElement.type;
+      const elementType = (iconElement as React.ReactElement).type;
       if (elementType === MapPin) return 'MapPin';
       if (elementType === Phone) return 'Phone';
       if (elementType === Mail) return 'Mail';
       if (elementType === Clock) return 'Clock';
     }
+    return 'MapPin'; // Default fallback
+  }
+
+  // Helper function to determine icon type from JSX element
+  function getIconType(iconType: string): 'MapPin' | 'Phone' | 'Mail' | 'Clock' {
+    if (iconType === 'MapPin') return 'MapPin';
+    if (iconType === 'Phone') return 'Phone';
+    if (iconType === 'Mail') return 'Mail';
+    if (iconType === 'Clock') return 'Clock';
     return 'MapPin'; // Default fallback
   }
 
@@ -368,31 +454,43 @@ const Contact = ({
     }));
   };
 
-  const handleEditSave = () => {
-    // Convert form data back to the format expected by the component
-    const updatedContactInfo = editFormData.contactInfo.map(info => ({
-      icon: iconMap[info.iconType],
-      title: info.title,
-      details: info.details.filter(detail => detail.trim() !== ''), // Remove empty details
-      accent: info.accent
-    }));
+  const handleEditSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `${API_BASE_URL}/contact`,
+        editFormData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      setCurrentData(response.data.data);
+      toast.success('Contact information updated successfully');
+      setIsEditModalOpen(false); // This should close the modal
+    } catch (error: any) {
+      console.error('Error saving contact data:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save contact information';
+      toast.error(errorMessage);
+    }
+  };
 
-    setCurrentData({
-      badge: editFormData.badge,
-      heading: editFormData.heading,
-      description: editFormData.description,
-      contactInfo: updatedContactInfo
+  const handleEditOpen = () => {
+    setEditFormData({
+      badge: currentData.badge,
+      heading: currentData.heading,
+      description: currentData.description,
+      contactInfo: currentData.contactInfo.map(info => ({
+        iconType: info.iconType,
+        title: info.title,
+        details: [...info.details],
+        accent: info.accent || false
+      }))
     });
-
-    // Here you would make the API call to save the data
-    console.log('Saving contact data:', {
-      ...editFormData,
-      contactInfo: updatedContactInfo
-    });
-    // TODO: Add API call to Node.js backend
-    // await saveContactData(editFormData);
-
-    setIsEditModalOpen(false);
+    setIsEditModalOpen(true);
   };
 
   const handleEditCancel = () => {
@@ -824,7 +922,7 @@ const Contact = ({
                 >
                   <div className={`p-6 rounded-3xl shadow-lg border transition-all duration-500 ${getCardStyles(index, info.accent || false)}`}>
                     <div className={`inline-flex p-3 rounded-2xl mb-4 transition-all duration-500 ${getIconStyles(index, info.accent || false)}`}>
-                      {info.icon}
+                      {iconMap[info.iconType]} {/* Use iconMap instead of info.icon */}
                     </div>
                     <h3 className={`text-xl font-bold mb-4 ${getTextStyles(index, info.accent || false)}`}>
                       {info.title}
@@ -927,7 +1025,7 @@ const Contact = ({
       {/* Edit Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <div ref={modalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
               <div className="flex items-center gap-3">

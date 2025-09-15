@@ -17,6 +17,7 @@ const servicesRoutes = require('./routes/services.routes');
 const testimonialsRoutes = require('./routes/testimonials.routes');
 const machinesRoutes = require('./routes/machines.routes'); // Add machines routes
 const galleryRoutes = require('./routes/gallery.routes');
+const contactRoutes = require('./routes/contact.routes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -140,6 +141,7 @@ app.use('/api/services', servicesRoutes);
 app.use('/api/testimonials', testimonialsRoutes);
 app.use('/api/machines', machinesRoutes); 
 app.use('/api/gallery', galleryRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Health check endpoint with more detailed information
 app.get('/api/health', (req, res) => {
