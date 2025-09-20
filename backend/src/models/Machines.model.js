@@ -13,11 +13,11 @@ const machineSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: true
+    default: ''
   },
   image: {
     type: String,
-    required: true
+    default: ''
   },
   specifications: [{
     type: String,
@@ -25,11 +25,11 @@ const machineSchema = new mongoose.Schema({
   }],
   capacity: {
     type: String,
-    required: true
+    default: ''
   },
   powerRequirement: {
     type: String,
-    required: true
+    default: ''
   },
   category: {
     type: String,
@@ -38,21 +38,21 @@ const machineSchema = new mongoose.Schema({
   },
   model: {
     type: String,
-    required: true
+    default: ''
   },
   yearManufactured: {
     type: String,
-    required: true,
+    default: '',
     validate: {
       validator: function(v) {
+        if (!v || v === '') return true; // Allow empty values
         return /^\d{4}$/.test(v) && parseInt(v) >= 1900 && parseInt(v) <= new Date().getFullYear() + 1;
       },
-      message: 'Year must be a valid 4-digit year'
+      message: 'Year must be a valid 4-digit year or empty'
     }
   },
   status: {
     type: String,
-    required: true,
     enum: ['Available', 'In Use', 'Maintenance'],
     default: 'Available'
   }

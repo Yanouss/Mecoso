@@ -74,10 +74,15 @@ exports.updateMachinesPage = asyncHandler(async (req, res, next) => {
     for (let machineData of machines) {
       const { id, title, description, image, specifications, capacity, powerRequirement, category, model, yearManufactured, status } = machineData;
 
-      // Validate machine data
-      if (!id || !title || !description || !image || !specifications || !Array.isArray(specifications) || 
-          !capacity || !powerRequirement || !category || !model || !yearManufactured || !status) {
+      // Validate only essential machine data
+      if (!id || !title || !category) {
         continue; // Skip invalid machines
+      }
+
+      // Ensure specifications array exists and has at least one valid entry
+      if (!specifications || !Array.isArray(specifications) || 
+          specifications.filter(spec => spec && spec.trim() !== '').length === 0) {
+        continue; // Skip machines without specifications
       }
 
       if (existingMachineIds.has(id)) {
@@ -86,15 +91,15 @@ exports.updateMachinesPage = asyncHandler(async (req, res, next) => {
           { id: id },
           {
             title,
-            description,
-            image,
-            specifications: specifications.filter(spec => spec.trim() !== ''),
-            capacity,
-            powerRequirement,
+            description: description || '',
+            image: image || '',
+            specifications: specifications.filter(spec => spec && spec.trim() !== ''),
+            capacity: capacity || '',
+            powerRequirement: powerRequirement || '',
             category,
-            model,
-            yearManufactured,
-            status
+            model: model || '',
+            yearManufactured: yearManufactured || '',
+            status: status || 'Available'
           },
           { new: true, runValidators: true }
         );
@@ -103,15 +108,15 @@ exports.updateMachinesPage = asyncHandler(async (req, res, next) => {
         await Machine.create({
           id,
           title,
-          description,
-          image,
-          specifications: specifications.filter(spec => spec.trim() !== ''),
-          capacity,
-          powerRequirement,
+          description: description || '',
+          image: image || '',
+          specifications: specifications.filter(spec => spec && spec.trim() !== ''),
+          capacity: capacity || '',
+          powerRequirement: powerRequirement || '',
           category,
-          model,
-          yearManufactured,
-          status
+          model: model || '',
+          yearManufactured: yearManufactured || '',
+          status: status || 'Available'
         });
       }
     }
@@ -190,10 +195,15 @@ exports.getMachine = asyncHandler(async (req, res, next) => {
 exports.createMachine = asyncHandler(async (req, res, next) => {
   const { id, title, description, image, specifications, capacity, powerRequirement, category, model, yearManufactured, status } = req.body;
 
-  // Validate required fields
-  if (!id || !title || !description || !image || !specifications || !Array.isArray(specifications) || 
-      !capacity || !powerRequirement || !category || !model || !yearManufactured || !status) {
-    return next(new ErrorResponse('All fields are required', 400));
+  // Validate only essential fields
+  if (!id || !title || !category) {
+    return next(new ErrorResponse('ID, title, and category are required', 400));
+  }
+
+  // Validate specifications
+  if (!specifications || !Array.isArray(specifications) || 
+      specifications.filter(spec => spec && spec.trim() !== '').length === 0) {
+    return next(new ErrorResponse('At least one specification is required', 400));
   }
 
   // Check if machine with ID already exists
@@ -205,15 +215,15 @@ exports.createMachine = asyncHandler(async (req, res, next) => {
   const machine = await Machine.create({
     id,
     title,
-    description,
-    image,
-    specifications: specifications.filter(spec => spec.trim() !== ''),
-    capacity,
-    powerRequirement,
+    description: description || '',
+    image: image || '',
+    specifications: specifications.filter(spec => spec && spec.trim() !== ''),
+    capacity: capacity || '',
+    powerRequirement: powerRequirement || '',
     category,
-    model,
-    yearManufactured,
-    status
+    model: model || '',
+    yearManufactured: yearManufactured || '',
+    status: status || 'Available'
   });
 
   res.status(201).json({
@@ -235,6 +245,20 @@ exports.updateMachine = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Machine not found', 404));
   }
 
+  // Validate only essential fields if they're being updated
+  if (title !== undefined && !title) {
+    return next(new ErrorResponse('Title cannot be empty', 400));
+  }
+
+  if (category !== undefined && !category) {
+    return next(new ErrorResponse('Category cannot be empty', 400));
+  }
+
+  if (specifications !== undefined && (!Array.isArray(specifications) || 
+      specifications.filter(spec => spec && spec.trim() !== '').length === 0)) {
+    return next(new ErrorResponse('At least one specification is required', 400));
+  }
+
   // Store old image for cleanup
   const oldImage = machine.image;
 
@@ -242,16 +266,16 @@ exports.updateMachine = asyncHandler(async (req, res, next) => {
   machine = await Machine.findByIdAndUpdate(
     machine._id,
     {
-      title,
-      description,
-      image,
-      specifications: specifications ? specifications.filter(spec => spec.trim() !== '') : machine.specifications,
-      capacity,
-      powerRequirement,
-      category,
-      model,
-      yearManufactured,
-      status
+      title: title !== undefined ? title : machine.title,
+      description: description !== undefined ? description : machine.description,
+      image: image !== undefined ? image : machine.image,
+      specifications: specifications ? specifications.filter(spec => spec && spec.trim() !== '') : machine.specifications,
+      capacity: capacity !== undefined ? capacity : machine.capacity,
+      powerRequirement: powerRequirement !== undefined ? powerRequirement : machine.powerRequirement,
+      category: category !== undefined ? category : machine.category,
+      model: model !== undefined ? model : machine.model,
+      yearManufactured: yearManufactured !== undefined ? yearManufactured : machine.yearManufactured,
+      status: status !== undefined ? status : machine.status
     },
     { new: true, runValidators: true }
   );

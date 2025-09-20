@@ -96,6 +96,97 @@ interface MainContentFormData {
 }
 
 
+const PaginationComponent = ({ 
+  currentPage, 
+  totalPages, 
+  onPageChange 
+}: { 
+  currentPage: number; 
+  totalPages: number; 
+  onPageChange: (page: number) => void; 
+}) => {
+  if (totalPages <= 1) return null;
+
+  const getVisiblePages = () => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = Math.max(2, currentPage - delta); 
+         i <= Math.min(totalPages - 1, currentPage + delta); 
+         i++) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push('...', totalPages);
+    } else {
+      rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots;
+  };
+
+  const visiblePages = getVisiblePages();
+
+  return (
+    <div className="flex items-center justify-center mt-12 space-x-2">
+      {/* Previous button */}
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+          currentPage === 1
+            ? 'text-gray-400 dark:text-slate-500 cursor-not-allowed'
+            : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+        }`}
+      >
+        <ChevronRight className="w-4 h-4 rotate-180" />
+      </button>
+
+      {/* Page numbers */}
+      {visiblePages.map((page, index) => (
+        <button
+          key={index}
+          onClick={() => typeof page === 'number' && onPageChange(page)}
+          disabled={page === '...'}
+          className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 min-w-[40px] ${
+            page === currentPage
+              ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg'
+              : page === '...'
+              ? 'text-gray-400 dark:text-slate-500 cursor-default'
+              : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+          }`}
+        >
+          {page}
+        </button>
+      ))}
+
+      {/* Next button */}
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+          currentPage === totalPages
+            ? 'text-gray-400 dark:text-slate-500 cursor-not-allowed'
+            : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+        }`}
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
+
 const ServicePage = ({
   badge = "Our Services",
   heading = "Our Core Services",
@@ -140,6 +231,9 @@ const ServicePage = ({
   const [isServiceDetailModalOpen, setIsServiceDetailModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const SERVICES_PER_PAGE = 6;
 
   // Current data states
   const [currentMainContent, setCurrentMainContent] = useState({
@@ -218,9 +312,15 @@ const ServicePage = ({
 
 
   const categories = ['All', ...Array.from(new Set(currentServices.map(s => s.category)))];
-  const filteredServices = selectedCategory === 'All' 
-    ? currentServices 
-    : currentServices.filter(s => s.category === selectedCategory);
+
+  const allFilteredServices = selectedCategory === 'All' 
+  ? currentServices 
+  : currentServices.filter(s => s.category === selectedCategory);
+
+  // Pagination logic
+  const totalPages = Math.ceil(allFilteredServices.length / SERVICES_PER_PAGE);
+  const startIndex = (currentPage - 1) * SERVICES_PER_PAGE;
+  const filteredServices = allFilteredServices.slice(startIndex, startIndex + SERVICES_PER_PAGE);
 
   // Check if user is moderator or admin
   const isModerator = isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin');
@@ -303,6 +403,10 @@ const ServicePage = ({
     }, 5000);
     return () => clearInterval(interval);
   }, [currentTestimonials.length]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -880,92 +984,132 @@ const ServicePage = ({
           </div>
 
           {/* Services Grid */}
-          <div className="grid lg:grid-cols-3 gap-8">
-            {filteredServices.map((service, index) => (
-              <div 
-                key={service.id}
-                className="group relative bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-2"
-              >
-                {/* Edit Controls */}
+          <div className="space-y-8">
+            {allFilteredServices.length === 0 ? (
+              <div className="text-center py-16">
+                <Shield className="w-16 h-16 text-gray-400 dark:text-slate-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 dark:text-slate-400 mb-2">
+                  No services available
+                </h3>
+                <p className="text-gray-500 dark:text-slate-500">
+                  {selectedCategory === 'All' 
+                    ? 'No services have been added yet.' 
+                    : `No services found in the "${selectedCategory}" category.`}
+                </p>
                 {isModerator && (
-                  <div className="absolute top-2 right-2 z-20 flex gap-2">
-                    <button
-                      onClick={() => openServiceModal(service)}
-                      className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-blue-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                      title="Edit Service"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => confirmDeleteService(service.id, service.title)}
-                      className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-red-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                      title="Delete Service"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-
-                {/* Service Image */}
-                <div className="relative overflow-hidden">
-                  <img
-                    src={getImageUrl(service.image)}
-                    alt={service.title}
-                    className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 left-4">
-                    <span className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded-full">
-                      {service.category}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Service Content */}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">
-                    {service.title}
-                  </h3>
-                  <p className="text-gray-600 dark:text-slate-400 mb-4 line-clamp-2">
-                    {service.description}
-                  </p>
-                  
-                  {/* Features */}
-                  <div className="space-y-2 mb-6">
-                    {service.features.slice(0, 3).map((feature, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm text-gray-600 dark:text-slate-400">{feature}</span>
-                      </div>
-                    ))}
-                    {service.features.length > 3 && (
-                      <div className="text-sm text-gray-500 dark:text-slate-500">
-                        +{service.features.length - 3} more features
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between">
-                    <div className="text-gray-600 dark:text-slate-400 text-sm">
-                      <Clock className="w-4 h-4 inline mr-1" />
-                      {service.duration}
-                    </div>
-                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                      {service.price}
-                    </div>
-                  </div>
-
-                  {/* Action Button */}
                   <button
-                    onClick={() => openServiceDetailModal(service)}
-                    className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    onClick={() => openServiceModal()}
+                    className="mt-4 px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
                   >
-                    View Details
+                    Add First Service
                   </button>
-                </div>
+                )}
               </div>
-            ))}
+            ) : (
+              <>
+                {/* Services Grid */}
+                <div className="grid lg:grid-cols-3 gap-8">
+                  {filteredServices.map((service, index) => (
+                    <div 
+                      key={service.id}
+                      className="group relative bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-2"
+                    >
+                      {/* Edit Controls */}
+                      {isModerator && (
+                        <div className="absolute top-2 right-2 z-20 flex gap-2">
+                          <button
+                            onClick={() => openServiceModal(service)}
+                            className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-blue-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
+                            title="Edit Service"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => confirmDeleteService(service.id, service.title)}
+                            className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-red-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
+                            title="Delete Service"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Service Image */}
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={getImageUrl(service.image)}
+                          alt={service.title}
+                          className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                        <div className="absolute bottom-4 left-4">
+                          <span className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded-full">
+                            {service.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Service Content */}
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">
+                          {service.title}
+                        </h3>
+                        <p className="text-gray-600 dark:text-slate-400 mb-4 line-clamp-2">
+                          {service.description}
+                        </p>
+                        
+                        {/* Features */}
+                        <div className="space-y-2 mb-6">
+                          {service.features.slice(0, 3).map((feature, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              <span className="text-sm text-gray-600 dark:text-slate-400">{feature}</span>
+                            </div>
+                          ))}
+                          {service.features.length > 3 && (
+                            <div className="text-sm text-gray-500 dark:text-slate-500">
+                              +{service.features.length - 3} more features
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-between">
+                          <div className="text-gray-600 dark:text-slate-400 text-sm">
+                            <Clock className="w-4 h-4 inline mr-1" />
+                            {service.duration}
+                          </div>
+                          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                            {service.price}
+                          </div>
+                        </div>
+
+                        {/* Action Button */}
+                        <button
+                          onClick={() => openServiceDetailModal(service)}
+                          className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                <PaginationComponent 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+
+                {/* Services Summary */}
+                <div className="text-center text-gray-500 dark:text-slate-400 text-sm">
+                  Showing {startIndex + 1}-{Math.min(startIndex + SERVICES_PER_PAGE, allFilteredServices.length)} of {allFilteredServices.length} services
+                  {selectedCategory !== 'All' && ` in ${selectedCategory}`}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>

@@ -144,6 +144,8 @@ const GalleryPage = ({
   const [isLoading, setIsLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   
+  const [showingAll, setShowingAll] = useState(false);
+
   // Edit functionality states
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<GalleryItem | null>(null);
@@ -214,6 +216,14 @@ const GalleryPage = ({
 
   const showMoreItems = () => {
     setVisibleItems(prev => Math.min(prev + 4, filteredItems.length));
+    if (visibleItems + 4 >= filteredItems.length) {
+      setShowingAll(true);
+    }
+  };
+
+  const showLessItems = () => {
+    setVisibleItems(8);
+    setShowingAll(false);
   };
 
   const getItemWidth = (index: number, totalInRow: number) => {
@@ -437,6 +447,11 @@ const GalleryPage = ({
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    setVisibleItems(8);
+    setShowingAll(false);
+  }, [activeFilter]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Hero Section */}
@@ -610,21 +625,42 @@ const GalleryPage = ({
             )}
           </div>
 
-          {/* Fade Effect and Show More Button */}
-          {visibleItems < filteredItems.length && (
+          {/* Fade Effect and Show More/Less Button */}
+          {(visibleItems < filteredItems.length || showingAll) && (
             <div className="relative mt-16">
-              {/* Fade Gradient */}
-              <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white dark:from-slate-800 via-white/80 dark:via-slate-800/80 to-transparent pointer-events-none" />
+              {/* Enhanced Fade Effect - only show when not showing all */}
+              {!showingAll && (
+                <>
+                  {/* Primary fade gradient - stronger opacity */}
+                  <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-white dark:from-slate-900 via-white/95 dark:via-slate-900/95 to-transparent pointer-events-none z-10" />
+                  
+                  {/* Secondary overlay for extra strength */}
+                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white dark:from-slate-900 via-white/90 dark:via-slate-900/90 to-transparent pointer-events-none z-10" />
+                  
+                  {/* Bottom solid overlay to ensure complete fade */}
+                  <div className="absolute bottom-0 left-0 right-0 h-8 bg-white dark:bg-slate-900 pointer-events-none z-10" />
+                </>
+              )}
               
-              {/* Show More Button */}
-              <div className="text-center relative z-10">
-                <button 
-                  onClick={showMoreItems}
-                  className="px-8 py-4 bg-gray-900 dark:bg-slate-700 hover:bg-blue-600 dark:hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-2xl flex items-center gap-2 mx-auto"
-                >
-                  Show More Projects
-                  <ArrowUpRight className="size-5 transform transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
-                </button>
+              {/* Show More/Less Button */}
+              <div className="text-center relative z-20">
+                {!showingAll ? (
+                  <button 
+                    onClick={showMoreItems}
+                    className="px-8 py-4 bg-gray-900 dark:bg-slate-700 hover:bg-blue-600 dark:hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-2xl flex items-center gap-2 mx-auto"
+                  >
+                    Show More Projects
+                    <ArrowUpRight className="size-5 transform transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  </button>
+                ) : (
+                  <button 
+                    onClick={showLessItems}
+                    className="px-8 py-4 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-700 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-2xl flex items-center gap-2 mx-auto"
+                  >
+                    Show Less Projects
+                    <X className="size-5" />
+                  </button>
+                )}
                 <p className="text-gray-500 dark:text-slate-400 text-sm mt-4">
                   Showing {Math.min(visibleItems, filteredItems.length)} of {filteredItems.length} projects
                   {activeFilter && ` in ${activeFilter}`}

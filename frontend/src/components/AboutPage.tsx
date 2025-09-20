@@ -118,6 +118,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
   const [isDragging, setIsDragging] = useState(false);
   const [currentUploadKey, setCurrentUploadKey] = useState<string>('');
 
+  const [showAllValues, setShowAllValues] = useState(false);
 
   const { user, isAuthenticated } = useAuth();
   const isModerator = propIsModerator || (isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin'));
@@ -247,6 +248,11 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
   };
 
   const addValue = () => {
+    if (formData.values.length >= 10) {
+      toast.error('Maximum 10 values allowed');
+      return;
+    }
+    
     const newValue: Value = {
       title: "",
       description: "",
@@ -831,7 +837,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
           </div>
           
           <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {data.values.map((value, index) => (
+            {data.values.slice(0, showAllValues ? data.values.length : 4).map((value, index) => (
               <div 
                 key={index}
                 className={`group cursor-pointer transition-transform duration-700 ease-in-out ${
@@ -874,6 +880,19 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
               </div>
             ))}
           </div>
+          
+          {/* Show More/Less Button */}
+          {data.values.length > 6 && (
+            <div className="text-center mt-12">
+              <button
+                onClick={() => setShowAllValues(!showAllValues)}
+                className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                {showAllValues ? 'Show Less' : 'Show More'}
+                <ArrowRight className={`size-5 transition-transform duration-200 ${showAllValues ? 'rotate-180' : 'group-hover:translate-x-1'}`} />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

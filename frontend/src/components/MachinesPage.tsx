@@ -433,11 +433,8 @@ const MachinesPage = () => {
 
     for (let i = 0; i < formData.machines.length; i++) {
       const machine = formData.machines[i];
-      if (!machine.title.trim() || !machine.description.trim() || !machine.image.trim() || 
-          !machine.capacity.trim() || !machine.powerRequirement.trim() || 
-          !machine.category.trim() || !machine.model.trim() || 
-          !machine.yearManufactured.trim()) {
-        toast.error(`Machine ${i + 1} has missing required fields`);
+      if (!machine.title.trim() || !machine.category.trim()) {
+        toast.error(`Machine ${i + 1}: Title and Category are required`);
         return false;
       }
 
@@ -668,11 +665,8 @@ const MachinesPage = () => {
   const validateMachineForm = (): boolean => {
     if (!machineFormData) return false;
     
-    if (!machineFormData.title.trim() || !machineFormData.description.trim() || 
-        !machineFormData.image.trim() || !machineFormData.capacity.trim() || 
-        !machineFormData.powerRequirement.trim() || !machineFormData.category.trim() || 
-        !machineFormData.model.trim() || !machineFormData.yearManufactured.trim()) {
-      toast.error('All fields are required');
+    if (!machineFormData.title.trim() || !machineFormData.category.trim()) {
+      toast.error('Title and Category are required');
       return false;
     }
 
@@ -1302,7 +1296,7 @@ const MachinesPage = () => {
                           {/* Description */}
                           <div>
                             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                              Description *
+                              Description
                             </label>
                             <textarea
                               value={machine.description}
@@ -1317,7 +1311,7 @@ const MachinesPage = () => {
                           {/* Image Upload */}
                           <div>
                             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                              Machine Image *
+                              Machine Image
                             </label>
                             <div className="space-y-3">
                               <div className="flex items-center gap-3">
@@ -1371,7 +1365,7 @@ const MachinesPage = () => {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Model *
+                                Model
                               </label>
                               <input
                                 type="text"
@@ -1385,7 +1379,7 @@ const MachinesPage = () => {
                             
                             <div>
                               <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Year Manufactured *
+                                Year Manufactured
                               </label>
                               <input
                                 type="text"
@@ -1400,7 +1394,7 @@ const MachinesPage = () => {
 
                             <div>
                               <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Status *
+                                Status
                               </label>
                               <select
                                 value={machine.status}
@@ -1419,7 +1413,7 @@ const MachinesPage = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Capacity *
+                                Capacity
                               </label>
                               <input
                                 type="text"
@@ -1433,7 +1427,7 @@ const MachinesPage = () => {
                             
                             <div>
                               <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Power Requirement *
+                                Power Requirement
                               </label>
                               <input
                                 type="text"
@@ -1684,7 +1678,7 @@ const MachinesPage = () => {
                 {/* Description */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                    Description *
+                    Description
                   </label>
                   <textarea
                     value={machineFormData.description}
@@ -1699,7 +1693,7 @@ const MachinesPage = () => {
                 {/* Image Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                    Machine Image *
+                    Machine Image
                   </label>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
@@ -1753,7 +1747,7 @@ const MachinesPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Model *
+                      Model
                     </label>
                     <input
                       type="text"
@@ -1767,7 +1761,7 @@ const MachinesPage = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Year Manufactured *
+                      Year Manufactured
                     </label>
                     <input
                       type="text"
@@ -1782,7 +1776,7 @@ const MachinesPage = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Status *
+                      Status
                     </label>
                     <select
                       value={machineFormData.status}
@@ -1801,7 +1795,7 @@ const MachinesPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Capacity *
+                      Capacity
                     </label>
                     <input
                       type="text"
@@ -1815,7 +1809,7 @@ const MachinesPage = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Power Requirement *
+                      Power Requirement
                     </label>
                     <input
                       type="text"

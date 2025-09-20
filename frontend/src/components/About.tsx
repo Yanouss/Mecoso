@@ -835,7 +835,7 @@ const About = ({
               </div>
               
               <div className="grid lg:grid-cols-3 gap-8">
-                {currentData.values.map((value, index) => (
+                {currentData.values.slice(0, 6).map((value, index) => (
                   <div 
                     key={index}
                     className={`relative group cursor-pointer transition-all duration-500 ${
@@ -891,6 +891,19 @@ const About = ({
                   </div>
                 ))}
               </div>
+              
+              {/* Show More Button */}
+              {currentData.values.length > 6 && (
+                <div className="text-center mt-12">
+                  <Link
+                    to="/about"
+                    className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                  >
+                    Show More
+                    <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-200" />
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 
