@@ -28,6 +28,11 @@ import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
 import AdminPanel from "./AdminPanel";
 
+import { useTranslation } from '../../context/TranslationContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
+
+
+
 interface MenuItem {
   title: string;
   url: string;
@@ -76,6 +81,16 @@ const Navbar = ({
   const { user, isAuthenticated } = useAuth();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
 
+  const { t } = useTranslation();
+
+  menu = [
+    { title: t('nav.home'), url: "/" },
+    { title: t('nav.services'), url: "/services" },
+    { title: t('nav.machines'), url: "/machines" },
+    { title: t('nav.about'), url: "/about" },
+    { title: t('nav.gallery'), url: "/gallery" },
+  ]
+
   return (
     <>
       <section className="py-1 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 transition-all duration-300">
@@ -109,12 +124,13 @@ const Navbar = ({
                   <Shield className="size-5" />
                 </button>
               )}
+              <LanguageSwitcher />
               <ThemeToggle />
               <Link
                 to="/contact"
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-blue-600 dark:hover:from-blue-400 dark:hover:to-blue-500 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
               >
-                Get a quote
+                {t('nav.quote')}
               </Link>
             </div>
           </nav>
@@ -140,6 +156,7 @@ const Navbar = ({
                     <Shield className="size-4" />
                   </button>
                 )}
+                <LanguageSwitcher />
                 <ThemeToggle />
                 <Sheet>
                   <SheetTrigger asChild>
@@ -169,7 +186,7 @@ const Navbar = ({
                           to="/contact"
                           className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 text-white rounded-xl font-semibold hover:from-blue-500 hover:to-blue-600 dark:hover:from-blue-400 dark:hover:to-blue-500 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 text-center"
                         >
-                          Get a quote
+                          {t('nav.quote')}
                         </Link>
                       </div>
                     </div>

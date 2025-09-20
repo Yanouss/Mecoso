@@ -18,6 +18,10 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import AdminLogin from './AdminLogin';
 
+import { useTranslation } from '../../context/TranslationContext';
+
+
+
 interface FooterLink {
   label: string;
   href: string;
@@ -166,6 +170,8 @@ const Footer = ({
   const [logoClickCount, setLogoClickCount] = useState(0);
   const [lastClickTime, setLastClickTime] = useState(0);
 
+  const { t } = useTranslation();
+
   const handleNewsletterSubmit = () => {
     // Handle newsletter subscription
     console.log('Newsletter subscription submitted');
@@ -205,10 +211,10 @@ const Footer = ({
               <div className="grid lg:grid-cols-2 gap-12 items-center">
                 <div>
                   <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
-                    {newsletterTitle}
+                    {t('footer.newsletter.title')}
                   </h2>
                   <p className="text-gray-300 text-lg leading-relaxed">
-                    {newsletterDescription}
+                    {t('footer.newsletter.description')}
                   </p>
                 </div>
                 <div>
@@ -216,7 +222,7 @@ const Footer = ({
                     <div className="flex-1">
                       <input
                         type="email"
-                        placeholder="Enter your email address"
+                        placeholder={t('footer.newsletter.placeholder')}
                         className="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-gray-600/50 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-300"
                       />
                     </div>
@@ -224,7 +230,7 @@ const Footer = ({
                       onClick={handleNewsletterSubmit}
                       className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group whitespace-nowrap"
                     >
-                      Subscribe
+                      {t('footer.newsletter.subscribe')}
                       <Send className="size-4 group-hover:translate-x-1 transition-transform duration-300" />
                     </button>
                   </div>
@@ -265,7 +271,7 @@ const Footer = ({
                     <MapPin className="size-5 text-blue-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium mb-1">Address</div>
+                    <div className="text-white font-medium mb-1">{t('footer.address')}</div>
                     <div className="text-gray-300 text-sm">{contact.address}</div>
                   </div>
                 </div>
@@ -275,7 +281,7 @@ const Footer = ({
                     <Phone className="size-5 text-green-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium mb-1">Phone</div>
+                    <div className="text-white font-medium mb-1">{t('footer.phone')}</div>
                     <div className="text-gray-300 text-sm">{contact.phone}</div>
                   </div>
                 </div>
@@ -285,7 +291,7 @@ const Footer = ({
                     <Mail className="size-5 text-purple-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium mb-1">Email</div>
+                    <div className="text-white font-medium mb-1">{t('footer.email')}</div>
                     <div className="text-gray-300 text-sm">{contact.email}</div>
                   </div>
                 </div>
@@ -295,7 +301,7 @@ const Footer = ({
                     <Clock className="size-5 text-orange-400" />
                   </div>
                   <div>
-                    <div className="text-white font-medium mb-1">Hours</div>
+                    <div className="text-white font-medium mb-1">{t('footer.hours')}</div>
                     <div className="text-gray-300 text-sm">{contact.hours}</div>
                   </div>
                 </div>

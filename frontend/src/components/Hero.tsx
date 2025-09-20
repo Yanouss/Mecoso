@@ -5,6 +5,9 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_URL as API_BASE_URL } from '../../config/api';
+import { useTranslation } from '../../context/TranslationContext';
+
+
 
 interface Hero1Props {
   badge?: string;
@@ -94,6 +97,8 @@ const Hero = ({
     secondaryButtonText: "View Portfolio",
     secondaryButtonUrl: "/portfolio"
   });
+
+  const { t } = useTranslation();
 
   const MAX_FILE_SIZE = 200 * 1024 * 1024;
   const ACCEPTED_TYPES = [
@@ -363,17 +368,17 @@ const Hero = ({
 
   // Use current data or fallback to props/defaults
   const currentData = heroData || {
-    badge: "Industrial Excellence",
-    heading: initialHeading,
-    description: initialDescription,
+    badge: t('hero.badge'),
+    heading: t('hero.heading'), 
+    description: t('hero.description'),
     image: initialImage,
     buttons: {
       primary: {
-        text: "Start Your Project",
-        url: "/contact"
+        text: t('hero.primary_button'),
+        url: "/services"
       },
       secondary: {
-        text: "View Portfolio", 
+        text: t('hero.secondary_button'),
         url: "/portfolio"
       }
     }

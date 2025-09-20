@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import { ThemeProvider } from "./components/ThemeContext";
 import { AuthProvider } from "../context/AuthContext";
+import { TranslationProvider } from "../context/TranslationContext";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import Services from "./components/Services";
@@ -41,28 +42,30 @@ function Home() {
 function App() {
   return (
     <ThemeProvider defaultTheme="light">
-      <AuthProvider>
-        <BrowserRouter>
-          <div className="mx-auto min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-500 overflow-x-hidden">
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/services" element={<ServicePage />} />
-              <Route path="/gallery" element={<GalleryPage />} />
-              <Route path="/machines" element={<MachinesPage />} />
-            </Routes>
-            <Footer />
-            <Toaster 
-              position="top-right"
-              richColors
-              closeButton
-              duration={4000}
-            />
-          </div>
-        </BrowserRouter>
-      </AuthProvider>
+      <TranslationProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <div className="mx-auto min-h-screen bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-all duration-500 overflow-x-hidden">
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/services" element={<ServicePage />} />
+                <Route path="/gallery" element={<GalleryPage />} />
+                <Route path="/machines" element={<MachinesPage />} />
+              </Routes>
+              <Footer />
+              <Toaster 
+                position="top-right"
+                richColors
+                closeButton
+                duration={4000}
+              />
+            </div>
+          </BrowserRouter>
+        </AuthProvider>
+      </TranslationProvider>
     </ThemeProvider>
   );
 }
