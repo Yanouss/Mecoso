@@ -189,6 +189,8 @@ const PaginationComponent = ({
 
 const ServicePage = (props: ServicePageProps) => {
   const { t } = useTranslation();
+  const { user, isAuthenticated } = useAuth();
+
   const {
     badge = t('services.badge'),
     heading = t('services.heading'),
@@ -218,7 +220,7 @@ const ServicePage = (props: ServicePageProps) => {
     }
   ]
   } = props;
-  const { user, isAuthenticated } = useAuth();
+  
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -1725,7 +1727,7 @@ const ServicePage = (props: ServicePageProps) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Company
+                  {t('services.company')}
                 </label>
                 <input
                   type="text"
@@ -1737,21 +1739,22 @@ const ServicePage = (props: ServicePageProps) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Rating
+                  {t('services.rating')}
                 </label>
-                <div className="flex gap-1">
+                <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
+                      type="button"
                       onClick={() => setTestimonialForm(prev => ({ ...prev, rating: star }))}
-                      className="p-1 hover:scale-110 transition-transform duration-200"
+                      className="p-2 hover:scale-110 transition-transform duration-200"
                     >
-                      <Star
+                      <Star 
                         className={`w-6 h-6 ${
-                          star <= testimonialForm.rating
-                            ? 'text-yellow-400 fill-current'
-                            : 'text-gray-300 dark:text-slate-600'
-                        }`}
+                          star <= testimonialForm.rating 
+                            ? 'text-yellow-400 fill-current' 
+                            : 'text-gray-300 dark:text-gray-600'
+                        }`} 
                       />
                     </button>
                   ))}
@@ -1760,29 +1763,36 @@ const ServicePage = (props: ServicePageProps) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                  Testimonial Content
+                  {t('services.testimonial_content')}
                 </label>
                 <textarea
-                  rows={4}
                   value={testimonialForm.content}
                   onChange={(e) => setTestimonialForm(prev => ({ ...prev, content: e.target.value }))}
+                  rows={4}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
+                  placeholder={t('services.testimonial_placeholder')}
                 />
               </div>
             </div>
             
-            <div className="flex justify-end gap-4 mt-6">
+            <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
               <button
                 onClick={() => setIsTestimonialModalOpen(false)}
-                className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                className="px-6 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={saveTestimonial}
-                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                disabled={saving}
+                className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {editingTestimonial ? 'Update Testimonial' : 'Add Testimonial'}
+                {saving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+                {saving ? t('common.saving') : t('common.save')}
               </button>
             </div>
           </div>

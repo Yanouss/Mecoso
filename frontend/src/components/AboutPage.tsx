@@ -69,39 +69,40 @@ const iconOptions = [
   { name: 'Lightbulb', component: Lightbulb },
 ];
 
-const defaultData: AboutData = {
-  badge: t('about.badge'),
-  heading: t('about.heading'),
-  description: t('about.description'),
-  story: t('about.our_story'),
-  mission: t('about.our_mission'),
-  image: "/images/team.jpg",
-  heroImage: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=800&fit=crop",
-  stats: [
-    {
-      number: "50+",
-      label: "Projects Completed",
-      icon: <Target className="size-6" />,
-      backgroundImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop",
-      popupImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop",
-      popupTitle: "50+ Projects Completed",
-      popupDescription: "Over the years, we have successfully completed more than 50 major industrial projects across Morocco, ranging from manufacturing facilities to complex structural installations."
-    }
-  ],
-  values: [
-    {
-      title: "Complete Solutions",
-      description: "From initial design to final commissioning and ongoing maintenance, MECOSO delivers seamless, end-to-end industrial solutions tailored to your needs.",
-      icon: <Target className="size-6" />
-    }
-  ],
-  team: [],
-  partners: []
-};
-
 const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = false }) => {
-
   const { t } = useTranslation();
+  
+  // Create default data inside component after hooks
+  const defaultData: AboutData = {
+    badge: t('about.badge'),
+    heading: t('about.heading'),
+    description: t('about.description'),
+    story: t('about.our_story'),
+    mission: t('about.our_mission'),
+    image: "/images/team.jpg",
+    heroImage: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=800&fit=crop",
+    stats: [
+      {
+        number: "50+",
+        label: "Projects Completed",
+        icon: <Target className="size-6" />,
+        backgroundImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop",
+        popupImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop",
+        popupTitle: "50+ Projects Completed",
+        popupDescription: "Over the years, we have successfully completed more than 50 major industrial projects across Morocco, ranging from manufacturing facilities to complex structural installations."
+      }
+    ],
+    values: [
+      {
+        title: "Complete Solutions",
+        description: "From initial design to final commissioning and ongoing maintenance, MECOSO delivers seamless, end-to-end industrial solutions tailored to your needs.",
+        icon: <Target className="size-6" />
+      }
+    ],
+    team: [],
+    partners: []
+  };
+
   const [data, setData] = useState<AboutData>(defaultData);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -111,6 +112,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'stats' | 'values' | 'partners'>('general');
   const [formData, setFormData] = useState<AboutData>(defaultData);
+
   
   // File handling states
   const [fileUploads, setFileUploads] = useState<{[key: string]: File}>({});

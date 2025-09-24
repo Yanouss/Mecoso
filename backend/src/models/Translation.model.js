@@ -19,7 +19,7 @@ const translationSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['hero', 'navbar', 'footer', 'services', 'about', 'contact', 'common'],
+    enum: ['hero', 'navbar', 'footer', 'services', 'about', 'contact', 'common', 'admin'],
     default: 'common',
     index: true
   },
