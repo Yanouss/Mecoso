@@ -3,7 +3,8 @@ import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Building, Lightbu
 import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
 import { toast } from 'sonner';
 import axios from 'axios';
-import { API_URL as API_BASE_URL } from '../../config/api'; // Adjust path as needed
+import { API_URL as API_BASE_URL } from '../../config/api'; 
+import { useTranslation } from '../../context/TranslationContext';
 
 
 interface Stat {
@@ -69,12 +70,11 @@ const iconOptions = [
 ];
 
 const defaultData: AboutData = {
-  badge: "About Our Company",
-  heading: "Leading Industrial Solutions in Morocco",
-  description: "MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we've been delivering excellence in metal structure design, manufacturing, and assembly across all industries",
-  story: "Founded in 2005 by KACEMY Abderahman, MECOSO has grown from a specialized boilermaking workshop into Morocco's leading provider of comprehensive industrial metalwork solutions. With two decades of experience, we've built our reputation on delivering quality, safety, and innovation to clients across diverse industries.",
-  mission: "To provide comprehensive, high-quality metalwork solutions that meet the evolving needs of modern industry while maintaining the highest standards of safety, quality, and customer satisfaction",
-  vision: "To be the leading construction company that shapes the future of our cities through sustainable, innovative, and transformative building solutions.",
+  badge: t('about.badge'),
+  heading: t('about.heading'),
+  description: t('about.description'),
+  story: t('about.our_story'),
+  mission: t('about.our_mission'),
   image: "/images/team.jpg",
   heroImage: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=800&fit=crop",
   stats: [
@@ -101,6 +101,7 @@ const defaultData: AboutData = {
 
 const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = false }) => {
 
+  const { t } = useTranslation();
   const [data, setData] = useState<AboutData>(defaultData);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -608,21 +609,22 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
         <div className="container px-6 mx-auto relative z-10">
           <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-300 dark:text-blue-200 bg-blue-900/30 dark:bg-blue-800/40 backdrop-blur-sm rounded-full border border-blue-500/30 dark:border-blue-400/40">
-              <div className="w-2 h-2 bg-blue-400 dark:bg-blue-300 rounded-full animate-pulse" />
-              {data.badge}
-            </div>
+            <div className="w-2 h-2 bg-blue-400 dark:bg-blue-300 rounded-full animate-pulse" />
+            {t('about.badge')}
+          </div>
             
             <h1 className="text-5xl lg:text-7xl font-bold text-white dark:text-slate-100 mb-6 leading-tight">
-              {data.heading}
+              {t('about.heading')}
             </h1>
             
             <p className="text-xl text-white/90 dark:text-slate-200/90 leading-relaxed max-w-3xl mb-8">
-              {data.description}
+              {t('about.description')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <button className="px-8 py-4 bg-blue-600 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-400 text-white rounded-2xl font-semibold transform transition-transform duration-500 shadow-xl hover:shadow-2xl inline-flex items-center gap-2 group relative overflow-hidden cursor-pointer">
-                <span className="relative z-10 transition-colors duration-500">Learn Our Story</span>
+                <span className="relative z-10 transition-colors duration-500">{t('about.learn_story')}</span>
+
                 <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-500 relative z-10" />
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-700/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
               </button>
@@ -769,11 +771,11 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
               <div>
                 <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-800/40 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-600/50">
                   <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
-                  Our Story
+                  {t('about.our_story')}
                 </div>
                 
                 <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-slate-100 mb-6 leading-tight">
-                  Two Decades of Excellence
+                  {t('about.two_decades')}
                 </h2>
                 
                 <p className="text-lg text-gray-700 dark:text-slate-300 leading-relaxed mb-8">
@@ -788,7 +790,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                       <Target className="size-6 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Our Mission</h3>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">{t('about.our_mission')}</h3>
+
                       <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
                         {data.mission}
                       </p>
@@ -802,7 +805,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                       <Lightbulb className="size-6 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Our Vision</h3>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">{t('about.our_vision')}</h3>
+
                       <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
                         {data.vision}
                       </p>
@@ -823,16 +827,16 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
         <div className="container px-6 mx-auto relative z-10">
           <div className="text-center mb-16 max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-800/40 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-600/50">
-              <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
-              Our Values
-            </div>
+            <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
+            {t('about.our_values')}
+          </div>
             
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-slate-100 mb-6">
-              The Principles That Guide Us
+              {t('about.values_subtitle')}
             </h2>
             
             <p className="text-xl text-gray-600 dark:text-slate-400 leading-relaxed">
-              Every decision we make and every project we undertake is guided by these core values that define who we are.
+              {t('about.values_description')}
             </p>
           </div>
           
@@ -888,7 +892,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                 onClick={() => setShowAllValues(!showAllValues)}
                 className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                {showAllValues ? 'Show Less' : 'Show More'}
+                {showAllValues ? t('about.show_less') : t('about.show_more')}
                 <ArrowRight className={`size-5 transition-transform duration-200 ${showAllValues ? 'rotate-180' : 'group-hover:translate-x-1'}`} />
               </button>
             </div>
@@ -912,19 +916,19 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                 <div className="w-2 h-2 bg-purple-500 dark:bg-purple-400 rounded-full animate-pulse delay-200" />
                 <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse delay-400" />
               </div>
-              <span className="ml-2">Trusted Partnerships</span>
+              <span className="ml-2">{t('about.trusted_partnerships')}</span>
             </div>
             
             <h2 className="text-5xl lg:text-6xl font-bold text-gray-900 dark:text-slate-100 mb-8 leading-tight">
               <span className="bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 dark:from-slate-100 dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-                Industry Leaders
+                {t('about.industry_leaders')}
               </span>
               <br />
               <span className="text-gray-900 dark:text-slate-100">Choose Us</span>
             </h2>
             
             <p className="text-xl text-gray-600 dark:text-slate-400 leading-relaxed max-w-3xl mx-auto">
-              We proudly collaborate with Morocco's most prestigious organizations and international companies who trust us to deliver excellence in every project.
+              {t('about.partners_description')}
             </p>
           </div>
 
@@ -964,7 +968,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
           <div className="text-center mt-20">
             <div className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white rounded-2xl font-semibold shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 group cursor-pointer">
               <Building className="size-5" />
-              <span>Join Our Network of Partners</span>
+              <span>{t('about.join_network')}</span>
               <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
             </div>
           </div>
