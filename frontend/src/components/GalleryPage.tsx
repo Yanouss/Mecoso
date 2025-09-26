@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { API_URL } from '../../config/api';
 import { toast } from 'sonner';
 import { galleryApi } from '../services/galleryApi';
+import { useTranslation } from '../../context/TranslationContext';
 
 
 interface GalleryItem {
@@ -31,9 +32,9 @@ interface GalleryFormData {
 }
 
 const GalleryPage = ({
-  badge = "Our Portfolio",
-  heading = "Project Gallery",
-  description = "Explore our completed projects and industrial solutions. From mining equipment to steel structures, see the quality and precision that defines MECOSO's work across various industrial sectors.",
+  badge,
+  heading,
+  description,
   galleryItems = [
     {
       id: '1',
@@ -134,6 +135,7 @@ const GalleryPage = ({
   ],
 }: GalleryPageProps) => {
 
+  const { t } = useTranslation();
   
   const { user, isAuthenticated } = useAuth();
   const isModerator = isAuthenticated && user && (user.role === 'moderator' || user.role === 'admin');
@@ -152,9 +154,9 @@ const GalleryPage = ({
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   
   const [formData, setFormData] = useState<GalleryFormData>({
-    badge,
-    heading,
-    description,
+    badge: badge || t('gallery.badge'),
+    heading: heading || t('gallery.heading'),
+    description: description || t('gallery.description'),
     galleryItems
   });
   
@@ -164,9 +166,9 @@ const GalleryPage = ({
     description: string;
     galleryItems: GalleryItem[];
   }>({
-    badge: "Our Portfolio",
-    heading: "Project Gallery",
-    description: "Explore our completed projects...",
+    badge: t('gallery.badge'),
+    heading: t('gallery.heading'),
+    description: t('gallery.description'),
     galleryItems: []
   });
 
@@ -199,7 +201,7 @@ const GalleryPage = ({
         galleryItems: response.data.galleryItems
       });
     } catch (error) {
-      toast.error('Failed to load gallery data');
+      toast.error(t('gallery.fetch_error'));
       console.error('Error fetching gallery:', error);
     } finally {
       setIsLoading(false);
@@ -332,13 +334,13 @@ const GalleryPage = ({
   const handleSave = async () => {
     try {
       if (!user) {
-        toast.error('You must be logged in to save changes');
+        toast.error(t('gallery.login_required'));
         return;
       }
 
       const token = localStorage.getItem('token');
       if (!token) {
-        toast.error('Authentication token not found');
+        toast.error(t('gallery.token_not_found'));
         return;
       }
 
@@ -351,10 +353,10 @@ const GalleryPage = ({
         galleryItems: response.data.galleryItems
       });
       
-      toast.success('Gallery updated successfully');
+      toast.success(t('gallery.updated_success'));
       setIsEditModalOpen(false);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to save gallery changes');
+      toast.error(error.message || t('gallery.save_failed'));
       console.error('Error saving gallery:', error);
     }
   };
@@ -413,13 +415,13 @@ const GalleryPage = ({
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        throw new Error('Authentication token not found');
+        throw new Error(t('gallery.token_not_found'));
       }
 
       const response = await galleryApi.uploadImage(file, token);
       return response.data.url;
     } catch (error) {
-      toast.error('Failed to upload image');
+      toast.error(t('gallery.upload_failed'));
       throw error;
     }
   };
@@ -452,6 +454,34 @@ const GalleryPage = ({
     setShowingAll(false);
   }, [activeFilter]);
 
+  // Add this useEffect to update data when language changes
+  useEffect(() => {
+    // Only update if we have API data loaded
+    if (currentData.galleryItems.length > 0) {
+      setCurrentData(prev => ({
+        ...prev,
+        badge: t('gallery.badge'),
+        heading: t('gallery.heading'),
+        description: t('gallery.description')
+      }));
+      
+      setFormData(prev => ({
+        ...prev,
+        badge: t('gallery.badge'),
+        heading: t('gallery.heading'),
+        description: t('gallery.description')
+      }));
+    } else {
+      // Use translated defaults if no API data yet
+      setCurrentData({
+        badge: t('gallery.badge'),
+        heading: t('gallery.heading'),
+        description: t('gallery.description'),
+        galleryItems: []
+      });
+    }
+  }, [t]); // This will run when translation changes
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Hero Section */}
@@ -466,7 +496,7 @@ const GalleryPage = ({
           <button
             onClick={() => setIsEditModalOpen(true)}
             className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-gray-800 dark:text-white hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 shadow-lg hover:shadow-xl group"
-            title="Edit Gallery Section"
+            title={t('gallery.edit_gallery_section')}
           >
             <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
           </button>
@@ -499,7 +529,7 @@ const GalleryPage = ({
                 className="px-6 py-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full shadow-sm hover:shadow-md dark:hover:shadow-lg transition-all duration-300 flex items-center gap-2 mx-auto text-gray-700 dark:text-slate-300"
               >
                 <Filter className="size-5" />
-                <span>{activeFilter ? `Filter: ${activeFilter}` : 'Filter Projects'}</span>
+                <span>{activeFilter ? `${t('gallery.filter')}: ${activeFilter}` : t('gallery.filter_projects')}</span>
                 {activeFilter && (
                   <button 
                     onClick={(e) => {
@@ -594,7 +624,7 @@ const GalleryPage = ({
                               </p>
                               <div className="flex items-center gap-2 text-white font-medium">
                                 <Eye className="size-3 md:size-4" />
-                                <span className="text-xs md:text-sm">View Details</span>
+                                <span className="text-xs md:text-sm">{t('gallery.view_details')}</span>
                                 <ArrowUpRight className="size-3 md:size-4 transform group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
                               </div>
                             </div>
@@ -649,7 +679,7 @@ const GalleryPage = ({
                     onClick={showMoreItems}
                     className="px-8 py-4 bg-gray-900 dark:bg-slate-700 hover:bg-blue-600 dark:hover:bg-blue-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-2xl flex items-center gap-2 mx-auto"
                   >
-                    Show More Projects
+                    {t('gallery.show_more_projects')}
                     <ArrowUpRight className="size-5 transform transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                   </button>
                 ) : (
@@ -657,13 +687,16 @@ const GalleryPage = ({
                     onClick={showLessItems}
                     className="px-8 py-4 bg-gray-600 dark:bg-slate-600 hover:bg-gray-700 dark:hover:bg-slate-700 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-2xl flex items-center gap-2 mx-auto"
                   >
-                    Show Less Projects
+                    {t('gallery.show_less_projects')}
                     <X className="size-5" />
                   </button>
                 )}
                 <p className="text-gray-500 dark:text-slate-400 text-sm mt-4">
-                  Showing {Math.min(visibleItems, filteredItems.length)} of {filteredItems.length} projects
-                  {activeFilter && ` in ${activeFilter}`}
+                  {t('gallery.showing_projects', {
+                    current: Math.min(visibleItems, filteredItems.length),
+                    total: filteredItems.length,
+                    category: activeFilter
+                  })}
                 </p>
               </div>
             </div>
@@ -714,14 +747,14 @@ const GalleryPage = ({
                   onClick={() => setSelectedItem(null)}
                   className="px-8 py-4 bg-blue-600 dark:bg-blue-500 text-white rounded-2xl font-semibold hover:bg-blue-500 dark:hover:bg-blue-400 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl dark:shadow-2xl dark:hover:shadow-2xl flex items-center justify-center gap-2"
                 >
-                  Contact Us About This Project
+                  {t('gallery.contact_about_project')}
                   <ArrowUpRight className="size-5" />
                 </button>
                 <button 
                   onClick={() => setSelectedItem(null)}
                   className="px-8 py-4 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-2xl font-semibold hover:bg-gray-200 dark:hover:bg-slate-600 transition-all duration-300"
                 >
-                  Close
+                  {t('common.close')}
                 </button>
               </div>
             </div>
@@ -739,7 +772,7 @@ const GalleryPage = ({
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
                   <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Gallery Section</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('gallery.edit_gallery_section')}</h2>
               </div>
               <button
                 onClick={handleCancel}
@@ -756,46 +789,46 @@ const GalleryPage = ({
                 <div className="space-y-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     <Type className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    Header Information
+                    {t('gallery.header_information')}
                   </h3>
                   
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Badge Text
+                        {t('gallery.badge_text')}
                       </label>
                       <input
                         type="text"
                         value={formData.badge}
                         onChange={(e) => handleInputChange('badge', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                        placeholder="Enter badge text..."
+                        placeholder={t('gallery.badge_placeholder')}
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Main Heading
+                        {t('gallery.main_heading')}
                       </label>
                       <input
                         type="text"
                         value={formData.heading}
                         onChange={(e) => handleInputChange('heading', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                        placeholder="Enter main heading..."
+                        placeholder={t('gallery.heading_placeholder')}
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Description
+                        {t('gallery.description')}
                       </label>
                       <textarea
                         value={formData.description}
                         onChange={(e) => handleInputChange('description', e.target.value)}
                         rows={4}
                         className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
-                        placeholder="Enter description..."
+                        placeholder={t('gallery.description_placeholder')}
                       />
                     </div>
                   </div>
@@ -806,14 +839,14 @@ const GalleryPage = ({
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                       <Image className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                      Gallery Items ({formData.galleryItems.length})
+                      {t('gallery.gallery_items')} ({formData.galleryItems.length})
                     </h3>
                     <button
                       onClick={() => setIsItemModalOpen(true)}
                       className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2 text-sm font-medium"
                     >
                       <Plus className="w-4 h-4" />
-                      Add Item
+                      {t('gallery.add_item')}
                     </button>
                   </div>
                   
@@ -822,20 +855,20 @@ const GalleryPage = ({
                       <div key={item.id} className="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Item {index + 1}
+                            {t('gallery.item')} {index + 1}
                           </span>
                           <div className="flex gap-2">
                             <button
                               onClick={() => openEditItem(item)}
                               className="p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded"
-                              title="Edit item"
+                              title={t('gallery.edit_item')}
                             >
                               <Edit3 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteItem(item.id)}
                               className="p-1 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded"
-                              title="Delete item"
+                              title={t('gallery.delete_item')}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -853,7 +886,7 @@ const GalleryPage = ({
                             }}
                           />
                           <div className="w-full h-full bg-gray-300 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
-                            No image
+                            {t('gallery.no_image')}
                           </div>
                         </div>
                         
@@ -886,14 +919,14 @@ const GalleryPage = ({
                 onClick={handleCancel}
                 className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSave}
                 className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl"
               >
                 <Save className="w-4 h-4" />
-                Save Changes
+                {t('gallery.save_changes')}
               </button>
             </div>
           </div>
@@ -911,7 +944,7 @@ const GalleryPage = ({
                   {editingItem ? <Edit3 className="w-5 h-5 text-green-600 dark:text-green-400" /> : <Plus className="w-5 h-5 text-green-600 dark:text-green-400" />}
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {editingItem ? 'Edit Gallery Item' : 'Add New Gallery Item'}
+                  {editingItem ? t('gallery.edit_gallery_item') : t('gallery.add_new_gallery_item')}
                 </h2>
               </div>
               <button
@@ -940,7 +973,7 @@ const GalleryPage = ({
                     <div className="flex items-center gap-2 mb-2">
                       <Type className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Title
+                        {t('gallery.project_title')}
                       </label>
                     </div>
                     <input
@@ -948,7 +981,7 @@ const GalleryPage = ({
                       value={newItem.title || ''}
                       onChange={(e) => setNewItem(prev => ({ ...prev, title: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                      placeholder="Enter project title..."
+                      placeholder={t('gallery.project_title_placeholder')}
                     />
                   </div>
 
@@ -956,7 +989,7 @@ const GalleryPage = ({
                     <div className="flex items-center gap-2 mb-2">
                       <Tag className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Category
+                        {t('gallery.category')}
                       </label>
                     </div>
                     <input
@@ -964,7 +997,7 @@ const GalleryPage = ({
                       value={newItem.category || ''}
                       onChange={(e) => setNewItem(prev => ({ ...prev, category: e.target.value }))}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                      placeholder="Enter category..."
+                      placeholder={t('gallery.category_placeholder')}
                     />
                   </div>
                 </div>
@@ -973,7 +1006,7 @@ const GalleryPage = ({
                   <div className="flex items-center gap-2 mb-2">
                     <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Description
+                      {t('gallery.description')}
                     </label>
                   </div>
                   <textarea
@@ -981,7 +1014,7 @@ const GalleryPage = ({
                     onChange={(e) => setNewItem(prev => ({ ...prev, description: e.target.value }))}
                     rows={4}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
-                    placeholder="Enter project description..."
+                    placeholder={t('gallery.project_description_placeholder')}
                   />
                 </div>
 
@@ -989,7 +1022,7 @@ const GalleryPage = ({
                   <div className="flex items-center gap-2 mb-2">
                     <Image className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Upload Image
+                      {t('gallery.upload_image')}
                     </label>
                   </div>
                   <input
@@ -1014,7 +1047,7 @@ const GalleryPage = ({
                   <div className="flex items-center gap-2 mb-2">
                     <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Size
+                      {t('gallery.size')}
                     </label>
                   </div>
                   <select
@@ -1022,9 +1055,9 @@ const GalleryPage = ({
                     onChange={(e) => setNewItem(prev => ({ ...prev, size: e.target.value as 'small' | 'medium' | 'large' }))}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
                   >
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large">Large</option>
+                    <option value="small">{t('gallery.size_small')}</option>
+                    <option value="medium">{t('gallery.size_medium')}</option>
+                    <option value="large">{t('gallery.size_large')}</option>
                   </select>
                 </div>
               </div>
@@ -1046,7 +1079,7 @@ const GalleryPage = ({
                 }}
                 className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={editingItem ? handleEditItem : handleAddItem}
@@ -1054,7 +1087,7 @@ const GalleryPage = ({
                 disabled={!newItem.title || !newItem.description || !newItem.category || !newItem.image}
               >
                 {editingItem ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                {editingItem ? 'Update Item' : 'Add Item'}
+                {editingItem ? t('gallery.update_item') : t('gallery.add_item')}
               </button>
             </div>
           </div>
