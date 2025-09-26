@@ -131,6 +131,71 @@ const translations = {
     'services.call_now': 'Call Now',
     'services.download_brochure': 'Download Brochure',
 
+    
+    // About Page - Additional keys
+    'about.image': 'Company Image', // 'Image de l\'Entreprise'
+    'about.hero_background': 'Hero Background', // 'Arrière-plan Hero'
+    'about.story_section_image': 'Story Section Image', // 'Image Section Histoire'
+    'about.click_learn_more': 'Click to learn more', // 'Cliquer pour en savoir plus'
+    'about.edit_about_page': 'Edit About Page', // 'Modifier la Page À Propos'
+    'about.general_info': 'General Info', // 'Informations Générales'
+    'about.statistics': 'Statistics', // 'Statistiques'
+    'about.company_values': 'Company Values', // 'Valeurs de l\'Entreprise'
+    'about.partners': 'Partners', // 'Partenaires'
+    'about.badge_text': 'Badge Text', // 'Texte du Badge'
+    'about.main_heading': 'Main Heading', // 'Titre Principal'
+    'about.description_text': 'Description Text', // 'Texte de Description'
+    'about.company_story': 'Company Story', // 'Histoire de l\'Entreprise'
+    'about.mission_statement': 'Mission Statement', // 'Déclaration de Mission'
+    'about.vision_statement': 'Vision Statement', // 'Déclaration de Vision'
+    'about.add_stat': 'Add Stat', // 'Ajouter Statistique'
+    'about.statistic': 'Statistic', // 'Statistique'
+    'about.number': 'Number', // 'Nombre'
+    'about.label': 'Label', // 'Étiquette'
+    'about.icon': 'Icon', // 'Icône'
+    'about.background_image': 'Background Image', // 'Image d\'Arrière-plan'
+    'about.popup_image': 'Popup Image', // 'Image Popup'
+    'about.popup_title': 'Popup Title', // 'Titre Popup'
+    'about.popup_description': 'Popup Description', // 'Description Popup'
+    'about.add_value': 'Add Value', // 'Ajouter Valeur'
+    'about.value': 'Value', // 'Valeur'
+    'about.title': 'Title', // 'Titre'
+    'about.description': 'Description', // 'Description'
+    'about.video_optional': 'Video (Optional)', // 'Vidéo (Optionnel)'
+    'about.add_partner': 'Add Partner', // 'Ajouter Partenaire'
+    'about.partner': 'Partner', // 'Partenaire'
+    'about.partner_name': 'Partner Name', // 'Nom du Partenaire'
+    'about.logo': 'Logo', // 'Logo'
+    'about.preview': 'Preview', // 'Aperçu'
+    'about.no_partners_yet': 'No partners yet', // 'Aucun partenaire pour le moment'
+    'about.get_started_first_partner': 'Get started by adding your first partner.', // 'Commencez par ajouter votre premier partenaire.'
+    'about.about_page_updated': 'About page updated successfully!', // 'Page À propos mise à jour avec succès!'
+    'about.access_denied': 'Access denied', // 'Accès refusé'
+    'about.access_denied_description': 'You need moderator or admin privileges to edit the about page.', // 'Vous avez besoin de privilèges modérateur ou admin pour modifier la page à propos.'
+    'about.failed_to_load_image': 'Failed to load image', // 'Échec du chargement de l\'image'
+    'about.failed_to_load_video': 'Failed to load video', // 'Échec du chargement de la vidéo'
+    'about.no_media_available': 'No media available', // 'Aucun média disponible'
+    'about.current_image': 'Current image', // 'Image actuelle'
+    'about.current_video': 'Current video', // 'Vidéo actuelle'
+    'about.current_logo': 'Current logo', // 'Logo actuel'
+    'about.click_drag_upload': 'Click to upload or drag and drop', // 'Cliquer pour télécharger ou glisser-déposer'
+    'about.images_videos_200mb': 'Images or videos up to 200MB', // 'Images ou vidéos jusqu\'à 200MB'
+    'about.videos_200mb': 'Videos up to 200MB', // 'Vidéos jusqu\'à 200MB'
+    'about.click_drag_replace': 'Click or drag to replace', // 'Cliquer ou glisser pour remplacer'
+    'about.enter_image_url': 'Or enter image URL...', // 'Ou entrer l\'URL de l\'image...'
+    'about.enter_video_url': 'Or enter video URL...', // 'Ou entrer l\'URL de la vidéo...'
+    'about.enter_logo_url': 'Or enter logo URL...', // 'Ou entrer l\'URL du logo...'
+    'about.popup_description_placeholder': 'Detailed description for the popup...', // 'Description détaillée pour le popup...'
+    'about.value_description_placeholder': 'Detailed description of this value...', // 'Description détaillée de cette valeur...'
+    'about.save_changes': 'Save Changes', // 'Enregistrer les Modifications'
+    'about.maximum_10_values': 'Maximum 10 values allowed', // 'Maximum 10 valeurs autorisées'
+    'about.error_saving_data': 'Error saving data: ', // 'Erreur lors de l\'enregistrement des données: '
+    'about.unknown_error': 'Unknown error', 
+    'about.projects_completed': 'Projects Completed',
+    'about.complete_solutions': 'Complete Solutions',
+
+
+
     // Footer
     'footer.newsletter.title': 'Stay Updated',
     'footer.newsletter.description': 'Get the latest news about our projects, industry insights, and construction innovations delivered to your inbox.',
@@ -151,7 +216,7 @@ const translations = {
     // About Page
     'about.badge': 'About Our Company',
     'about.heading': 'Leading Industrial Solutions in Morocco',
-    'about.description': 'MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we\'ve been delivering excellence in metal structure design, manufacturing, and assembly across all industries',
+    'about.main_description': 'MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we\'ve been delivering excellence in metal structure design, manufacturing, and assembly across all industries',
     'about.our_story': 'Our Story',
     'about.two_decades': 'Two Decades of Excellence',
     'about.our_mission': 'Our Mission',
@@ -284,6 +349,71 @@ const translations = {
     'services.get_in_touch': 'Nous Contacter',
     'services.call_now': 'Appeler Maintenant',
     'services.download_brochure': 'Télécharger la Brochure',
+    
+
+    // About Page - Additional keys
+  'about.image': 'Image de l’Entreprise',
+  'about.hero_background': 'Arrière-plan Hero',
+  'about.story_section_image': 'Image de la Section Histoire',
+  'about.click_learn_more': 'Cliquer pour en savoir plus',
+  'about.edit_about_page': 'Modifier la Page À Propos',
+  'about.general_info': 'Informations Générales',
+  'about.statistics': 'Statistiques',
+  'about.company_values': 'Valeurs de l’Entreprise',
+  'about.partners': 'Partenaires',
+  'about.badge_text': 'Texte du Badge',
+  'about.main_heading': 'Titre Principal',
+  'about.description_text': 'Texte de Description',
+  'about.company_story': 'Histoire de l’Entreprise',
+  'about.mission_statement': 'Déclaration de Mission',
+  'about.vision_statement': 'Déclaration de Vision',
+  'about.add_stat': 'Ajouter Statistique',
+  'about.statistic': 'Statistique',
+  'about.number': 'Nombre',
+  'about.label': 'Étiquette',
+  'about.icon': 'Icône',
+  'about.background_image': 'Image d’Arrière-plan',
+  'about.popup_image': 'Image Popup',
+  'about.popup_title': 'Titre du Popup',
+  'about.popup_description': 'Description du Popup',
+  'about.add_value': 'Ajouter Valeur',
+  'about.value': 'Valeur',
+  'about.title': 'Titre',
+  'about.description': 'Description',
+  'about.video_optional': 'Vidéo (Optionnel)',
+  'about.add_partner': 'Ajouter Partenaire',
+  'about.partner': 'Partenaire',
+  'about.partner_name': 'Nom du Partenaire',
+  'about.logo': 'Logo',
+  'about.preview': 'Aperçu',
+  'about.no_partners_yet': 'Aucun partenaire pour le moment',
+  'about.get_started_first_partner': 'Commencez par ajouter votre premier partenaire.',
+  'about.about_page_updated': 'Page À Propos mise à jour avec succès !',
+  'about.access_denied': 'Accès refusé',
+  'about.access_denied_description': 'Vous avez besoin de privilèges modérateur ou admin pour modifier la page À Propos.',
+  'about.failed_to_load_image': 'Échec du chargement de l’image',
+  'about.failed_to_load_video': 'Échec du chargement de la vidéo',
+  'about.no_media_available': 'Aucun média disponible',
+  'about.current_image': 'Image actuelle',
+  'about.current_video': 'Vidéo actuelle',
+  'about.current_logo': 'Logo actuel',
+  'about.click_drag_upload': 'Cliquer pour télécharger ou glisser-déposer',
+  'about.images_videos_200mb': 'Images ou vidéos jusqu’à 200 MB',
+  'about.videos_200mb': 'Vidéos jusqu’à 200 MB',
+  'about.click_drag_replace': 'Cliquer ou glisser pour remplacer',
+  'about.enter_image_url': 'Ou entrer l’URL de l’image…',
+  'about.enter_video_url': 'Ou entrer l’URL de la vidéo…',
+  'about.enter_logo_url': 'Ou entrer l’URL du logo…',
+  'about.popup_description_placeholder': 'Description détaillée pour le popup…',
+  'about.value_description_placeholder': 'Description détaillée de cette valeur…',
+  'about.save_changes': 'Enregistrer les Modifications',
+  'about.maximum_10_values': 'Maximum 10 valeurs autorisées',
+  'about.error_saving_data': 'Erreur lors de l’enregistrement des données : ',
+  'about.unknown_error': 'Erreur inconnue',
+  'about.projects_completed': 'Projets Terminés',
+  'about.complete_solutions': 'Solutions Complètes',
+
+
 
     // Footer
     'footer.newsletter.title': 'Restez Informé',
@@ -305,7 +435,7 @@ const translations = {
     // About Page
     'about.badge': 'À Propos de Notre Entreprise',
     'about.heading': 'Solutions Industrielles de Pointe au Maroc',
-    'about.description': 'MECOSO est votre partenaire de confiance pour des solutions complètes de chaudronnerie et de structures métalliques. Depuis 2005, nous offrons l\'excellence dans la conception, la fabrication et l\'assemblage de structures métalliques pour toutes les industries',
+    'about.main_description': 'MECOSO est votre partenaire de confiance pour des solutions complètes de chaudronnerie et de structures métalliques. Depuis 2005, nous offrons l\'excellence dans la conception, la fabrication et l\'assemblage de structures métalliques pour toutes les industries',
     'about.our_story': 'Notre Histoire',
     'about.two_decades': 'Deux Décennies d\'Excellence',
     'about.our_mission': 'Notre Mission',

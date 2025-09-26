@@ -75,20 +75,21 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
   // Create default data inside component after hooks
   const defaultData: AboutData = {
     badge: t('about.badge'),
-    heading: t('about.heading'),
-    description: t('about.description'),
+    heading: t('about.heading'), 
+    description: t('about.main_description'),
     story: t('about.our_story'),
     mission: t('about.our_mission'),
+    vision: t('about.our_vision'),
     image: "/images/team.jpg",
     heroImage: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1200&h=800&fit=crop",
     stats: [
       {
         number: "50+",
-        label: "Projects Completed",
+        label: t('services.projects_completed'),
         icon: <Target className="size-6" />,
         backgroundImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop",
         popupImage: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop",
-        popupTitle: "50+ Projects Completed",
+        popupTitle: t('services.projects_completed'),
         popupDescription: "Over the years, we have successfully completed more than 50 major industrial projects across Morocco, ranging from manufacturing facilities to complex structural installations."
       }
     ],
@@ -252,7 +253,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
 
   const addValue = () => {
     if (formData.values.length >= 10) {
-      toast.error('Maximum 10 values allowed');
+      toast.error(t('about.maximum_10_values'));
       return;
     }
     
@@ -286,8 +287,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
 
   const handleSave = async () => {
     if (!isModerator) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to update the about page."
+      toast.error(t('about.access_denied'), {
+        description: t('about.access_denied_description')
       });
       return;
     }
@@ -348,13 +349,15 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
         setIsEditModalOpen(false);
         setFileUploads({});
         setPreviewUrls({});
-        toast.success('About page updated successfully!');
+        toast.success(t('about.about_page_updated'));
+
       } else {
         throw new Error(result.message || 'Update failed');
       }
     } catch (error) {
       console.error('Error saving about data:', error);
-      toast.error('Error saving data: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error(t('about.error_saving_data') + (error instanceof Error ? error.message : t('about.unknown_error')));
+
     } finally {
       setSaving(false);
     }
@@ -370,8 +373,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
 
   const openEditModal = () => {
     if (!isModerator) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to edit the about page."
+      toast.error(t('about.access_denied'), {
+        description: t('about.access_denied_description')
       });
       return;
     }
@@ -389,7 +392,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
       return (
         <div className="w-full h-48 bg-gray-100 dark:bg-slate-700 flex items-center justify-center rounded-lg">
           <Image className="w-12 h-12 mx-auto text-gray-400 dark:text-slate-500 mb-2" />
-          <p className="text-sm text-gray-500 dark:text-slate-400">No media available</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">{t('about.no_media_available')}</p>
+
         </div>
       );
     }
@@ -545,7 +549,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
         <button
           onClick={openEditModal}
           className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-gray-800 dark:text-white hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 shadow-lg hover:shadow-xl group"
-          title="Edit About Page"
+          title={t('common.edit')}
         >
           <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
         </button>
@@ -620,7 +624,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
             </h1>
             
             <p className="text-xl text-white/90 dark:text-slate-200/90 leading-relaxed max-w-3xl mb-8">
-              {t('about.description')}
+              {t('about.main_description')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
@@ -678,7 +682,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                     </div>
                     
                     <div className="mt-3 text-xs text-gray-500 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out">
-                      Click to learn more
+                      {t('about.click_learn_more')}
                     </div>
                   </div>
                 </div>
@@ -926,7 +930,6 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                 {t('about.industry_leaders')}
               </span>
               <br />
-              <span className="text-gray-900 dark:text-slate-100">Choose Us</span>
             </h2>
             
             <p className="text-xl text-gray-600 dark:text-slate-400 leading-relaxed max-w-3xl mx-auto">
@@ -987,7 +990,8 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
                   <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit About Page</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('about.edit_about_page')}</h2>
+
               </div>
               <button
                 onClick={handleCancel}
@@ -1000,10 +1004,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
             {/* Tab Navigation */}
             <div className="flex border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
               {[
-                { key: 'general', label: 'General Info', icon: Type },
-                { key: 'stats', label: 'Statistics', icon: Award },
-                { key: 'values', label: 'Values', icon: Target },
-                { key: 'partners', label: 'Partners', icon: Building }
+                { key: 'general', label: t('about.general_info'), icon: Type },
+                { key: 'stats', label: t('about.statistics'), icon: Award },
+                { key: 'values', label: t('about.company_values'), icon: Target },
+                { key: 'partners', label: t('about.partners'), icon: Building }
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
@@ -1028,7 +1032,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                   {/* Badge */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Badge Text
+                      {t('about.badge_text')}
                     </label>
                     <input
                       type="text"
@@ -1042,7 +1046,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                   {/* Heading */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Main Heading
+                      {t('about.main_heading')}
                     </label>
                     <input
                       type="text"
@@ -1056,7 +1060,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                   {/* Description */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Description
+                       {t('about.description')}
                     </label>
                     <textarea
                       value={formData.description}
@@ -1070,7 +1074,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                   {/* Story */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Company Story
+                      {t('about.company_story')}
                     </label>
                     <textarea
                       value={formData.story}
@@ -1084,7 +1088,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                   {/* Mission */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Mission Statement
+                      {t('about.mission_statement')}
                     </label>
                     <textarea
                       value={formData.mission}
@@ -1098,7 +1102,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                   {/* Vision */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Vision Statement
+                      {t('about.vision_statement')}
                     </label>
                     <textarea
                       value={formData.vision}
@@ -1112,7 +1116,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                   {/* Main Story Image */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Story Section Image
+                      {t('about.story_section_image')}
                     </label>
                     <div
                       className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 ${
@@ -1146,7 +1150,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                               previewUrls.image || (formData.image?.startsWith('/') 
                                 ? `${API_URL.replace('/api', '')}${formData.image}` 
                                 : formData.image),
-                              fileUploads.image?.type?.startsWith('video/') // ✅ Only mark as video if type is video/*
+                              fileUploads.image?.type?.startsWith('video/') 
                             )}
 
                           </div>
@@ -1154,7 +1158,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                             {fileUploads.image?.name || 'Current image'}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-slate-500">
-                            Click or drag to replace
+                            {t('about.click_drag_replace')}
                           </p>
                         </div>
                       ) : (
@@ -1164,10 +1168,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                           </div>
                           <div>
                             <p className="text-gray-600 dark:text-slate-400">
-                              <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
+                              <span className="text-blue-600 dark:text-blue-400 font-medium">{t('about.click_drag_upload')}</span>
                             </p>
                             <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
-                              Images or videos up to 200MB
+                              {t('about.images_videos_200mb')}
                             </p>
                           </div>
                         </div>
@@ -1178,7 +1182,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                   {/* Hero Image */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Hero Background Image
+                      {t('about.hero_background')}
                     </label>
                     <div
                       className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all duration-300 ${
@@ -1218,7 +1222,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                             {fileUploads.heroImage?.name || 'Current image'}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-slate-500">
-                            Click or drag to replace
+                            {t('about.click_drag_upload')}
                           </p>
                         </div>
                       ) : (
@@ -1228,10 +1232,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                           </div>
                           <div>
                             <p className="text-gray-600 dark:text-slate-400">
-                              <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
+                              <span className="text-blue-600 dark:text-blue-400 font-medium"> {t('about.click_drag_upload')}</span>
                             </p>
                             <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
-                              Images or videos up to 200MB
+                               {t('about.images_videos_200mb')}
                             </p>
                           </div>
                         </div>
@@ -1243,7 +1247,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                       value={formData.heroImage}
                       onChange={(e) => handleInputChange('heroImage', e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white"
-                      placeholder="Or enter image URL..."
+                      placeholder=" {t('about.enter_image_url')}"
                     />
                   </div>
                 </div>
@@ -1253,20 +1257,20 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
               {activeTab === 'stats' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Statistics</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white"> {t('about.statistic')}</h3>
                     <button
                       onClick={addStat}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      Add Stat
+                      {t('about.add_stat')}
                     </button>
                   </div>
 
                   {formData.stats.map((stat, index) => (
                     <div key={index} className="p-6 border border-gray-200 dark:border-slate-600 rounded-xl bg-gray-50 dark:bg-slate-700/50 space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-gray-900 dark:text-white">Statistic {index + 1}</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-white">{t('about.statistic')} {index + 1}</h4>
                         <button
                           onClick={() => removeStat(index)}
                           className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
@@ -1277,7 +1281,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Number</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.number')}</label>
                           <input
                             type="text"
                             value={stat.number}
@@ -1288,18 +1292,18 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Label</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.label')}</label>
                           <input
                             type="text"
                             value={stat.label}
                             onChange={(e) => handleStatChange(index, 'label', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="Projects Completed"
+                            placeholder="{t('about.projects_completed')}"
                           />
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.icon')}</label>
                           <select
                             value={iconOptions.find(opt => opt.component.type === stat.icon.type)?.name || 'Target'}
                             onChange={(e) => handleStatChange(index, 'icon', getIconComponent(e.target.value))}
@@ -1314,7 +1318,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Background Image</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.background_image')}</label>
                           <div
                             className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 mb-2 ${
                               isDragging && currentUploadKey === `stat_${index}_backgroundImage`
@@ -1356,7 +1360,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                               <div className="space-y-2">
                                 <Upload className="w-6 h-6 mx-auto text-gray-400 dark:text-slate-500" />
                                 <p className="text-xs text-gray-600 dark:text-slate-400">
-                                  Click or drag to upload
+                                  {t('about.click_drag_upload')}
                                 </p>
                               </div>
                             )}
@@ -1366,13 +1370,13 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                             value={stat.backgroundImage || ''}
                             onChange={(e) => handleStatChange(index, 'backgroundImage', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="Or enter image URL..."
+                            placeholder="{t('about.enter_image_url')}"
                           />
                         </div>
 
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Image</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.popup_image')}</label>
                           <div
                             className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 mb-2 ${
                               isDragging && currentUploadKey === `stat_${index}_popupImage`
@@ -1414,7 +1418,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                               <div className="space-y-2">
                                 <Upload className="w-6 h-6 mx-auto text-gray-400 dark:text-slate-500" />
                                 <p className="text-xs text-gray-600 dark:text-slate-400">
-                                  Click or drag to upload
+                                  {t('about.click_drag_upload')}
                                 </p>
                               </div>
                             )}
@@ -1424,30 +1428,30 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                             value={stat.popupImage || ''}
                             onChange={(e) => handleStatChange(index, 'popupImage', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="Or enter image URL..."
+                            placeholder="{t('about.enter_image_url')}"
                           />
                         </div>
 
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Title</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.popup_title')}</label>
                           <input
                             type="text"
                             value={stat.popupTitle || ''}
                             onChange={(e) => handleStatChange(index, 'popupTitle', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="50+ Projects Completed"
+                            placeholder="50+ {t('about.projects_completed')}"
                           />
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Popup Description</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.popup_description')}</label>
                           <textarea
                             value={stat.popupDescription || ''}
                             onChange={(e) => handleStatChange(index, 'popupDescription', e.target.value)}
                             rows={3}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm resize-none"
-                            placeholder="Detailed description for the popup..."
+                            placeholder="{t('about.popup_description_placeholder')}"
                           />
                         </div>
                       </div>
@@ -1461,13 +1465,13 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
               {activeTab === 'values' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Company Values</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('about.company_values')}</h3>
                     <button
                       onClick={addValue}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      Add Value
+                      {t('about.add_value')}
                     </button>
                   </div>
 
@@ -1485,18 +1489,18 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.title')}</label>
                           <input
                             type="text"
                             value={value.title}
                             onChange={(e) => handleValueChange(index, 'title', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="Complete Solutions"
+                            placeholder="{t('about.complete_solutions')}"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.icon')}</label>
                           <select
                             value={iconOptions.find(opt => opt.component.type === value.icon.type)?.name || 'Target'}
                             onChange={(e) => handleValueChange(index, 'icon', getIconComponent(e.target.value))}
@@ -1511,18 +1515,18 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.description')}</label>
                           <textarea
                             value={value.description}
                             onChange={(e) => handleValueChange(index, 'description', e.target.value)}
                             rows={3}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm resize-none"
-                            placeholder="Detailed description of this value..."
+                            placeholder="{t('about.value_description_placeholder')}"
                           />
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video (Optional)</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.video_optional')}</label>
                           <div
                             className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 mb-2 ${
                               isDragging && currentUploadKey === `value_${index}_video`
@@ -1562,7 +1566,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                                   {fileUploads[`value_${index}_video`]?.name || 'Current video'}
                                 </p>
                                 <p className="text-xs text-gray-500 dark:text-slate-500">
-                                  Click or drag to replace
+                                  {t('about.click_drag_replace')}
                                 </p>
                               </div>
                             ) : (
@@ -1572,10 +1576,10 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                                 </div>
                                 <div>
                                   <p className="text-gray-600 dark:text-slate-400">
-                                    <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
+                                    <span className="text-blue-600 dark:text-blue-400 font-medium">{t('about.click_drag_upload')}</span>
                                   </p>
                                   <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
-                                    Videos up to 200MB
+                                    {t('about.videos_200mb')}
                                   </p>
                                 </div>
                               </div>
@@ -1586,7 +1590,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                             value={value.videoUrl || ''}
                             onChange={(e) => handleValueChange(index, 'videoUrl', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                            placeholder="Or enter video URL..."
+                            placeholder="{t('about.or_enter_video_url')}"
                           />
                         </div>
                       </div>
@@ -1600,13 +1604,13 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
               {activeTab === 'partners' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Partners</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('about.partner')}</h3>
                     <button
                       onClick={addPartner}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      Add Partner
+                      {t('about.add_partner')}
                     </button>
                   </div>
 
@@ -1625,18 +1629,18 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
 
                         <div className="space-y-4">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Partner Name</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.partner_name')}</label>
                             <input
                               type="text"
                               value={partner.name}
                               onChange={(e) => handlePartnerChange(index, 'name', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                              placeholder="Partner Name"
+                              placeholder="{t('about.partner_name')}"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.logo')}</label>
                             <div
                               className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all duration-300 mb-2 ${
                                 isDragging && currentUploadKey === `partner_${index}_src`
@@ -1678,7 +1682,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                                 <div className="space-y-2">
                                   <Upload className="w-6 h-6 mx-auto text-gray-400 dark:text-slate-500" />
                                   <p className="text-xs text-gray-600 dark:text-slate-400">
-                                    Click or drag to upload
+                                    {t('about.click_drag_upload')}
                                   </p>
                                 </div>
                               )}
@@ -1688,14 +1692,14 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                               value={partner.src}
                               onChange={(e) => handlePartnerChange(index, 'src', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                              placeholder="Or enter logo URL..."
+                              placeholder="{t('about.enter_image_url')}"
                             />
                           </div>
 
                           {/* Image Preview */}
                           {(previewUrls[`partner_${index}_src`] || (partner.src && !fileUploads[`partner_${index}_src`])) && (
                             <div className="mt-3">
-                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Preview</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.preview')}</label>
                               <div className="relative w-full h-24 bg-gray-100 dark:bg-slate-600 rounded-lg overflow-hidden flex items-center justify-center">
                                 <img
                                   src={previewUrls[`partner_${index}_src`] || (partner.src?.startsWith('/') ? `${API_URL.replace('/api', '')}${partner.src}` : partner.src)}
@@ -1707,7 +1711,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                                   }}
                                 />
                                 <div className="absolute inset-0 bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm hidden">
-                                  Failed to load image
+                                  {t('about.failed_to_load_image')}
                                 </div>
                               </div>
                             </div>
@@ -1720,14 +1724,14 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                   {formData.partners.length === 0 && (
                     <div className="text-center py-12">
                       <Building className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No partners yet</h3>
-                      <p className="text-gray-500 dark:text-gray-400 mb-6">Get started by adding your first partner.</p>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t('about.no_partners_yet')}</h3>
+                      <p className="text-gray-500 dark:text-gray-400 mb-6">{t('about.get_started_first_partner')}</p>
                       <button
                         onClick={addPartner}
                         className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                       >
                         <Plus className="w-4 h-4" />
-                        Add Partner
+                        {t('about.add_partner')}
                       </button>
                     </div>
                   )}
@@ -1741,7 +1745,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                 onClick={handleCancel}
                 className="px-6 py-2 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleSave}
@@ -1751,12 +1755,12 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                 {saving ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                    <span>Saving...</span>
+                    <span>{t('common.saving')}</span>
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    <span>Save Changes</span>
+                    <span>{t('common.loading')}</span>
                   </>
                 )}
               </button>

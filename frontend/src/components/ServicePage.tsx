@@ -416,6 +416,15 @@ const ServicePage = (props: ServicePageProps) => {
     setCurrentPage(1);
   }, [selectedCategory]);
 
+  useEffect(() => {
+    setCurrentMainContent({
+      badge: t('services.badge'),
+      heading: t('services.heading'),
+      description: t('services.description'),
+    });
+  }, [t]);
+
+
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star 
