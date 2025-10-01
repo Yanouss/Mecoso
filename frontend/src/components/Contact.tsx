@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext'; 
 import { API_URL as API_BASE_URL } from '../../config/api';
 import { toast } from 'sonner';
+import { useTranslation } from '../../context/TranslationContext';
 import { 
   MapPin, 
   Phone, 
@@ -99,6 +100,8 @@ const Contact = ({
   ]
 
 }: ContactProps) => {
+  const { t } = useTranslation();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -149,11 +152,9 @@ const Contact = ({
 
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Update the useEffect that fetches contact data
   useEffect(() => {
     fetchContactData();
   }, []);
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -164,17 +165,14 @@ const Contact = ({
       }
     };
 
-    // Add event listener when modal is open
     if (isEditModalOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
 
-    // Clean up event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isEditModalOpen]);
-
 
   const fetchContactData = async () => {
     try {
@@ -182,13 +180,12 @@ const Contact = ({
       setCurrentData(response.data.data);
     } catch (error) {
       console.error('Error fetching contact data:', error);
-      // Fall back to props if API fails
       setCurrentData({
         badge,
         heading,
         description,
         contactInfo: contactInfo.map(info => ({
-          iconType: getIconTypeFromElement(info.icon), // You'll need this new function
+          iconType: getIconTypeFromElement(info.icon),
           title: info.title,
           details: [...info.details],
           accent: info.accent || false
@@ -199,7 +196,6 @@ const Contact = ({
     }
   };
 
-  // Add this new helper function
   function getIconTypeFromElement(iconElement: React.ReactNode): 'MapPin' | 'Phone' | 'Mail' | 'Clock' {
     if (React.isValidElement(iconElement)) {
       const elementType = (iconElement as React.ReactElement).type;
@@ -208,29 +204,24 @@ const Contact = ({
       if (elementType === Mail) return 'Mail';
       if (elementType === Clock) return 'Clock';
     }
-    return 'MapPin'; // Default fallback
+    return 'MapPin';
   }
 
-  // Helper function to determine icon type from JSX element
   function getIconType(iconType: string): 'MapPin' | 'Phone' | 'Mail' | 'Clock' {
     if (iconType === 'MapPin') return 'MapPin';
     if (iconType === 'Phone') return 'Phone';
     if (iconType === 'Mail') return 'Mail';
     if (iconType === 'Clock') return 'Clock';
-    return 'MapPin'; // Default fallback
+    return 'MapPin';
   }
 
-  // Initialize Leaflet map
   useEffect(() => {
-    // Load Leaflet CSS and JS
     const loadLeaflet = async () => {
-      // Add Leaflet CSS
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
       document.head.appendChild(link);
 
-      // Add Leaflet JS
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
       script.onload = () => {
@@ -243,7 +234,6 @@ const Contact = ({
     loadLeaflet();
 
     return () => {
-      // Cleanup
       const links = document.querySelectorAll('link[href*="leaflet"]');
       const scripts = document.querySelectorAll('script[src*="leaflet"]');
       links.forEach(link => link.remove());
@@ -254,23 +244,15 @@ const Contact = ({
   const initializeMap = () => {
     setTimeout(() => {
       if (window.L && document.getElementById('map')) {
-        // Marrakech coordinates
         const marrakechCoords = [31.632695987129228, -8.062983332507335];
         
         const map = window.L.map('map').setView(marrakechCoords, 13);
-
-        // Add modern tile layer with dark mode support
-        const isDarkMode = document.documentElement.classList.contains('dark');
-        const tileLayer = isDarkMode 
-          ? 'https://{s}.tile.jawg.io/jawg-dark/{z}/{x}/{y}{r}.png?access-token=YOUR_ACCESS_TOKEN'
-          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 19,
         }).addTo(map);
 
-        // Custom marker icon
         const customIcon = window.L.divIcon({
           html: `
             <div style="
@@ -307,10 +289,8 @@ const Contact = ({
           popupAnchor: [0, -52]
         });
 
-        // Add main office marker
         const marker = window.L.marker(marrakechCoords, { icon: customIcon }).addTo(map);
         
-        // Add popup
         marker.bindPopup(`
           <div style="text-align: center; padding: 10px; min-width: 200px;">
             <h4 style="margin: 0 0 8px 0; color: #1f2937; font-weight: bold;">Our Headquarters</h4>
@@ -323,7 +303,6 @@ const Contact = ({
           </div>
         `);
 
-        // Add some project sites around Marrakech
         const projectSites = [
           { coords: [31.6078, -7.9929], name: "Project Site A", color: "#10b981" },
           { coords: [31.6412, -7.9534], name: "Project Site B", color: "#f59e0b" },
@@ -358,7 +337,6 @@ const Contact = ({
             `);
         });
 
-        // Add some styling
         const style = document.createElement('style');
         style.textContent = `
           @keyframes pulse {
@@ -379,7 +357,6 @@ const Contact = ({
     }, 100);
   };
 
-  // Edit functionality
   const handleEditInputChange = (field: keyof Omit<ContactFormData, 'contactInfo'>, value: string) => {
     setEditFormData(prev => ({
       ...prev,
@@ -469,11 +446,11 @@ const Contact = ({
       );
       
       setCurrentData(response.data.data);
-      toast.success('Contact information updated successfully');
-      setIsEditModalOpen(false); // This should close the modal
+      toast.success(t('contact.updated_success'));
+      setIsEditModalOpen(false);
     } catch (error: any) {
       console.error('Error saving contact data:', error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to save contact information';
+      const errorMessage = error.response?.data?.message || error.message || t('contact.update_failed');
       toast.error(errorMessage);
     }
   };
@@ -494,7 +471,6 @@ const Contact = ({
   };
 
   const handleEditCancel = () => {
-    // Reset form data to current data
     setEditFormData({
       badge: currentData.badge,
       heading: currentData.heading,
@@ -509,7 +485,6 @@ const Contact = ({
     setIsEditModalOpen(false);
   };
 
-  // Form submission handlers (existing)
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({
       ...prev,
@@ -590,43 +565,37 @@ const Contact = ({
   return (
     <>
       <section className="py-24 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden min-h-screen transition-all duration-500">
-        {/* Background Elements */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.15),transparent_50%)]" />
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-3xl animate-pulse" />
         
-        {/* Edit Button for Moderators */}
         {isModerator && (
           <button
             onClick={() => setIsEditModalOpen(true)}
             className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-gray-800 dark:text-white hover:bg-white/20 dark:hover:bg-white/10 transition-all duration-300 shadow-lg hover:shadow-xl group"
-            title="Edit Contact Section"
+            title={t('common.edit')}
           >
-            
             <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
           </button>
         )}
         
         <div className="container px-6 mx-auto relative z-10">
           
-          {/* Header */}
           <div className="mb-20 text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/50 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-600/50">
               <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
-              {currentData.badge}
+              {t('contact.badge')}
             </div>
             <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 bg-clip-text text-transparent mb-6 leading-tight">
-              {currentData.heading}
+              {t('contact.heading')}
             </h1>
             <p className="text-xl text-gray-600 dark:text-slate-300 leading-relaxed">
-              {currentData.description}
+              {t('contact.description')}
             </p>
           </div>
 
-          {/* Main Content Grid */}
           <div className="grid lg:grid-cols-3 gap-12 mb-20">
             
-            {/* Contact Form */}
             <div className="lg:col-span-2">
               <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 lg:p-12 shadow-2xl border border-gray-100 dark:border-slate-700 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100/50 to-purple-100/50 dark:from-blue-900/30 dark:to-purple-900/30 rounded-full blur-2xl" />
@@ -637,18 +606,17 @@ const Contact = ({
                       <MessageSquare className="size-6 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Start Your Project</h2>
-                      <p className="text-gray-600 dark:text-slate-400">Fill out the form and we'll get back to you within 24 hours</p>
+                      <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100">{t('contact.start_project')}</h2>
+                      <p className="text-gray-600 dark:text-slate-400">{t('contact.form_description')}</p>
                     </div>
                   </div>
 
                   {!isSubmitted ? (
                     <div className="space-y-6">
-                      {/* Personal Information */}
                       <div className="grid md:grid-cols-2 gap-6">
                         <div className="relative">
                           <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
-                            Full Name *
+                            {t('contact.full_name')} *
                           </label>
                           <div className="relative">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
@@ -665,14 +633,14 @@ const Contact = ({
                                   ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
                                   : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                               }`}
-                              placeholder="Enter your full name"
+                              placeholder={t('contact.placeholder.name')}
                             />
                           </div>
                         </div>
 
                         <div className="relative">
                           <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
-                            Email Address *
+                            {t('contact.email_address')} *
                           </label>
                           <div className="relative">
                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
@@ -689,7 +657,7 @@ const Contact = ({
                                   ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
                                   : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                               }`}
-                              placeholder="your.email@example.com"
+                              placeholder={t('contact.placeholder.email')}
                             />
                           </div>
                         </div>
@@ -698,7 +666,7 @@ const Contact = ({
                       <div className="grid md:grid-cols-2 gap-6">
                         <div className="relative">
                           <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
-                            Company/Organization
+                            {t('contact.company_organization')}
                           </label>
                           <div className="relative">
                             <Building className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
@@ -714,14 +682,14 @@ const Contact = ({
                                   ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
                                   : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                               }`}
-                              placeholder="Your company name"
+                              placeholder={t('contact.placeholder.company')}
                             />
                           </div>
                         </div>
 
                         <div className="relative">
                           <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
-                            Phone Number
+                            {t('contact.phone_number')}
                           </label>
                           <div className="relative">
                             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
@@ -737,20 +705,19 @@ const Contact = ({
                                   ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
                                   : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                               }`}
-                              placeholder="+212 661-234-567"
+                              placeholder={t('contact.placeholder.phone')}
                             />
                           </div>
                         </div>
                       </div>
 
-                      {/* Project Details */}
                       <div className="pt-6 border-t border-gray-200 dark:border-slate-600">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">Project Details</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-4">{t('contact.project_details')}</h3>
                         
                         <div className="grid md:grid-cols-2 gap-6 mb-6">
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
-                              Service Interested In *
+                              {t('contact.service_interested')} *
                             </label>
                             <select
                               name="service"
@@ -765,19 +732,19 @@ const Contact = ({
                                   : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                               }`}
                             >
-                              <option value="">Select a service</option>
-                              <option value="architectural-design">Architectural Design</option>
-                              <option value="project-management">Project Management</option>
-                              <option value="structural-engineering">Structural Engineering</option>
-                              <option value="heavy-machinery">Heavy Machinery & Logistics</option>
-                              <option value="quality-assurance">Quality Assurance</option>
-                              <option value="green-building">Green Building Solutions</option>
+                              <option value="">{t('contact.select_service')}</option>
+                              <option value="architectural-design">{t('contact.service.architectural')}</option>
+                              <option value="project-management">{t('contact.service.project_mgmt')}</option>
+                              <option value="structural-engineering">{t('contact.service.structural')}</option>
+                              <option value="heavy-machinery">{t('contact.service.machinery')}</option>
+                              <option value="quality-assurance">{t('contact.service.quality')}</option>
+                              <option value="green-building">{t('contact.service.green')}</option>
                             </select>
                           </div>
 
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
-                              Project Type
+                              {t('contact.project_type')}
                             </label>
                             <select
                               name="projectType"
@@ -791,11 +758,11 @@ const Contact = ({
                                   : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                               }`}
                             >
-                              <option value="">Select project type</option>
-                              <option value="residential">Residential</option>
-                              <option value="commercial">Commercial</option>
-                              <option value="industrial">Industrial</option>
-                              <option value="infrastructure">Infrastructure</option>
+                              <option value="">{t('contact.select_project_type')}</option>
+                              <option value="residential">{t('contact.project.residential')}</option>
+                              <option value="commercial">{t('contact.project.commercial')}</option>
+                              <option value="industrial">{t('contact.project.industrial')}</option>
+                              <option value="infrastructure">{t('contact.project.infrastructure')}</option>
                             </select>
                           </div>
                         </div>
@@ -803,7 +770,7 @@ const Contact = ({
                         <div className="grid md:grid-cols-2 gap-6 mb-6">
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
-                              Estimated Budget
+                              {t('contact.estimated_budget')}
                             </label>
                             <select
                               name="budget"
@@ -817,18 +784,18 @@ const Contact = ({
                                   : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                               }`}
                             >
-                              <option value="">Select budget range</option>
-                              <option value="under-500k">Under 500k MAD</option>
-                              <option value="500k-2m">500k - 2M MAD</option>
-                              <option value="2m-5m">2M - 5M MAD</option>
-                              <option value="5m-20m">5M - 20M MAD</option>
-                              <option value="over-20m">Over 20M MAD</option>
+                              <option value="">{t('contact.select_budget')}</option>
+                              <option value="under-500k">{t('contact.budget.under_500k')}</option>
+                              <option value="500k-2m">{t('contact.budget.500k_2m')}</option>
+                              <option value="2m-5m">{t('contact.budget.2m_5m')}</option>
+                              <option value="5m-20m">{t('contact.budget.5m_20m')}</option>
+                              <option value="over-20m">{t('contact.budget.over_20m')}</option>
                             </select>
                           </div>
 
                           <div>
                             <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
-                              Timeline
+                              {t('contact.timeline')}
                             </label>
                             <div className="relative">
                               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-gray-400 dark:text-slate-500" />
@@ -844,22 +811,21 @@ const Contact = ({
                                     : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                                 }`}
                               >
-                                <option value="">Select timeline</option>
-                                <option value="asap">ASAP</option>
-                                <option value="1-3-months">1-3 months</option>
-                                <option value="3-6-months">3-6 months</option>
-                                <option value="6-12-months">6-12 months</option>
-                                <option value="over-1-year">Over 1 year</option>
+                                <option value="">{t('contact.select_timeline')}</option>
+                                <option value="asap">{t('contact.timeline.asap')}</option>
+                                <option value="1-3-months">{t('contact.timeline.1_3_months')}</option>
+                                <option value="3-6-months">{t('contact.timeline.3_6_months')}</option>
+                                <option value="6-12-months">{t('contact.timeline.6_12_months')}</option>
+                                <option value="over-1-year">{t('contact.timeline.over_1_year')}</option>
                               </select>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Message */}
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
-                          Project Description
+                          {t('contact.project_description')}
                         </label>
                         <textarea
                           name="message"
@@ -873,18 +839,17 @@ const Contact = ({
                               ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/20 shadow-lg transform scale-[1.02]' 
                               : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
                           }`}
-                          placeholder="Tell us more about your project requirements, goals, and any specific details that would help us provide you with the best solution..."
+                          placeholder={t('contact.placeholder.message')}
                         />
                       </div>
 
-                      {/* Submit Button */}
                       <div className="pt-6">
                         <button
                           onClick={handleSubmit}
                           className="w-full group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
                         >
                           <Send className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
-                          Send Message
+                          {t('contact.send_message')}
                           <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
                         </button>
                       </div>
@@ -895,14 +860,14 @@ const Contact = ({
                         <CheckCircle className="size-12 text-green-600 dark:text-green-400" />
                       </div>
                       <h3 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-4">
-                        Message Sent Successfully! 🎉
+                        {t('contact.message_sent')}
                       </h3>
                       <p className="text-gray-600 dark:text-slate-400 text-lg mb-6">
-                        Thank you for reaching out! Our team will review your project details and get back to you within 24 hours.
+                        {t('contact.thank_you')}
                       </p>
                       <div className="inline-flex items-center gap-2 px-6 py-3 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 rounded-xl font-medium">
                         <Clock className="size-4" />
-                        Expected response: Within 24 hours
+                        {t('contact.expected_response')}
                       </div>
                     </div>
                   )}
@@ -910,7 +875,6 @@ const Contact = ({
               </div>
             </div>
 
-            {/* Contact Information Sidebar - Responsive Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
               {currentData.contactInfo.map((info, index) => (
                 <div 
@@ -922,7 +886,7 @@ const Contact = ({
                 >
                   <div className={`p-6 rounded-3xl shadow-lg border transition-all duration-500 ${getCardStyles(index, info.accent || false)}`}>
                     <div className={`inline-flex p-3 rounded-2xl mb-4 transition-all duration-500 ${getIconStyles(index, info.accent || false)}`}>
-                      {iconMap[info.iconType]} {/* Use iconMap instead of info.icon */}
+                      {iconMap[info.iconType]}
                     </div>
                     <h3 className={`text-xl font-bold mb-4 ${getTextStyles(index, info.accent || false)}`}>
                       {info.title}
@@ -943,18 +907,16 @@ const Contact = ({
             </div>
           </div>
 
-          {/* Interactive Map Section with Leaflet */}
           <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
             <div className="text-center mb-8">
               <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent mb-4">
-                Find Our Office in Marrakech
+                {t('contact.find_office')}
               </h2>
               <p className="text-xl text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
-                Visit us at our modern headquarters in the heart of Marrakech. We're located in the vibrant Gueliz district.
+                {t('contact.visit_description')}
               </p>
             </div>
 
-            {/* Leaflet Map Container */}
             <div className="relative h-96 rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-slate-600">
               <div 
                 id="map" 
@@ -965,21 +927,20 @@ const Contact = ({
                   <div className="w-full h-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
                     <div className="text-center">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
-                      <p className="text-gray-600 dark:text-slate-400">Loading interactive map...</p>
+                      <p className="text-gray-600 dark:text-slate-400">{t('contact.loading_map')}</p>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* CTA Buttons Below Map */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <button 
                 className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold hover:from-blue-500 hover:to-purple-500 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group"
                 onClick={() => window.open('https://maps.google.com/?q=31.632695987129228,-8.062983332507335', '_blank')}
               >
                 <MapPin className="size-5" />
-                Get Directions
+                {t('contact.get_directions')}
                 <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
               <button 
@@ -987,34 +948,33 @@ const Contact = ({
                 onClick={() => window.open('tel:+212524123456', '_self')}
               >
                 <Phone className="size-5" />
-                Call Now
+                {t('contact.call_now')}
               </button>
             </div>
 
-            {/* Additional Info Cards */}
             <div className="grid md:grid-cols-3 gap-6 mt-8 pt-8 border-t border-gray-200 dark:border-slate-600">
               <div className="text-center p-4 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors duration-300">
                 <div className="inline-flex p-3 bg-blue-100 dark:bg-blue-900/50 rounded-full mb-3">
                   <MapPin className="size-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">Prime Location</h4>
-                <p className="text-sm text-gray-600 dark:text-slate-400">Located in Massira II, the modern business district of Marrakech</p>
+                <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">{t('contact.prime_location')}</h4>
+                <p className="text-sm text-gray-600 dark:text-slate-400">{t('contact.prime_location_desc')}</p>
               </div>
               
               <div className="text-center p-4 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-300">
                 <div className="inline-flex p-3 bg-green-100 dark:bg-green-900/50 rounded-full mb-3">
                   <Clock className="size-5 text-green-600 dark:text-green-400" />
                 </div>
-                <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">Easy Access</h4>
-                <p className="text-sm text-gray-600 dark:text-slate-400">5 minutes from Marrakech Railway Station and main transport hubs</p>
+                <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">{t('contact.easy_access')}</h4>
+                <p className="text-sm text-gray-600 dark:text-slate-400">{t('contact.easy_access_desc')}</p>
               </div>
               
               <div className="text-center p-4 bg-gray-50 dark:bg-slate-700/50 rounded-2xl hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-300">
                 <div className="inline-flex p-3 bg-purple-100 dark:bg-purple-900/50 rounded-full mb-3">
                   <Building className="size-5 text-purple-600 dark:text-purple-400" />
                 </div>
-                <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">Modern Facilities</h4>
-                <p className="text-sm text-gray-600 dark:text-slate-400">State-of-the-art office with meeting rooms and project showcase area</p>
+                <h4 className="font-semibold text-gray-900 dark:text-slate-100 mb-2">{t('contact.modern_facilities')}</h4>
+                <p className="text-sm text-gray-600 dark:text-slate-400">{t('contact.modern_facilities_desc')}</p>
               </div>
             </div>
           </div>
@@ -1022,17 +982,15 @@ const Contact = ({
         </div>
       </section>
 
-      {/* Edit Modal */}
       {isEditModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div ref={modalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
                   <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Contact Section</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('contact.edit_section')}</h2>
               </div>
               <button
                 onClick={handleEditCancel}
@@ -1042,69 +1000,66 @@ const Contact = ({
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
               <div className="space-y-8">
-                {/* Basic Information */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-slate-600 pb-2">
-                    Basic Information
+                    {t('contact.basic_info')}
                   </h3>
                   
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Badge Text
+                        {t('contact.badge_text')}
                       </label>
                       <input
                         type="text"
                         value={editFormData.badge}
                         onChange={(e) => handleEditInputChange('badge', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                        placeholder="Enter badge text..."
+                        placeholder={t('contact.badge_text')}
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Main Heading
+                        {t('contact.main_heading')}
                       </label>
                       <input
                         type="text"
                         value={editFormData.heading}
                         onChange={(e) => handleEditInputChange('heading', e.target.value)}
                         className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                        placeholder="Enter main heading..."
+                        placeholder={t('contact.main_heading')}
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Description
+                        {t('contact.description_text')}
                       </label>
                       <textarea
                         value={editFormData.description}
                         onChange={(e) => handleEditInputChange('description', e.target.value)}
                         rows={3}
                         className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
-                        placeholder="Enter description..."
+                        placeholder={t('contact.description_text')}
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Contact Information */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-slate-600 pb-2 flex-1">
-                      Contact Information
+                      {t('contact.contact_info')}
                     </h3>
                     <button
                       onClick={addContactInfo}
                       className="ml-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center gap-2 text-sm font-medium"
                     >
                       <Plus className="w-4 h-4" />
-                      Add Contact
+                      {t('contact.add_contact')}
                     </button>
                   </div>
                   
@@ -1112,7 +1067,7 @@ const Contact = ({
                     {editFormData.contactInfo.map((contact, index) => (
                       <div key={index} className="p-4 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50">
                         <div className="flex items-center justify-between mb-4">
-                          <h4 className="font-medium text-gray-900 dark:text-white">Contact Item #{index + 1}</h4>
+                          <h4 className="font-medium text-gray-900 dark:text-white">{t('contact.contact_item')} #{index + 1}</h4>
                           {editFormData.contactInfo.length > 1 && (
                             <button
                               onClick={() => removeContactInfo(index)}
@@ -1126,7 +1081,7 @@ const Contact = ({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Icon Type
+                              {t('contact.icon_type')}
                             </label>
                             <select
                               value={contact.iconType}
@@ -1142,14 +1097,14 @@ const Contact = ({
                           
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Title
+                              {t('contact.title')}
                             </label>
                             <input
                               type="text"
                               value={contact.title}
                               onChange={(e) => handleContactInfoChange(index, 'title', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                              placeholder="Contact title..."
+                              placeholder={t('contact.title')}
                             />
                           </div>
                         </div>
@@ -1157,13 +1112,13 @@ const Contact = ({
                         <div className="mb-4">
                           <div className="flex items-center justify-between mb-2">
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Details
+                              {t('contact.details')}
                             </label>
                             <button
                               onClick={() => addDetail(index)}
                               className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition-colors"
                             >
-                              Add Detail
+                              {t('contact.add_detail')}
                             </button>
                           </div>
                           <div className="space-y-2">
@@ -1174,7 +1129,7 @@ const Contact = ({
                                   value={detail}
                                   onChange={(e) => handleDetailChange(index, detailIndex, e.target.value)}
                                   className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm"
-                                  placeholder="Enter detail..."
+                                  placeholder={t('contact.details')}
                                 />
                                 {contact.details.length > 1 && (
                                   <button
@@ -1198,7 +1153,7 @@ const Contact = ({
                             className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                           />
                           <label htmlFor={`accent-${index}`} className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Accent Style (Highlighted)
+                            {t('contact.accent_style')}
                           </label>
                         </div>
                       </div>
@@ -1208,20 +1163,19 @@ const Contact = ({
               </div>
             </div>
 
-            {/* Modal Footer */}
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
               <button
                 onClick={handleEditCancel}
                 className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleEditSave}
                 className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl"
               >
                 <Save className="w-4 h-4" />
-                Save Changes
+                {t('contact.save_changes')}
               </button>
             </div>
           </div>

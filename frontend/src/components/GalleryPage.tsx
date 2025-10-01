@@ -189,15 +189,15 @@ const GalleryPage = ({
       setIsLoading(true);
       const response = await galleryApi.getGalleryPage();
       setCurrentData({
-        badge: response.data.page.badge,
-        heading: response.data.page.heading,
-        description: response.data.page.description,
+        badge: t('gallery.badge'), // Use translation instead of API data
+        heading: t('gallery.heading'),
+        description: t('gallery.description'),
         galleryItems: response.data.galleryItems
       });
       setFormData({
-        badge: response.data.page.badge,
-        heading: response.data.page.heading,
-        description: response.data.page.description,
+        badge: t('gallery.badge'),
+        heading: t('gallery.heading'),
+        description: t('gallery.description'),
         galleryItems: response.data.galleryItems
       });
     } catch (error) {

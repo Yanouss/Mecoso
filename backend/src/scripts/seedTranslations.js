@@ -702,7 +702,1436 @@ const defaultTranslations = [
     key: 'admin.logout',
     translations: { en: 'Logout', fr: 'Déconnexion' },
     category: 'admin'
-  }
+  },
+  {
+    key: 'about.image',
+    translations: { en: 'Company Image', fr: 'Image de l\'Entreprise' },
+    category: 'about'
+  },
+  {
+    key: 'about.hero_background',
+    translations: { en: 'Hero Background', fr: 'Arrière-plan Hero' },
+    category: 'about'
+  },
+  {
+    key: 'about.story_section_image',
+    translations: { en: 'Story Section Image', fr: 'Image Section Histoire' },
+    category: 'about'
+  },
+  {
+    key: 'about.click_learn_more',
+    translations: { en: 'Click to learn more', fr: 'Cliquer pour en savoir plus' },
+    category: 'about'
+  },
+  {
+    key: 'about.edit_about_page',
+    translations: { en: 'Edit About Page', fr: 'Modifier la Page À Propos' },
+    category: 'about'
+  },
+  {
+    key: 'about.general_info',
+    translations: { en: 'General Info', fr: 'Informations Générales' },
+    category: 'about'
+  },
+  {
+    key: 'about.statistics',
+    translations: { en: 'Statistics', fr: 'Statistiques' },
+    category: 'about'
+  },
+  {
+    key: 'about.company_values',
+    translations: { en: 'Company Values', fr: 'Valeurs de l\'Entreprise' },
+    category: 'about'
+  },
+  {
+    key: 'about.partners',
+    translations: { en: 'Partners', fr: 'Partenaires' },
+    category: 'about'
+  },
+  {
+    key: 'about.badge_text',
+    translations: { en: 'Badge Text', fr: 'Texte du Badge' },
+    category: 'about'
+  },
+  {
+    key: 'about.main_heading',
+    translations: { en: 'Main Heading', fr: 'Titre Principal' },
+    category: 'about'
+  },
+  {
+    key: 'about.description_text',
+    translations: { en: 'Description Text', fr: 'Texte de Description' },
+    category: 'about'
+  },
+  {
+    key: 'about.company_story',
+    translations: { en: 'Company Story', fr: 'Histoire de l\'Entreprise' },
+    category: 'about'
+  },
+  {
+    key: 'about.mission_statement',
+    translations: { en: 'Mission Statement', fr: 'Déclaration de Mission' },
+    category: 'about'
+  },
+  {
+    key: 'about.vision_statement',
+    translations: { en: 'Vision Statement', fr: 'Déclaration de Vision' },
+    category: 'about'
+  },
+  {
+    key: 'about.add_stat',
+    translations: { en: 'Add Stat', fr: 'Ajouter Statistique' },
+    category: 'about'
+  },
+  {
+    key: 'about.statistic',
+    translations: { en: 'Statistic', fr: 'Statistique' },
+    category: 'about'
+  },
+  {
+    key: 'about.number',
+    translations: { en: 'Number', fr: 'Nombre' },
+    category: 'about'
+  },
+  {
+    key: 'about.label',
+    translations: { en: 'Label', fr: 'Étiquette' },
+    category: 'about'
+  },
+  {
+    key: 'about.icon',
+    translations: { en: 'Icon', fr: 'Icône' },
+    category: 'about'
+  },
+  {
+    key: 'about.background_image',
+    translations: { en: 'Background Image', fr: 'Image d\'Arrière-plan' },
+    category: 'about'
+  },
+  {
+    key: 'about.popup_image',
+    translations: { en: 'Popup Image', fr: 'Image Popup' },
+    category: 'about'
+  },
+  {
+    key: 'about.popup_title',
+    translations: { en: 'Popup Title', fr: 'Titre Popup' },
+    category: 'about'
+  },
+  {
+    key: 'about.popup_description',
+    translations: { en: 'Popup Description', fr: 'Description Popup' },
+    category: 'about'
+  },
+  {
+    key: 'about.add_value',
+    translations: { en: 'Add Value', fr: 'Ajouter Valeur' },
+    category: 'about'
+  },
+  {
+    key: 'about.value',
+    translations: { en: 'Value', fr: 'Valeur' },
+    category: 'about'
+  },
+  {
+    key: 'about.title',
+    translations: { en: 'Title', fr: 'Titre' },
+    category: 'about'
+  },
+  {
+    key: 'about.description',
+    translations: { en: 'Description', fr: 'Description' },
+    category: 'about'
+  },
+  {
+    key: 'about.video_optional',
+    translations: { en: 'Video (Optional)', fr: 'Vidéo (Optionnel)' },
+    category: 'about'
+  },
+  {
+    key: 'about.add_partner',
+    translations: { en: 'Add Partner', fr: 'Ajouter Partenaire' },
+    category: 'about'
+  },
+  {
+    key: 'about.partner',
+    translations: { en: 'Partner', fr: 'Partenaire' },
+    category: 'about'
+  },
+  {
+    key: 'about.partner_name',
+    translations: { en: 'Partner Name', fr: 'Nom du Partenaire' },
+    category: 'about'
+  },
+  {
+    key: 'about.logo',
+    translations: { en: 'Logo', fr: 'Logo' },
+    category: 'about'
+  },
+  {
+    key: 'about.preview',
+    translations: { en: 'Preview', fr: 'Aperçu' },
+    category: 'about'
+  },
+  {
+    key: 'about.no_partners_yet',
+    translations: { en: 'No partners yet', fr: 'Aucun partenaire pour le moment' },
+    category: 'about'
+  },
+  {
+    key: 'about.get_started_first_partner',
+    translations: { en: 'Get started by adding your first partner.', fr: 'Commencez par ajouter votre premier partenaire.' },
+    category: 'about'
+  },
+  {
+    key: 'about.about_page_updated',
+    translations: { en: 'About page updated successfully!', fr: 'Page À propos mise à jour avec succès!' },
+    category: 'about'
+  },
+  {
+    key: 'about.access_denied',
+    translations: { en: 'Access denied', fr: 'Accès refusé' },
+    category: 'about'
+  },
+  {
+    key: 'about.access_denied_description',
+    translations: { en: 'You need moderator or admin privileges to edit the about page.', fr: 'Vous avez besoin de privilèges modérateur ou admin pour modifier la page à propos.' },
+    category: 'about'
+  },
+  {
+    key: 'about.failed_to_load_image',
+    translations: { en: 'Failed to load image', fr: 'Échec du chargement de l\'image' },
+    category: 'about'
+  },
+  {
+    key: 'about.failed_to_load_video',
+    translations: { en: 'Failed to load video', fr: 'Échec du chargement de la vidéo' },
+    category: 'about'
+  },
+  {
+    key: 'about.no_media_available',
+    translations: { en: 'No media available', fr: 'Aucun média disponible' },
+    category: 'about'
+  },
+  {
+    key: 'about.current_image',
+    translations: { en: 'Current image', fr: 'Image actuelle' },
+    category: 'about'
+  },
+  {
+    key: 'about.current_video',
+    translations: { en: 'Current video', fr: 'Vidéo actuelle' },
+    category: 'about'
+  },
+  {
+    key: 'about.current_logo',
+    translations: { en: 'Current logo', fr: 'Logo actuel' },
+    category: 'about'
+  },
+  {
+    key: 'about.click_drag_upload',
+    translations: { en: 'Click to upload or drag and drop', fr: 'Cliquer pour télécharger ou glisser-déposer' },
+    category: 'about'
+  },
+  {
+    key: 'about.images_videos_200mb',
+    translations: { en: 'Images or videos up to 200MB', fr: 'Images ou vidéos jusqu\'à 200MB' },
+    category: 'about'
+  },
+  {
+    key: 'about.videos_200mb',
+    translations: { en: 'Videos up to 200MB', fr: 'Vidéos jusqu\'à 200MB' },
+    category: 'about'
+  },
+  {
+    key: 'about.click_drag_replace',
+    translations: { en: 'Click or drag to replace', fr: 'Cliquer ou glisser pour remplacer' },
+    category: 'about'
+  },
+  {
+    key: 'about.enter_image_url',
+    translations: { en: 'Or enter image URL...', fr: 'Ou entrer l\'URL de l\'image...' },
+    category: 'about'
+  },
+  {
+    key: 'about.enter_video_url',
+    translations: { en: 'Or enter video URL...', fr: 'Ou entrer l\'URL de la vidéo...' },
+    category: 'about'
+  },
+  {
+    key: 'about.enter_logo_url',
+    translations: { en: 'Or enter logo URL...', fr: 'Ou entrer l\'URL du logo...' },
+    category: 'about'
+  },
+  {
+    key: 'about.popup_description_placeholder',
+    translations: { en: 'Detailed description for the popup...', fr: 'Description détaillée pour le popup...' },
+    category: 'about'
+  },
+  {
+    key: 'about.value_description_placeholder',
+    translations: { en: 'Detailed description of this value...', fr: 'Description détaillée de cette valeur...' },
+    category: 'about'
+  },
+  {
+    key: 'about.save_changes',
+    translations: { en: 'Save Changes', fr: 'Enregistrer les Modifications' },
+    category: 'about'
+  },
+  {
+    key: 'about.maximum_10_values',
+    translations: { en: 'Maximum 10 values allowed', fr: 'Maximum 10 valeurs autorisées' },
+    category: 'about'
+  },
+  {
+    key: 'about.error_saving_data',
+    translations: { en: 'Error saving data: ', fr: 'Erreur lors de l\'enregistrement des données: ' },
+    category: 'about'
+  },
+  {
+    key: 'about.unknown_error',
+    translations: { en: 'Unknown error', fr: 'Erreur inconnue' },
+    category: 'about'
+  },
+  {
+    key: 'about.projects_completed',
+    translations: { en: 'Projects Completed', fr: 'Projets Terminés' },
+    category: 'about'
+  },
+  {
+    key: 'about.complete_solutions',
+    translations: { en: 'Complete Solutions', fr: 'Solutions Complètes' },
+    category: 'about'
+  },
+  {
+    key: 'about.main_description',
+    translations: { 
+      en: 'MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we\'ve been delivering excellence in metal structure design, manufacturing, and assembly across all industries',
+      fr: 'MECOSO est votre partenaire de confiance pour des solutions complètes de chaudronnerie et de structures métalliques. Depuis 2005, nous offrons l\'excellence dans la conception, la fabrication et l\'assemblage de structures métalliques pour toutes les industries'
+    },
+    category: 'about'
+  },
+
+  // Gallery Page (all keys missing from seedTranslations.js)
+  {
+    key: 'gallery.badge',
+    translations: { en: 'Our Portfolio', fr: 'Notre Portfolio' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.heading',
+    translations: { en: 'Project Gallery', fr: 'Galerie de Projets' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.description',
+    translations: { 
+      en: 'Explore our completed projects and industrial solutions. From mining equipment to steel structures, see the quality and precision that defines MECOSO\'s work across various industrial sectors.',
+      fr: 'Découvrez nos projets réalisés et solutions industrielles. Des équipements miniers aux structures métalliques, découvrez la qualité et la précision qui définissent le travail de MECOSO dans divers secteurs industriels.'
+    },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.filter',
+    translations: { en: 'Filter', fr: 'Filtrer' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.filter_projects',
+    translations: { en: 'Filter Projects', fr: 'Filtrer les Projets' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.view_details',
+    translations: { en: 'View Details', fr: 'Voir les Détails' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.show_more_projects',
+    translations: { en: 'Show More Projects', fr: 'Afficher Plus de Projets' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.show_less_projects',
+    translations: { en: 'Show Less Projects', fr: 'Afficher Moins de Projets' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.showing_projects',
+    translations: { 
+      en: 'Showing {current} of {total} projects{category, select, null {} other { in {category}}}',
+      fr: 'Affichage de {current} sur {total} projets{category, select, null {} other { dans {category}}}'
+    },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.contact_about_project',
+    translations: { en: 'Contact Us About This Project', fr: 'Nous Contacter À Propos de Ce Projet' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.edit_gallery_section',
+    translations: { en: 'Edit Gallery Section', fr: 'Modifier la Section Galerie' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.header_information',
+    translations: { en: 'Header Information', fr: 'Informations d\'En-tête' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.badge_text',
+    translations: { en: 'Badge Text', fr: 'Texte du Badge' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.badge_placeholder',
+    translations: { en: 'Enter badge text...', fr: 'Entrez le texte du badge...' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.main_heading',
+    translations: { en: 'Main Heading', fr: 'Titre Principal' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.heading_placeholder',
+    translations: { en: 'Enter main heading...', fr: 'Entrez le titre principal...' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.description_placeholder',
+    translations: { en: 'Enter description...', fr: 'Entrez la description...' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.gallery_items',
+    translations: { en: 'Gallery Items', fr: 'Éléments de la Galerie' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.add_item',
+    translations: { en: 'Add Item', fr: 'Ajouter un Élément' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.item',
+    translations: { en: 'Item', fr: 'Élément' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.edit_item',
+    translations: { en: 'Edit item', fr: 'Modifier l\'élément' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.delete_item',
+    translations: { en: 'Delete item', fr: 'Supprimer l\'élément' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.no_image',
+    translations: { en: 'No image', fr: 'Aucune image' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.save_changes',
+    translations: { en: 'Save Changes', fr: 'Enregistrer les Modifications' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.edit_gallery_item',
+    translations: { en: 'Edit Gallery Item', fr: 'Modifier l\'Élément de la Galerie' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.add_new_gallery_item',
+    translations: { en: 'Add New Gallery Item', fr: 'Ajouter un Nouvel Élément à la Galerie' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.project_title',
+    translations: { en: 'Project Title', fr: 'Titre du Projet' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.project_title_placeholder',
+    translations: { en: 'Enter project title...', fr: 'Entrez le titre du projet...' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.category',
+    translations: { en: 'Category', fr: 'Catégorie' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.category_placeholder',
+    translations: { en: 'Enter category...', fr: 'Entrez la catégorie...' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.project_description_placeholder',
+    translations: { en: 'Enter project description...', fr: 'Entrez la description du projet...' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.upload_image',
+    translations: { en: 'Upload Image', fr: 'Télécharger une Image' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.size',
+    translations: { en: 'Size', fr: 'Taille' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.size_small',
+    translations: { en: 'Small', fr: 'Petit' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.size_medium',
+    translations: { en: 'Medium', fr: 'Moyen' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.size_large',
+    translations: { en: 'Large', fr: 'Grand' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.update_item',
+    translations: { en: 'Update Item', fr: 'Mettre à Jour l\'Élément' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.fetch_error',
+    translations: { en: 'Failed to load gallery data', fr: 'Échec du chargement des données de la galerie' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.login_required',
+    translations: { en: 'You must be logged in to save changes', fr: 'Vous devez être connecté pour enregistrer les modifications' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.token_not_found',
+    translations: { en: 'Authentication token not found', fr: 'Jeton d\'authentification non trouvé' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.updated_success',
+    translations: { en: 'Gallery updated successfully', fr: 'Galerie mise à jour avec succès' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.save_failed',
+    translations: { en: 'Failed to save gallery changes', fr: 'Échec de l\'enregistrement des modifications de la galerie' },
+    category: 'gallery'
+  },
+  {
+    key: 'gallery.upload_failed',
+    translations: { en: 'Failed to upload image', fr: 'Échec du téléchargement de l\'image' },
+    category: 'gallery'
+  },
+
+  // Machines Page (all keys missing from seedTranslations.js)
+  {
+    key: 'machines.badge',
+    translations: { en: 'Our Equipment', fr: 'Notre Équipement' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.heading',
+    translations: { en: 'Industrial Machinery Fleet', fr: 'Parc de Machines Industrielles' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.description',
+    translations: { 
+      en: 'MECOSO operates state-of-the-art industrial machinery for manufacturing, fabrication, and assembly operations. Our equipment fleet ensures precision, efficiency, and reliability in every project we undertake.',
+      fr: 'MECOSO exploite des machines industrielles de pointe pour les opérations de fabrication, d\'usinage et d\'assemblage. Notre parc d\'équipements garantit précision, efficacité et fiabilité dans chaque projet que nous entreprenons.'
+    },
+    category: 'machines'
+  },
+  {
+    key: 'machines.stats.active_machines',
+    translations: { en: 'Active Machines', fr: 'Machines Actives' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.stats.uptime_rate',
+    translations: { en: 'Uptime Rate', fr: 'Taux de Fonctionnement' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.stats.years_service',
+    translations: { en: 'Years Service', fr: 'Années de Service' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.stats.operations',
+    translations: { en: 'Operations', fr: 'Opérations' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.categories.all',
+    translations: { en: 'All', fr: 'Tout' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.categories.cutting',
+    translations: { en: 'Cutting', fr: 'Découpe' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.categories.forming',
+    translations: { en: 'Forming', fr: 'Formage' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.categories.handling',
+    translations: { en: 'Handling', fr: 'Manutention' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.categories.welding',
+    translations: { en: 'Welding', fr: 'Soudage' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.categories.assembly',
+    translations: { en: 'Assembly', fr: 'Assemblage' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.categories.testing',
+    translations: { en: 'Testing', fr: 'Test' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.categories.other',
+    translations: { en: 'Other', fr: 'Autre' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.status.available',
+    translations: { en: 'Available', fr: 'Disponible' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.status.in_use',
+    translations: { en: 'In Use', fr: 'En Utilisation' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.status.maintenance',
+    translations: { en: 'Maintenance', fr: 'Maintenance' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.no_machines',
+    translations: { en: 'No machines available', fr: 'Aucune machine disponible' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.no_machines_category',
+    translations: { en: 'No machines found in the "{category}" category.', fr: 'Aucune machine trouvée dans la catégorie "{category}".' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.no_machines_added',
+    translations: { en: 'No machines have been added yet.', fr: 'Aucune machine n\'a été ajoutée pour le moment.' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.view_details',
+    translations: { en: 'View Details', fr: 'Voir les Détails' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.show_more',
+    translations: { en: 'Show More Machines', fr: 'Afficher Plus de Machines' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.show_less',
+    translations: { en: 'Show Less', fr: 'Afficher Moins' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.loading',
+    translations: { en: 'Loading machines...', fr: 'Chargement des machines...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.specifications',
+    translations: { en: 'Specifications', fr: 'Spécifications' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.capacity',
+    translations: { en: 'Capacity', fr: 'Capacité' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.power_requirement',
+    translations: { en: 'Power Requirement', fr: 'Besoins en Énergie' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.model',
+    translations: { en: 'Model', fr: 'Modèle' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.year_manufactured',
+    translations: { en: 'Year Manufactured', fr: 'Année de Fabrication' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.status',
+    translations: { en: 'Status', fr: 'Statut' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.technical_specifications',
+    translations: { en: 'Technical Specifications', fr: 'Spécifications Techniques' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.request_access',
+    translations: { en: 'Request Access', fr: 'Demander l\'Accès' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.edit_page',
+    translations: { en: 'Edit Machines Page', fr: 'Modifier la Page des Machines' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.edit_machine',
+    translations: { en: 'Edit Machine', fr: 'Modifier la Machine' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.general',
+    translations: { en: 'General', fr: 'Général' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.statistics',
+    translations: { en: 'Statistics', fr: 'Statistiques' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.machines_list',
+    translations: { en: 'Machines', fr: 'Machines' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.badge_text',
+    translations: { en: 'Badge Text', fr: 'Texte du Badge' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.main_heading',
+    translations: { en: 'Main Heading', fr: 'Titre Principal' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.description_text',
+    translations: { en: 'Description', fr: 'Description' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.add_stat',
+    translations: { en: 'Add Stat', fr: 'Ajouter Statistique' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.stat_number',
+    translations: { en: 'Number/Value', fr: 'Nombre/Valeur' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.stat_label',
+    translations: { en: 'Label', fr: 'Étiquette' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.add_machine',
+    translations: { en: 'Add Machine', fr: 'Ajouter Machine' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.machine_title',
+    translations: { en: 'Title', fr: 'Titre' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.machine_category',
+    translations: { en: 'Category', fr: 'Catégorie' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.machine_description',
+    translations: { en: 'Description', fr: 'Description' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.machine_image',
+    translations: { en: 'Machine Image', fr: 'Image de la Machine' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.upload_image',
+    translations: { en: 'Upload', fr: 'Télécharger' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.add_spec',
+    translations: { en: 'Add Spec', fr: 'Ajouter Spécification' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.specification',
+    translations: { en: 'Specification', fr: 'Spécification' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.badge',
+    translations: { en: 'Enter badge text...', fr: 'Entrez le texte du badge...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.heading',
+    translations: { en: 'Enter main heading...', fr: 'Entrez le titre principal...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.description',
+    translations: { en: 'Enter description...', fr: 'Entrez la description...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.stat_number',
+    translations: { en: 'e.g., 25+, 99.5%, 24/7', fr: 'ex. : 25+, 99.5%, 24/7' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.stat_label',
+    translations: { en: 'e.g., Active Machines, Uptime Rate', fr: 'ex. : Machines Actives, Taux de Fonctionnement' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.machine_title',
+    translations: { en: 'Machine title...', fr: 'Titre de la machine...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.machine_description',
+    translations: { en: 'Machine description...', fr: 'Description de la machine...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.image_url',
+    translations: { en: 'https://example.com/image.jpg or upload a file', fr: 'https://exemple.com/image.jpg ou télécharger un fichier' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.model',
+    translations: { en: 'Model number...', fr: 'Numéro de modèle...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.year',
+    translations: { en: 'YYYY', fr: 'AAAA' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.capacity',
+    translations: { en: 'e.g., 200mm max thickness', fr: 'ex. : épaisseur max 200mm' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.power',
+    translations: { en: 'e.g., 380V, 200A', fr: 'ex. : 380V, 200A' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.placeholder.specification',
+    translations: { en: 'Specification...', fr: 'Spécification...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.delete.confirm',
+    translations: { en: 'Confirm Deletion', fr: 'Confirmer la Suppression' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.delete.message',
+    translations: { en: 'Are you sure you want to delete {name}? This action cannot be undone.', fr: 'Êtes-vous sûr de vouloir supprimer {name} ? Cette action ne peut pas être annulée.' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.load_failed',
+    translations: { en: 'Failed to load machines data', fr: 'Échec du chargement des données des machines' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.upload_failed',
+    translations: { en: 'Upload failed', fr: 'Échec du téléchargement' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.auth_required',
+    translations: { en: 'Authentication required', fr: 'Authentification requise' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.unauthorized',
+    translations: { en: 'Unauthorized: Admin access required', fr: 'Non autorisé : Accès administrateur requis' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.token_not_found',
+    translations: { en: 'Authentication token not found', fr: 'Jeton d\'authentification non trouvé' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.update_failed',
+    translations: { en: 'Failed to update machines page', fr: 'Échec de la mise à jour de la page des machines' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.machine_update_failed',
+    translations: { en: 'Failed to update machine', fr: 'Échec de la mise à jour de la machine' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.machine_delete_failed',
+    translations: { en: 'Failed to delete machine', fr: 'Échec de la suppression de la machine' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.max_stats',
+    translations: { en: 'Maximum 10 stats allowed', fr: 'Maximum 10 statistiques autorisées' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.min_stats',
+    translations: { en: 'At least one stat is required', fr: 'Au moins une statistique est requise' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.required_fields',
+    translations: { en: 'Badge, heading, and description are required', fr: 'Le badge, le titre et la description sont requis' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.stat_required',
+    translations: { en: 'Stat {number} must have both number and label', fr: 'La statistique {number} doit avoir un nombre et une étiquette' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.machine_required',
+    translations: { en: 'Machine {number}: Title and Category are required', fr: 'Machine {number} : Le titre et la catégorie sont requis' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.specs_required',
+    translations: { en: 'Machine {number} must have at least one specification', fr: 'La machine {number} doit avoir au moins une spécification' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.spec_required',
+    translations: { en: 'At least one specification is required', fr: 'Au moins une spécification est requise' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.invalid_file_type',
+    translations: { en: 'Please select an image file', fr: 'Veuillez sélectionner un fichier image' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.error.file_too_large',
+    translations: { en: 'File size must be less than 5MB', fr: 'La taille du fichier doit être inférieure à 5MB' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.success.upload',
+    translations: { en: 'Image uploaded successfully', fr: 'Image téléchargée avec succès' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.success.update',
+    translations: { en: 'Machines page updated successfully', fr: 'Page des machines mise à jour avec succès' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.success.machine_update',
+    translations: { en: 'Machine updated successfully', fr: 'Machine mise à jour avec succès' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.success.machine_delete',
+    translations: { en: 'Machine deleted successfully', fr: 'Machine supprimée avec succès' },
+    category: 'machines'
+  },
+
+  // Contact Page
+  {
+    key: 'contact.badge',
+    translations: { en: 'Get In Touch', fr: 'Contactez-Nous' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.heading',
+    translations: { 
+      en: 'Let\'s Build Something Amazing Together', 
+      fr: 'Construisons Quelque Chose d\'Incroyable Ensemble' 
+    },
+    category: 'contact'
+  },
+  {
+    key: 'contact.description',
+    translations: { 
+      en: 'Ready to start your next construction project? Our expert team is here to turn your vision into reality with professional consultation and tailored solutions.',
+      fr: 'Prêt à démarrer votre prochain projet de construction ? Notre équipe d\'experts est là pour transformer votre vision en réalité avec des consultations professionnelles et des solutions sur mesure.'
+    },
+    category: 'contact'
+  },
+  {
+    key: 'contact.start_project',
+    translations: { en: 'Start Your Project', fr: 'Démarrez Votre Projet' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.form_description',
+    translations: { 
+      en: 'Fill out the form and we\'ll get back to you within 24 hours',
+      fr: 'Remplissez le formulaire et nous vous répondrons dans les 24 heures'
+    },
+    category: 'contact'
+  },
+  {
+    key: 'contact.full_name',
+    translations: { en: 'Full Name', fr: 'Nom Complet' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.email_address',
+    translations: { en: 'Email Address', fr: 'Adresse Email' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.company_organization',
+    translations: { en: 'Company/Organization', fr: 'Entreprise/Organisation' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.phone_number',
+    translations: { en: 'Phone Number', fr: 'Numéro de Téléphone' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.project_details',
+    translations: { en: 'Project Details', fr: 'Détails du Projet' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.service_interested',
+    translations: { en: 'Service Interested In', fr: 'Service Intéressé' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.project_type',
+    translations: { en: 'Project Type', fr: 'Type de Projet' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.estimated_budget',
+    translations: { en: 'Estimated Budget', fr: 'Budget Estimé' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.timeline',
+    translations: { en: 'Timeline', fr: 'Calendrier' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.project_description',
+    translations: { en: 'Project Description', fr: 'Description du Projet' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.send_message',
+    translations: { en: 'Send Message', fr: 'Envoyer Message' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.message_sent',
+    translations: { en: 'Message Sent Successfully! 🎉', fr: 'Message Envoyé avec Succès ! 🎉' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.thank_you',
+    translations: { 
+      en: 'Thank you for reaching out! Our team will review your project details and get back to you within 24 hours.',
+      fr: 'Merci de nous avoir contactés ! Notre équipe examinera les détails de votre projet et vous répondra dans les 24 heures.'
+    },
+    category: 'contact'
+  },
+  {
+    key: 'contact.expected_response',
+    translations: { en: 'Expected response: Within 24 hours', fr: 'Réponse attendue : Dans les 24 heures' },
+    category: 'contact'
+  },
+
+  // Placeholders
+  {
+    key: 'contact.placeholder.name',
+    translations: { en: 'Enter your full name', fr: 'Entrez votre nom complet' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.placeholder.email',
+    translations: { en: 'your.email@example.com', fr: 'votre.email@exemple.com' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.placeholder.company',
+    translations: { en: 'Your company name', fr: 'Nom de votre entreprise' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.placeholder.phone',
+    translations: { en: '+212 661-234-567', fr: '+212 661-234-567' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.placeholder.message',
+    translations: { 
+      en: 'Tell us more about your project requirements, goals, and any specific details that would help us provide you with the best solution...',
+      fr: 'Parlez-nous davantage de vos exigences de projet, objectifs et détails spécifiques qui nous aideraient à vous fournir la meilleure solution...'
+    },
+    category: 'contact'
+  },
+
+  // Form Options
+  {
+    key: 'contact.select_service',
+    translations: { en: 'Select a service', fr: 'Sélectionnez un service' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.select_project_type',
+    translations: { en: 'Select project type', fr: 'Sélectionnez le type de projet' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.select_budget',
+    translations: { en: 'Select budget range', fr: 'Sélectionnez la fourchette budgétaire' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.select_timeline',
+    translations: { en: 'Select timeline', fr: 'Sélectionnez le calendrier' },
+    category: 'contact'
+  },
+
+  // Service Options
+  {
+    key: 'contact.service.architectural',
+    translations: { en: 'Architectural Design', fr: 'Conception Architecturale' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.service.project_mgmt',
+    translations: { en: 'Project Management', fr: 'Gestion de Projet' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.service.structural',
+    translations: { en: 'Structural Engineering', fr: 'Ingénierie Structurelle' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.service.machinery',
+    translations: { en: 'Heavy Machinery & Logistics', fr: 'Machines Lourdes & Logistique' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.service.quality',
+    translations: { en: 'Quality Assurance', fr: 'Assurance Qualité' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.service.green',
+    translations: { en: 'Green Building Solutions', fr: 'Solutions de Construction Écologique' },
+    category: 'contact'
+  },
+
+  // Project Types
+  {
+    key: 'contact.project.residential',
+    translations: { en: 'Residential', fr: 'Résidentiel' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.project.commercial',
+    translations: { en: 'Commercial', fr: 'Commercial' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.project.industrial',
+    translations: { en: 'Industrial', fr: 'Industriel' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.project.infrastructure',
+    translations: { en: 'Infrastructure', fr: 'Infrastructure' },
+    category: 'contact'
+  },
+
+  // Budget Options
+  {
+    key: 'contact.budget.under_500k',
+    translations: { en: 'Under 500k MAD', fr: 'Moins de 500k MAD' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.budget.500k_2m',
+    translations: { en: '500k - 2M MAD', fr: '500k - 2M MAD' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.budget.2m_5m',
+    translations: { en: '2M - 5M MAD', fr: '2M - 5M MAD' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.budget.5m_20m',
+    translations: { en: '5M - 20M MAD', fr: '5M - 20M MAD' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.budget.over_20m',
+    translations: { en: 'Over 20M MAD', fr: 'Plus de 20M MAD' },
+    category: 'contact'
+  },
+
+  // Timeline Options
+  {
+    key: 'contact.timeline.asap',
+    translations: { en: 'ASAP', fr: 'Dès que possible' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.timeline.1_3_months',
+    translations: { en: '1-3 months', fr: '1-3 mois' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.timeline.3_6_months',
+    translations: { en: '3-6 months', fr: '3-6 mois' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.timeline.6_12_months',
+    translations: { en: '6-12 months', fr: '6-12 mois' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.timeline.over_1_year',
+    translations: { en: 'Over 1 year', fr: 'Plus d\'1 an' },
+    category: 'contact'
+  },
+
+  // Map Section
+  {
+    key: 'contact.find_office',
+    translations: { en: 'Find Our Office in Marrakech', fr: 'Trouvez Notre Bureau à Marrakech' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.visit_description',
+    translations: { 
+      en: 'Visit us at our modern headquarters in the heart of Marrakech. We\'re located in the vibrant Gueliz district.',
+      fr: 'Visitez-nous à notre siège moderne au cœur de Marrakech. Nous sommes situés dans le quartier animé de Gueliz.'
+    },
+    category: 'contact'
+  },
+  {
+    key: 'contact.get_directions',
+    translations: { en: 'Get Directions', fr: 'Obtenir l\'Itinéraire' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.call_now',
+    translations: { en: 'Call Now', fr: 'Appeler Maintenant' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.loading_map',
+    translations: { en: 'Loading interactive map...', fr: 'Chargement de la carte interactive...' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.prime_location',
+    translations: { en: 'Prime Location', fr: 'Emplacement de Choix' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.prime_location_desc',
+    translations: { 
+      en: 'Located in Massira II, the modern business district of Marrakech',
+      fr: 'Situé à Massira II, le quartier d\'affaires moderne de Marrakech'
+    },
+    category: 'contact'
+  },
+  {
+    key: 'contact.easy_access',
+    translations: { en: 'Easy Access', fr: 'Accès Facile' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.easy_access_desc',
+    translations: { 
+      en: '5 minutes from Marrakech Railway Station and main transport hubs',
+      fr: 'À 5 minutes de la gare de Marrakech et des principaux pôles de transport'
+    },
+    category: 'contact'
+  },
+  {
+    key: 'contact.modern_facilities',
+    translations: { en: 'Modern Facilities', fr: 'Installations Modernes' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.modern_facilities_desc',
+    translations: { 
+      en: 'State-of-the-art office with meeting rooms and project showcase area',
+      fr: 'Bureau de pointe avec salles de réunion et espace d\'exposition de projets'
+    },
+    category: 'contact'
+  },
+
+  // Edit Modal
+  {
+    key: 'contact.edit_section',
+    translations: { en: 'Edit Contact Section', fr: 'Modifier la Section Contact' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.basic_info',
+    translations: { en: 'Basic Information', fr: 'Informations de Base' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.badge_text',
+    translations: { en: 'Badge Text', fr: 'Texte du Badge' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.main_heading',
+    translations: { en: 'Main Heading', fr: 'Titre Principal' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.description_text',
+    translations: { en: 'Description', fr: 'Description' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.contact_info',
+    translations: { en: 'Contact Information', fr: 'Informations de Contact' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.add_contact',
+    translations: { en: 'Add Contact', fr: 'Ajouter Contact' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.contact_item',
+    translations: { en: 'Contact Item', fr: 'Élément de Contact' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.icon_type',
+    translations: { en: 'Icon Type', fr: 'Type d\'Icône' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.title',
+    translations: { en: 'Title', fr: 'Titre' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.details',
+    translations: { en: 'Details', fr: 'Détails' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.add_detail',
+    translations: { en: 'Add Detail', fr: 'Ajouter Détail' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.accent_style',
+    translations: { en: 'Accent Style (Highlighted)', fr: 'Style Accentué (Mis en Évidence)' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.save_changes',
+    translations: { en: 'Save Changes', fr: 'Enregistrer les Modifications' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.updated_success',
+    translations: { en: 'Contact information updated successfully', fr: 'Informations de contact mises à jour avec succès' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.update_failed',
+    translations: { en: 'Failed to save contact information', fr: 'Échec de l\'enregistrement des informations de contact' },
+    category: 'contact'
+  },
+
+  // Contact Info Defaults
+  {
+    key: 'contact.info.visit_atelier',
+    translations: { en: 'Visit Our Atelier', fr: 'Visitez Notre Atelier' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.info.call_us',
+    translations: { en: 'Call Us', fr: 'Appelez-Nous' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.info.email_us',
+    translations: { en: 'Email Us', fr: 'Envoyez-Nous un Email' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.info.business_hours',
+    translations: { en: 'Business Hours', fr: 'Heures d\'Ouverture' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.info.hours_detail',
+    translations: { en: 'Mon - Sat: 9:00 AM - 6:00 PM', fr: 'Lun - Sam : 9h00 - 18h00' },
+    category: 'contact'
+  },
+  {
+    key: 'contact.info.sunday_closed',
+    translations: { en: 'Sunday: Closed', fr: 'Dimanche : Fermé' },
+    category: 'contact'
+  },
+
 ];
 
 const seedTranslations = async () => {

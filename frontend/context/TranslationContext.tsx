@@ -247,6 +247,217 @@ const translations = {
     'gallery.upload_failed': 'Failed to upload image',
 
 
+    // Machines Page
+    'machines.badge': 'Our Equipment',
+    'machines.heading': 'Industrial Machinery Fleet',
+    'machines.description': 'MECOSO operates state-of-the-art industrial machinery for manufacturing, fabrication, and assembly operations. Our equipment fleet ensures precision, efficiency, and reliability in every project we undertake.',
+
+    // Stats
+    'machines.stats.active_machines': 'Active Machines',
+    'machines.stats.uptime_rate': 'Uptime Rate',
+    'machines.stats.years_service': 'Years Service',
+    'machines.stats.operations': 'Operations',
+
+    // Categories
+    'machines.categories.all': 'All',
+    'machines.categories.cutting': 'Cutting',
+    'machines.categories.forming': 'Forming',
+    'machines.categories.handling': 'Handling',
+    'machines.categories.welding': 'Welding',
+    'machines.categories.assembly': 'Assembly',
+    'machines.categories.testing': 'Testing',
+    'machines.categories.other': 'Other',
+
+    // Status
+    'machines.status.available': 'Available',
+    'machines.status.in_use': 'In Use',
+    'machines.status.maintenance': 'Maintenance',
+
+    // UI Text
+    'machines.no_machines': 'No machines available',
+    'machines.no_machines_category': 'No machines found in the "{category}" category.',
+    'machines.no_machines_added': 'No machines have been added yet.',
+    'machines.view_details': 'View Details',
+    'machines.show_more': 'Show More Machines',
+    'machines.show_less': 'Show Less',
+    'machines.loading': 'Loading machines...',
+    'machines.specifications': 'Specifications',
+    'machines.capacity': 'Capacity',
+    'machines.power_requirement': 'Power Requirement',
+    'machines.model': 'Model',
+    'machines.year_manufactured': 'Year Manufactured',
+    'machines.status': 'Status',
+    'machines.technical_specifications': 'Technical Specifications',
+    'machines.request_access': 'Request Access',
+
+    // Edit Modal
+    'machines.edit_page': 'Edit Machines Page',
+    'machines.edit_machine': 'Edit Machine',
+    'machines.general': 'General',
+    'machines.statistics': 'Statistics',
+    'machines.machines_list': 'Machines',
+    'machines.badge_text': 'Badge Text',
+    'machines.main_heading': 'Main Heading',
+    'machines.description_text': 'Description',
+    'machines.add_stat': 'Add Stat',
+    'machines.stat_number': 'Number/Value',
+    'machines.stat_label': 'Label',
+    'machines.add_machine': 'Add Machine',
+    'machines.machine_title': 'Title',
+    'machines.machine_category': 'Category',
+    'machines.machine_description': 'Description',
+    'machines.machine_image': 'Machine Image',
+    'machines.upload_image': 'Upload',
+    'machines.add_spec': 'Add Spec',
+    'machines.specification': 'Specification',
+
+    // Placeholders
+    'machines.placeholder.badge': 'Enter badge text...',
+    'machines.placeholder.heading': 'Enter main heading...',
+    'machines.placeholder.description': 'Enter description...',
+    'machines.placeholder.stat_number': 'e.g., 25+, 99.5%, 24/7',
+    'machines.placeholder.stat_label': 'e.g., Active Machines, Uptime Rate',
+    'machines.placeholder.machine_title': 'Machine title...',
+    'machines.placeholder.machine_description': 'Machine description...',
+    'machines.placeholder.image_url': 'https://example.com/image.jpg or upload a file',
+    'machines.placeholder.model': 'Model number...',
+    'machines.placeholder.year': 'YYYY',
+    'machines.placeholder.capacity': 'e.g., 200mm max thickness',
+    'machines.placeholder.power': 'e.g., 380V, 200A',
+    'machines.placeholder.specification': 'Specification...',
+
+
+    // Contact Page
+    'contact.badge': 'Get In Touch',
+    'contact.heading': 'Let\'s Build Something Amazing Together',
+    'contact.description': 'Ready to start your next construction project? Our expert team is here to turn your vision into reality with professional consultation and tailored solutions.',
+    'contact.start_project': 'Start Your Project',
+    'contact.form_description': 'Fill out the form and we\'ll get back to you within 24 hours',
+    'contact.full_name': 'Full Name',
+    'contact.email_address': 'Email Address',
+    'contact.company_organization': 'Company/Organization',
+    'contact.phone_number': 'Phone Number',
+    'contact.project_details': 'Project Details',
+    'contact.service_interested': 'Service Interested In',
+    'contact.project_type': 'Project Type',
+    'contact.estimated_budget': 'Estimated Budget',
+    'contact.timeline': 'Timeline',
+    'contact.project_description': 'Project Description',
+    'contact.send_message': 'Send Message',
+    'contact.message_sent': 'Message Sent Successfully! 🎉',
+    'contact.thank_you': 'Thank you for reaching out! Our team will review your project details and get back to you within 24 hours.',
+    'contact.expected_response': 'Expected response: Within 24 hours',
+
+    // Placeholders
+    'contact.placeholder.name': 'Enter your full name',
+    'contact.placeholder.email': 'your.email@example.com',
+    'contact.placeholder.company': 'Your company name',
+    'contact.placeholder.phone': '+212 661-234-567',
+    'contact.placeholder.message': 'Tell us more about your project requirements, goals, and any specific details that would help us provide you with the best solution...',
+
+    // Form Options
+    'contact.select_service': 'Select a service',
+    'contact.select_project_type': 'Select project type',
+    'contact.select_budget': 'Select budget range',
+    'contact.select_timeline': 'Select timeline',
+
+    // Service Options
+    'contact.service.architectural': 'Architectural Design',
+    'contact.service.project_mgmt': 'Project Management',
+    'contact.service.structural': 'Structural Engineering',
+    'contact.service.machinery': 'Heavy Machinery & Logistics',
+    'contact.service.quality': 'Quality Assurance',
+    'contact.service.green': 'Green Building Solutions',
+
+    // Project Types
+    'contact.project.residential': 'Residential',
+    'contact.project.commercial': 'Commercial',
+    'contact.project.industrial': 'Industrial',
+    'contact.project.infrastructure': 'Infrastructure',
+
+    // Budget Options
+    'contact.budget.under_500k': 'Under 500k MAD',
+    'contact.budget.500k_2m': '500k - 2M MAD',
+    'contact.budget.2m_5m': '2M - 5M MAD',
+    'contact.budget.5m_20m': '5M - 20M MAD',
+    'contact.budget.over_20m': 'Over 20M MAD',
+
+    // Timeline Options
+    'contact.timeline.asap': 'ASAP',
+    'contact.timeline.1_3_months': '1-3 months',
+    'contact.timeline.3_6_months': '3-6 months',
+    'contact.timeline.6_12_months': '6-12 months',
+    'contact.timeline.over_1_year': 'Over 1 year',
+
+    // Map Section
+    'contact.find_office': 'Find Our Office in Marrakech',
+    'contact.visit_description': 'Visit us at our modern headquarters in the heart of Marrakech. We\'re located in the vibrant Gueliz district.',
+    'contact.get_directions': 'Get Directions',
+    'contact.call_now': 'Call Now',
+    'contact.loading_map': 'Loading interactive map...',
+    'contact.prime_location': 'Prime Location',
+    'contact.prime_location_desc': 'Located in Massira II, the modern business district of Marrakech',
+    'contact.easy_access': 'Easy Access',
+    'contact.easy_access_desc': '5 minutes from Marrakech Railway Station and main transport hubs',
+    'contact.modern_facilities': 'Modern Facilities',
+    'contact.modern_facilities_desc': 'State-of-the-art office with meeting rooms and project showcase area',
+
+    // Edit Modal
+    'contact.edit_section': 'Edit Contact Section',
+    'contact.basic_info': 'Basic Information',
+    'contact.badge_text': 'Badge Text',
+    'contact.main_heading': 'Main Heading',
+    'contact.description_text': 'Description',
+    'contact.contact_info': 'Contact Information',
+    'contact.add_contact': 'Add Contact',
+    'contact.contact_item': 'Contact Item',
+    'contact.icon_type': 'Icon Type',
+    'contact.title': 'Title',
+    'contact.details': 'Details',
+    'contact.add_detail': 'Add Detail',
+    'contact.accent_style': 'Accent Style (Highlighted)',
+    'contact.save_changes': 'Save Changes',
+    'contact.updated_success': 'Contact information updated successfully',
+    'contact.update_failed': 'Failed to save contact information',
+
+    // Contact Info Defaults
+    'contact.info.visit_atelier': 'Visit Our Atelier',
+    'contact.info.call_us': 'Call Us',
+    'contact.info.email_us': 'Email Us',
+    'contact.info.business_hours': 'Business Hours',
+    'contact.info.hours_detail': 'Mon - Sat: 9:00 AM - 6:00 PM',
+    'contact.info.sunday_closed': 'Sunday: Closed',
+
+
+    // Delete Modal
+    'machines.delete.confirm': 'Confirm Deletion',
+    'machines.delete.message': 'Are you sure you want to delete {name}? This action cannot be undone.',
+
+    // Error Messages
+    'machines.error.load_failed': 'Failed to load machines data',
+    'machines.error.upload_failed': 'Upload failed',
+    'machines.error.auth_required': 'Authentication required',
+    'machines.error.unauthorized': 'Unauthorized: Admin access required',
+    'machines.error.token_not_found': 'Authentication token not found',
+    'machines.error.update_failed': 'Failed to update machines page',
+    'machines.error.machine_update_failed': 'Failed to update machine',
+    'machines.error.machine_delete_failed': 'Failed to delete machine',
+    'machines.error.max_stats': 'Maximum 10 stats allowed',
+    'machines.error.min_stats': 'At least one stat is required',
+    'machines.error.required_fields': 'Badge, heading, and description are required',
+    'machines.error.stat_required': 'Stat {number} must have both number and label',
+    'machines.error.machine_required': 'Machine {number}: Title and Category are required',
+    'machines.error.specs_required': 'Machine {number} must have at least one specification',
+    'machines.error.spec_required': 'At least one specification is required',
+    'machines.error.invalid_file_type': 'Please select an image file',
+    'machines.error.file_too_large': 'File size must be less than 5MB',
+
+    // Success Messages
+    'machines.success.upload': 'Image uploaded successfully',
+    'machines.success.update': 'Machines page updated successfully',
+    'machines.success.machine_update': 'Machine updated successfully',
+    'machines.success.machine_delete': 'Machine deleted successfully',
+
     // Footer
     'footer.newsletter.title': 'Stay Updated',
     'footer.newsletter.description': 'Get the latest news about our projects, industry insights, and construction innovations delivered to your inbox.',
@@ -515,6 +726,217 @@ const translations = {
     'gallery.updated_success': 'Galerie mise à jour avec succès',
     'gallery.save_failed': 'Échec de l\'enregistrement des modifications de la galerie',
     'gallery.upload_failed': 'Échec du téléchargement de l\'image',
+
+
+    // Machines Page
+    'machines.badge': 'Notre Équipement',
+    'machines.heading': 'Parc de Machines Industrielles',
+    'machines.description': 'MECOSO exploite des machines industrielles de pointe pour les opérations de fabrication, d\'usinage et d\'assemblage. Notre parc d\'équipements garantit précision, efficacité et fiabilité dans chaque projet que nous entreprenons.',
+
+    // Stats
+    'machines.stats.active_machines': 'Machines Actives',
+    'machines.stats.uptime_rate': 'Taux de Fonctionnement',
+    'machines.stats.years_service': 'Années de Service',
+    'machines.stats.operations': 'Opérations',
+
+    // Categories
+    'machines.categories.all': 'Tout',
+    'machines.categories.cutting': 'Découpe',
+    'machines.categories.forming': 'Formage',
+    'machines.categories.handling': 'Manutention',
+    'machines.categories.welding': 'Soudage',
+    'machines.categories.assembly': 'Assemblage',
+    'machines.categories.testing': 'Test',
+    'machines.categories.other': 'Autre',
+
+    // Status
+    'machines.status.available': 'Disponible',
+    'machines.status.in_use': 'En Utilisation',
+    'machines.status.maintenance': 'Maintenance',
+
+    // UI Text
+    'machines.no_machines': 'Aucune machine disponible',
+    'machines.no_machines_category': 'Aucune machine trouvée dans la catégorie "{category}".',
+    'machines.no_machines_added': 'Aucune machine n\'a été ajoutée pour le moment.',
+    'machines.view_details': 'Voir les Détails',
+    'machines.show_more': 'Afficher Plus de Machines',
+    'machines.show_less': 'Afficher Moins',
+    'machines.loading': 'Chargement des machines...',
+    'machines.specifications': 'Spécifications',
+    'machines.capacity': 'Capacité',
+    'machines.power_requirement': 'Besoins en Énergie',
+    'machines.model': 'Modèle',
+    'machines.year_manufactured': 'Année de Fabrication',
+    'machines.status': 'Statut',
+    'machines.technical_specifications': 'Spécifications Techniques',
+    'machines.request_access': 'Demander l\'Accès',
+
+    // Edit Modal
+    'machines.edit_page': 'Modifier la Page des Machines',
+    'machines.edit_machine': 'Modifier la Machine',
+    'machines.general': 'Général',
+    'machines.statistics': 'Statistiques',
+    'machines.machines_list': 'Machines',
+    'machines.badge_text': 'Texte du Badge',
+    'machines.main_heading': 'Titre Principal',
+    'machines.description_text': 'Description',
+    'machines.add_stat': 'Ajouter Statistique',
+    'machines.stat_number': 'Nombre/Valeur',
+    'machines.stat_label': 'Étiquette',
+    'machines.add_machine': 'Ajouter Machine',
+    'machines.machine_title': 'Titre',
+    'machines.machine_category': 'Catégorie',
+    'machines.machine_description': 'Description',
+    'machines.machine_image': 'Image de la Machine',
+    'machines.upload_image': 'Télécharger',
+    'machines.add_spec': 'Ajouter Spécification',
+    'machines.specification': 'Spécification',
+
+    // Placeholders
+    'machines.placeholder.badge': 'Entrez le texte du badge...',
+    'machines.placeholder.heading': 'Entrez le titre principal...',
+    'machines.placeholder.description': 'Entrez la description...',
+    'machines.placeholder.stat_number': 'ex. : 25+, 99.5%, 24/7',
+    'machines.placeholder.stat_label': 'ex. : Machines Actives, Taux de Fonctionnement',
+    'machines.placeholder.machine_title': 'Titre de la machine...',
+    'machines.placeholder.machine_description': 'Description de la machine...',
+    'machines.placeholder.image_url': 'https://exemple.com/image.jpg ou télécharger un fichier',
+    'machines.placeholder.model': 'Numéro de modèle...',
+    'machines.placeholder.year': 'AAAA',
+    'machines.placeholder.capacity': 'ex. : épaisseur max 200mm',
+    'machines.placeholder.power': 'ex. : 380V, 200A',
+    'machines.placeholder.specification': 'Spécification...',
+
+    // Delete Modal
+    'machines.delete.confirm': 'Confirmer la Suppression',
+    'machines.delete.message': 'Êtes-vous sûr de vouloir supprimer {name} ? Cette action ne peut pas être annulée.',
+
+    // Error Messages
+    'machines.error.load_failed': 'Échec du chargement des données des machines',
+    'machines.error.upload_failed': 'Échec du téléchargement',
+    'machines.error.auth_required': 'Authentification requise',
+    'machines.error.unauthorized': 'Non autorisé : Accès administrateur requis',
+    'machines.error.token_not_found': 'Jeton d\'authentification non trouvé',
+    'machines.error.update_failed': 'Échec de la mise à jour de la page des machines',
+    'machines.error.machine_update_failed': 'Échec de la mise à jour de la machine',
+    'machines.error.machine_delete_failed': 'Échec de la suppression de la machine',
+    'machines.error.max_stats': 'Maximum 10 statistiques autorisées',
+    'machines.error.min_stats': 'Au moins une statistique est requise',
+    'machines.error.required_fields': 'Le badge, le titre et la description sont requis',
+    'machines.error.stat_required': 'La statistique {number} doit avoir un nombre et une étiquette',
+    'machines.error.machine_required': 'Machine {number} : Le titre et la catégorie sont requis',
+    'machines.error.specs_required': 'La machine {number} doit avoir au moins une spécification',
+    'machines.error.spec_required': 'Au moins une spécification est requise',
+    'machines.error.invalid_file_type': 'Veuillez sélectionner un fichier image',
+    'machines.error.file_too_large': 'La taille du fichier doit être inférieure à 5MB',
+
+    // Success Messages
+    'machines.success.upload': 'Image téléchargée avec succès',
+    'machines.success.update': 'Page des machines mise à jour avec succès',
+    'machines.success.machine_update': 'Machine mise à jour avec succès',
+    'machines.success.machine_delete': 'Machine supprimée avec succès',
+
+
+    // Contact Page
+    'contact.badge': 'Entrer en contact',
+    'contact.heading': 'Construisons quelque chose d’incroyable ensemble',
+    'contact.description': 'Prêt à démarrer votre prochain projet de construction ? Notre équipe d’experts est là pour transformer votre vision en réalité grâce à une consultation professionnelle et des solutions sur mesure.',
+    'contact.start_project': 'Démarrer votre projet',
+    'contact.form_description': 'Remplissez le formulaire et nous vous répondrons dans les 24 heures',
+    'contact.full_name': 'Nom complet',
+    'contact.email_address': 'Adresse e-mail',
+    'contact.company_organization': 'Entreprise/Organisation',
+    'contact.phone_number': 'Numéro de téléphone',
+    'contact.project_details': 'Détails du projet',
+    'contact.service_interested': 'Service qui vous intéresse',
+    'contact.project_type': 'Type de projet',
+    'contact.estimated_budget': 'Budget estimé',
+    'contact.timeline': 'Délai',
+    'contact.project_description': 'Description du projet',
+    'contact.send_message': 'Envoyer le message',
+    'contact.message_sent': 'Message envoyé avec succès ! 🎉',
+    'contact.thank_you': 'Merci de nous avoir contactés ! Notre équipe examinera les détails de votre projet et reviendra vers vous dans les 24 heures.',
+    'contact.expected_response': 'Réponse attendue : sous 24 heures',
+
+    // Placeholders
+    'contact.placeholder.name': 'Entrez votre nom complet',
+    'contact.placeholder.email': 'votre.email@exemple.com',
+    'contact.placeholder.company': 'Nom de votre entreprise',
+    'contact.placeholder.phone': '+212 661-234-567',
+    'contact.placeholder.message': 'Parlez-nous davantage de votre projet, de vos objectifs et de tout détail spécifique qui nous aidera à vous fournir la meilleure solution...',
+
+    // Form Options
+    'contact.select_service': 'Sélectionnez un service',
+    'contact.select_project_type': 'Sélectionnez un type de projet',
+    'contact.select_budget': 'Sélectionnez une tranche budgétaire',
+    'contact.select_timeline': 'Sélectionnez un délai',
+
+    // Service Options
+    'contact.service.architectural': 'Conception architecturale',
+    'contact.service.project_mgmt': 'Gestion de projet',
+    'contact.service.structural': 'Ingénierie structurelle',
+    'contact.service.machinery': 'Machinerie lourde & logistique',
+    'contact.service.quality': 'Assurance qualité',
+    'contact.service.green': 'Solutions de construction écologique',
+
+    // Project Types
+    'contact.project.residential': 'Résidentiel',
+    'contact.project.commercial': 'Commercial',
+    'contact.project.industrial': 'Industriel',
+    'contact.project.infrastructure': 'Infrastructures',
+
+    // Budget Options
+    'contact.budget.under_500k': 'Moins de 500k MAD',
+    'contact.budget.500k_2m': '500k - 2M MAD',
+    'contact.budget.2m_5m': '2M - 5M MAD',
+    'contact.budget.5m_20m': '5M - 20M MAD',
+    'contact.budget.over_20m': 'Plus de 20M MAD',
+
+    // Timeline Options
+    'contact.timeline.asap': 'Dès que possible',
+    'contact.timeline.1_3_months': '1-3 mois',
+    'contact.timeline.3_6_months': '3-6 mois',
+    'contact.timeline.6_12_months': '6-12 mois',
+    'contact.timeline.over_1_year': 'Plus d’un an',
+
+    // Map Section
+    'contact.find_office': 'Trouvez notre bureau à Marrakech',
+    'contact.visit_description': 'Venez nous rendre visite dans notre siège moderne au cœur de Marrakech. Nous sommes situés dans le quartier animé de Guéliz.',
+    'contact.get_directions': 'Obtenir l’itinéraire',
+    'contact.call_now': 'Appeler maintenant',
+    'contact.loading_map': 'Chargement de la carte interactive...',
+    'contact.prime_location': 'Emplacement privilégié',
+    'contact.prime_location_desc': 'Situé à Massira II, le quartier des affaires moderne de Marrakech',
+    'contact.easy_access': 'Accès facile',
+    'contact.easy_access_desc': 'À 5 minutes de la gare de Marrakech et des principaux axes de transport',
+    'contact.modern_facilities': 'Installations modernes',
+    'contact.modern_facilities_desc': 'Bureaux ultramodernes avec salles de réunion et espace d’exposition de projets',
+
+    // Edit Modal
+    'contact.edit_section': 'Modifier la section Contact',
+    'contact.basic_info': 'Informations de base',
+    'contact.badge_text': 'Texte du badge',
+    'contact.main_heading': 'Titre principal',
+    'contact.description_text': 'Description',
+    'contact.contact_info': 'Informations de contact',
+    'contact.add_contact': 'Ajouter un contact',
+    'contact.contact_item': 'Élément de contact',
+    'contact.icon_type': 'Type d’icône',
+    'contact.title': 'Titre',
+    'contact.details': 'Détails',
+    'contact.add_detail': 'Ajouter un détail',
+    'contact.accent_style': 'Style accentué (mis en évidence)',
+    'contact.save_changes': 'Enregistrer les modifications',
+    'contact.updated_success': 'Informations de contact mises à jour avec succès',
+    'contact.update_failed': 'Échec de la sauvegarde des informations de contact',
+
+    // Contact Info Defaults
+    'contact.info.visit_atelier': 'Visitez notre atelier',
+    'contact.info.call_us': 'Appelez-nous',
+    'contact.info.email_us': 'Écrivez-nous',
+    'contact.info.business_hours': 'Horaires d’ouverture',
+    'contact.info.hours_detail': 'Lun - Sam : 9h00 - 18h00',
+    'contact.info.sunday_closed': 'Dimanche : Fermé',
 
 
     // Footer

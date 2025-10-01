@@ -201,7 +201,7 @@ const MachinesPage = () => {
       setFormData(loadedData);
     } catch (error) {
       console.error('Error loading machines page data:', error);
-      toast.error('Failed to load machines data');
+      toast.error(t('machines.error.load_failed'));
     } finally {
       setIsLoading(false);
     }

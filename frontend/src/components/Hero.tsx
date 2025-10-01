@@ -367,19 +367,19 @@ const Hero = ({
   };
 
   // Use current data or fallback to props/defaults
-  const currentData = heroData || {
+  const currentData = {
     badge: t('hero.badge'),
     heading: t('hero.heading'), 
     description: t('hero.description'),
-    image: initialImage,
+    image: heroData?.image || initialImage,
     buttons: {
       primary: {
         text: t('hero.primary_button'),
-        url: "/services"
+        url: heroData?.buttons?.primary?.url || "/services"
       },
       secondary: {
         text: t('hero.secondary_button'),
-        url: "/portfolio"
+        url: heroData?.buttons?.secondary?.url || "/portfolio"
       }
     }
   };
