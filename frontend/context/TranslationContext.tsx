@@ -117,6 +117,9 @@ const translations = {
     'services.rating': 'Rating',
     'services.testimonial_content': 'Testimonial Content',
     'services.testimonial_placeholder': 'Enter testimonial content here...',
+    'services.delete_success_message': '{serviceName} has been removed from your services.',
+    'services.access_denied_add': 'You need moderator or admin privileges to add services.',
+    'services.access_denied_manage': 'You need moderator or admin privileges to manage services.',
 
     // Services Page - Delete Confirmation
     'services.confirm_deletion': 'Confirm Deletion',
@@ -130,7 +133,7 @@ const translations = {
     'services.get_in_touch': 'Get in Touch',
     'services.call_now': 'Call Now',
     'services.download_brochure': 'Download Brochure',
-
+    'services.no_services_available': 'There are currently no services to display.',
     
     // About Page - Additional keys
     'about.image': 'Company Image', // 'Image de l\'Entreprise'
@@ -569,6 +572,9 @@ const translations = {
     'services.save_testimonial_error': 'Échec de l\'enregistrement du témoignage',
     'services.delete_testimonial_error': 'Échec de la suppression du témoignage',
     'services.session_expired': 'Session expirée ou permissions insuffisantes',
+    'services.delete_success_message': '{serviceName} a été supprimé de vos services.',
+    'services.access_denied_add': 'Vous avez besoin de privilèges modérateur ou admin pour ajouter des services.',
+  'services.access_denied_manage': 'Vous avez besoin de privilèges modérateur ou admin pour gérer les services.',
 
     // Services Page - Modal Content
     'services.edit_main_content': 'Modifier le Contenu Principal',
@@ -586,6 +592,7 @@ const translations = {
     'services.category': 'Catégorie',
     'services.add_feature': 'Ajouter Caractéristique',
     'services.feature_placeholder': 'Entrer la description de la caractéristique',
+    'services.no_services_available': 'Il n\'y a actuellement aucun service à afficher.',
     'services.edit_testimonial': 'Modifier le Témoignage',
     'services.add_new_testimonial': 'Ajouter un Nouveau Témoignage',
     'services.client_photo': 'Photo du Client',

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { API_URL as API_BASE_URL } from '../../config/api';
+import { useTranslation } from '../../context/TranslationContext';
 
 interface Service {
   _id?: string;
@@ -36,11 +37,15 @@ interface ServiceFormData {
   category: string;
 }
 
-const ServicesCarousel = ({
-  heading = "Our Core Services",
-  description = "MECOSO delivers complete industrial solutions. From design and fabrication to installation and maintenance. Serving the mining, energy, and heavy industry sectors with a focus on quality, safety, and innovation.",
-  isModerator: initialIsModerator = false,
-}: ServicesCarouselProps) => {
+const ServicesCarousel = (props: ServicesCarouselProps) => {
+  const { t } = useTranslation();
+  
+  const {
+    heading = t('services.heading'),
+    description = t('services.description'),
+    isModerator: initialIsModerator = false,
+  } = props;
+
   const [services, setServices] = useState<Service[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -128,7 +133,7 @@ const ServicesCarousel = ({
       setServices(servicesData);
     } catch (error) {
       console.error('Error fetching services:', error);
-      toast.error('Failed to load services');
+      toast.error(t('services.fetch_error'));
     } finally {
       setLoading(false);
     }
@@ -173,15 +178,15 @@ const ServicesCarousel = ({
 
   const validateFile = (file: File): boolean => {
     if (file.size > MAX_FILE_SIZE) {
-      toast.error("File too large", {
+      toast.error(t('services.file_too_large'), {
         description: `File size must be less than 200MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
       });
       return false;
     }
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      toast.error("Invalid file type", {
-        description: "Please upload an image (JPEG, PNG, GIF, WebP).",
+      toast.error(t('services.invalid_file_type'), {
+        description: t('services.supported_formats'),
       });
       return false;
     }
@@ -231,8 +236,8 @@ const ServicesCarousel = ({
 
   const openAddModal = () => {
     if (!isModerator) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to add services."
+      toast.error(t('common.error'), {
+        description: t('services.access_denied_add'),
       });
       return;
     }
@@ -252,8 +257,8 @@ const ServicesCarousel = ({
 
   const openEditModal = (service: Service) => {
     if (!isModerator) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to edit services."
+      toast.error(t('common.error'), {
+        description: t('services.access_denied_edit'),
       });
       return;
     }
@@ -274,8 +279,8 @@ const ServicesCarousel = ({
 
   const openDeleteModal = (service: Service) => {
     if (!isModerator) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to delete services."
+      toast.error(t('common.error'), {
+        description: t('services.access_denied_edit'),
       });
       return;
     }
@@ -291,8 +296,8 @@ const ServicesCarousel = ({
 
   const openManageModal = () => {
     if (!isModerator) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to manage services."
+      toast.error(t('common.error'), {
+        description: t('services.access_denied_manage'),
       });
       return;
     }
@@ -326,8 +331,8 @@ const ServicesCarousel = ({
 
   const handleAdd = async () => {
     if (!isModerator) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to add services."
+      toast.error(t('common.error'), {
+        description: t('services.access_denied_add'),
       });
       return;
     }
@@ -366,7 +371,7 @@ const ServicesCarousel = ({
       closeModal();
     } catch (error: any) {
       console.error('Error adding service:', error);
-      const errorMessage = error.response?.data?.message || error.message || "Failed to add service";
+      const errorMessage = error.response?.data?.message || error.message ||  t('services.save_service_error');
       toast.error(errorMessage);
     } finally {
       setSaving(false);
@@ -375,8 +380,8 @@ const ServicesCarousel = ({
 
   const handleEdit = async () => {
     if (!isModerator || !editingService) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to edit services."
+      toast.error(t('common.error'), {
+        description: t('services.access_denied_edit'),
       });
       return;
     }
@@ -417,7 +422,7 @@ const ServicesCarousel = ({
       closeModal();
     } catch (error: any) {
       console.error('Error updating service:', error);
-      const errorMessage = error.response?.data?.message || error.message || "Failed to update service";
+      const errorMessage = error.response?.data?.message || error.message || t('services.edit_service_error');
       toast.error(errorMessage);
     } finally {
       setSaving(false);
@@ -426,8 +431,8 @@ const ServicesCarousel = ({
 
   const handleDelete = async () => {
     if (!isModerator || !editingService) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to delete services."
+      toast.error(t('common.error'), {
+        description: t('services.access_denied_delete'),
       });
       return;
     }
@@ -442,14 +447,14 @@ const ServicesCarousel = ({
         setCurrentIndex(0);
       }
       
-      toast.error("Service deleted", {
-        description: `${editingService.title} has been removed from your services.`,
+      toast.error(t('services.service_deleted'), {
+        description: t('services.delete_success_message').replace('{serviceName}', editingService.title),
       });
       
       closeModal();
     } catch (error: any) {
       console.error('Error deleting service:', error);
-      const errorMessage = error.response?.data?.message || error.message || "Failed to delete service";
+      const errorMessage = error.response?.data?.message || error.message || t('services.delete_service_error');
       toast.error(errorMessage);
     }
   };
@@ -501,15 +506,15 @@ const ServicesCarousel = ({
       <section className="py-32 bg-gradient-to-br from-slate-50 via-white to-gray-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden transition-all duration-300">
         <div className="container px-6 mx-auto relative z-10 text-center">
           <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">No Services Available</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-8">There are currently no services to display.</p>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">{t('services.no_services')}</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">{t('services.no_services_available')}</p>
             {isModerator && (
               <button
                 onClick={openAddModal}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-all duration-200"
               >
                 <Plus className="w-5 h-5" />
-                Add First Service
+                {t('services.add_service')}
               </button>
             )}
           </div>
@@ -551,7 +556,7 @@ const ServicesCarousel = ({
           <div className="mb-20 text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/50 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-700/50 transition-all duration-300">
               <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
-              What We Do
+              {t('services.badge')}
             </div>
             <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 bg-clip-text text-transparent mb-6 leading-tight">
               {heading}
@@ -635,7 +640,7 @@ const ServicesCarousel = ({
                           onClick={() => openDetailModal(services[currentIndex])}
                           className="group inline-flex items-center gap-3 px-8 py-4 bg-blue-600 dark:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-400 text-white rounded-2xl font-semibold transform hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl dark:shadow-slate-900/50"
                         >
-                          <span>Learn More</span>
+                          <span>{t('services.view_details')}</span>
                           <ChevronRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
                         </button>
                       </div>
@@ -713,7 +718,7 @@ const ServicesCarousel = ({
               <div ref={modalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {modalMode === 'add' ? 'Add New Service' : 'Edit Service'}
+                    {modalMode === 'add' ? t('services.add_new_service') : t('services.edit_service')}
                   </h3>
                   <button
                     onClick={closeModal}
@@ -727,7 +732,7 @@ const ServicesCarousel = ({
                   {/* Image Upload */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                      Service Image
+                      {t('services.service_image')}
                     </label>
                     <div
                       className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${
@@ -783,7 +788,7 @@ const ServicesCarousel = ({
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                        Service Title
+                        {t('services.service_title')}
                       </label>
                       <input
                         type="text"
@@ -795,7 +800,7 @@ const ServicesCarousel = ({
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                        Category
+                        {t('services.category')}
                       </label>
                       <input
                         type="text"
@@ -808,7 +813,7 @@ const ServicesCarousel = ({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                      Description
+                      {t('services.description')}
                     </label>
                     <textarea
                       rows={3}
@@ -821,7 +826,7 @@ const ServicesCarousel = ({
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                        Duration
+                        {t('services.duration')}
                       </label>
                       <input
                         type="text"
@@ -833,7 +838,7 @@ const ServicesCarousel = ({
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                        Price
+                        {t('services.price')}
                       </label>
                       <input
                         type="text"
@@ -846,7 +851,7 @@ const ServicesCarousel = ({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-                      Features
+                      {t('services.features')}
                     </label>
                     <div className="space-y-2">
                       {formData.features.map((feature, index) => (
@@ -856,7 +861,7 @@ const ServicesCarousel = ({
                             value={feature}
                             onChange={(e) => updateFeature(index, e.target.value)}
                             className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
-                            placeholder={`Feature ${index + 1}`}
+                            placeholder={t('services.feature_placeholder', `Feature ${index + 1}`)}
                           />
                           {formData.features.length > 1 && (
                             <button
@@ -873,7 +878,7 @@ const ServicesCarousel = ({
                         className="flex items-center gap-2 px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                       >
                         <Plus className="w-4 h-4" />
-                        Add Feature
+                        {t('services.add_feature')}
                       </button>
                     </div>
                   </div>
@@ -894,12 +899,12 @@ const ServicesCarousel = ({
                     {saving ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Saving...
+                         {t('common.saving')}
                       </>
                     ) : (
                       <>
                         <Save className="w-4 h-4" />
-                        {modalMode === 'add' ? 'Add Service' : 'Update Service'}
+                        {modalMode === 'add' ? t('services.add_service') : t('common.save')}
                       </>
                     )}
                   </button>
@@ -913,11 +918,11 @@ const ServicesCarousel = ({
             <div className="w-full flex items-center justify-center min-h-screen py-4">
               <div ref={modalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 my-4">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  Confirm Deletion
+                   {t('services.confirm_deletion')}
                 </h3>
                 
                 <p className="text-gray-600 dark:text-slate-300 mb-6">
-                  Are you sure you want to delete the service "{editingService.title}"? This action cannot be undone.
+                  {t('services.delete_confirmation_message')} "{editingService.title}"? {t('services.action_cannot_undone')}
                 </p>
                 
                 <div className="flex justify-end gap-4">
@@ -931,7 +936,7 @@ const ServicesCarousel = ({
                     onClick={handleDelete}
                     className="px-4 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
                   >
-                    Delete Service
+                    {t('common.delete')}
                   </button>
                 </div>
               </div>
@@ -982,14 +987,14 @@ const ServicesCarousel = ({
                   
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Description
+                      {t('services.description')}
                     </h4>
                     <p className="text-gray-600 dark:text-slate-300 mb-8 leading-relaxed">
                       {selectedService.description}
                     </p>
                     
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                      Key Features
+                      {t('services.key_features')}
                     </h4>
                     <ul className="space-y-2">
                       {selectedService.features.map((feature, index) => (
@@ -1011,7 +1016,7 @@ const ServicesCarousel = ({
               <div ref={modalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full p-6 my-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Manage Services
+                    {t('admin.services')}
                   </h3>
                   <button
                     onClick={closeModal}
@@ -1064,7 +1069,7 @@ const ServicesCarousel = ({
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
                   >
                     <Plus className="w-4 h-4" />
-                    Add New Service
+                    {t('services.add_service')}
                   </button>
                 </div>
               </div>
