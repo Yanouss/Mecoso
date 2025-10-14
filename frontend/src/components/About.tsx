@@ -2,8 +2,8 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Users, Award, Clock, Target, ArrowRight, CheckCircle, Download, X, Edit3, Save, Plus, Trash2, Image, Loader2, Type, FileText, Upload, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
-import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
-import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../context/TranslationContext';
 
 interface Stat {
   number: string;
@@ -303,6 +303,8 @@ const DEFAULT_ABOUT_DATA: AboutFormData = {
 const About = ({
   isModerator = false
 }: AboutProps) => {
+  const { t } = useTranslation();
+
   const [activeValue, setActiveValue] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedStat, setSelectedStat] = useState<Stat | null>(null);
@@ -650,13 +652,13 @@ const About = ({
           <div className="mb-20 text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/30 backdrop-blur-sm rounded-full border border-blue-200/50 dark:border-blue-700/50 transition-all duration-300">
               <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
-              {currentData.badge}
+              {t('about.badge', currentData.badge)}
             </div>
             <h1 className="text-5xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 dark:from-slate-100 dark:via-slate-200 dark:to-slate-300 bg-clip-text text-transparent mb-6 leading-tight">
-              {currentData.heading}
+              {t('about.heading', currentData.heading)}
             </h1>
             <p className="text-xl text-justify text-gray-600 dark:text-slate-300 leading-relaxed">
-              {currentData.description}
+              {t('about.main_description', currentData.description)}
             </p>
           </div>
 
@@ -690,7 +692,7 @@ const About = ({
             <div className="space-y-8">
               <div className="prose prose-lg max-w-none">
                 <p className="text-gray-700 dark:text-slate-300 text-justify leading-relaxed text-lg">
-                  {currentData.story}
+                  {t('about.our_story_content', currentData.story)}
                 </p>
               </div>
               
@@ -700,7 +702,7 @@ const About = ({
                     <Target className="size-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">Our Mission</h3>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">{t('about.our_mission')}</h3>
                     <p className="text-gray-700 dark:text-slate-300 leading-relaxed">
                       {currentData.mission}
                     </p>
@@ -751,7 +753,7 @@ const About = ({
                       
                       {/* Click indicator */}
                       <div className="mt-3 text-xs text-gray-500 dark:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        Click to learn more
+                        {t('about.click_learn_more')}
                       </div>
                     </div>
                   </div>
@@ -827,10 +829,10 @@ const About = ({
             <div className="mb-24">
               <div className="text-center mb-16">
                 <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-slate-100 mb-6">
-                  Why Choose MECOSO?
+                  {t('about.our_values')}
                 </h2>
                 <p className="text-xl text-gray-600 dark:text-slate-300 max-w-2xl mx-auto">
-                  The principles that guide every decision we make and every project we undertake.
+                  {t('about.values_description')}
                 </p>
               </div>
               
@@ -899,7 +901,7 @@ const About = ({
                     to="/about"
                     className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                   >
-                    Show More
+                    {t('common.show_more')}
                     <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-200" />
                   </Link>
                 </div>
@@ -910,10 +912,10 @@ const About = ({
           {/* CTA Section */}
           <div className="text-center max-w-4xl mx-auto">
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-slate-100 mb-6">
-              Ready to Start Your Project?
+              {t('services.ready_to_start')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-slate-300 mb-10">
-              Download our comprehensive portfolio to see our capabilities and past projects, or get in touch to discuss your specific requirements.
+              {t('services.cta_description')}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -925,12 +927,12 @@ const About = ({
                 {isDownloading ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                    Downloading...
+                    {t('common.loading')}
                   </>
                 ) : (
                   <>
                     <Download className="size-5 group-hover:scale-110 transition-transform duration-200" />
-                    Download Portfolio
+                    {t('hero.secondary_button')}
                   </>
                 )}
               </button>
@@ -939,7 +941,7 @@ const About = ({
                 to="/contact"
                 className="group inline-flex items-center gap-3 px-8 py-4 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 font-semibold rounded-2xl border border-gray-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
-                Get In Touch
+                {t('services.get_in_touch')}
                 <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
             </div>
@@ -957,7 +959,7 @@ const About = ({
                 <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
                   <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit About Page</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('about.edit_about_page')}</h2>
               </div>
               <button
                 onClick={handleCancel}
@@ -970,9 +972,9 @@ const About = ({
             {/* Tab Navigation */}
             <div className="flex border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
               {[
-                { key: 'general', label: 'General Info', icon: Type },
-                { key: 'stats', label: 'Statistics', icon: Award },
-                { key: 'values', label: 'Values', icon: Target },
+                { key: 'general', label: t('about.general_info'), icon: Type },
+                { key: 'stats', label: t('about.statistics'), icon: Award },
+                { key: 'values', label: t('about.company_values'), icon: Target },
               ].map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
@@ -997,7 +999,7 @@ const About = ({
                   {/* Badge */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Badge Text
+                      {t('about.badge_text')}
                     </label>
                     <input
                       type="text"
@@ -1011,7 +1013,7 @@ const About = ({
                   {/* Heading */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Main Heading
+                      {t('about.main_heading')}
                     </label>
                     <input
                       type="text"
@@ -1025,7 +1027,7 @@ const About = ({
                   {/* Description */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Description
+                      {t('about.description_text')}
                     </label>
                     <textarea
                       value={formData.description}
@@ -1039,7 +1041,7 @@ const About = ({
                   {/* Story */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Company Story
+                      {t('about.company_story')}
                     </label>
                     <textarea
                       value={formData.story}
@@ -1053,7 +1055,7 @@ const About = ({
                   {/* Mission */}
                   <div className="space-y-3">
                     <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Mission Statement
+                      {t('about.mission_statement')}
                     </label>
                     <textarea
                       value={formData.mission}
@@ -1072,7 +1074,7 @@ const About = ({
                       handleInputChange('image', url);
                     }}
                     onFileChange={(file) => handleFileUpload('mainImage', file)}
-                    label="Story Section Image"
+                    label={t('about.story_section_image')}
                     accept="image/*"
                   />
                 </div>
@@ -1082,13 +1084,13 @@ const About = ({
               {activeTab === 'stats' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Statistics</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('about.statistics')}</h3>
                     <button
                       onClick={addStat}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      Add Stat
+                      {t('about.add_stat')}
                     </button>
                   </div>
 
@@ -1106,7 +1108,7 @@ const About = ({
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Number</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.number')}</label>
                           <input
                             type="text"
                             value={stat.number}
@@ -1117,7 +1119,7 @@ const About = ({
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Label</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.label')}</label>
                           <input
                             type="text"
                             value={stat.label}
@@ -1128,7 +1130,7 @@ const About = ({
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.icon')}</label>
                           <select
                             value={iconOptions.find(opt => opt.component.type === stat.icon.type)?.name || 'Target'}
                             onChange={(e) => handleStatChange(index, 'icon', getIconComponent(e.target.value))}
@@ -1217,13 +1219,13 @@ const About = ({
               {activeTab === 'values' && (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Company Values</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('about.company_values')}</h3>
                     <button
                       onClick={addValue}
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      Add Value
+                      {t('about.add_value')}
                     </button>
                   </div>
 
@@ -1241,7 +1243,7 @@ const About = ({
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.title')}</label>
                           <input
                             type="text"
                             value={value.title}
@@ -1267,7 +1269,7 @@ const About = ({
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.description')}</label>
                           <textarea
                             value={value.description}
                             onChange={(e) => handleValueChange(index, 'description', e.target.value)}
@@ -1278,7 +1280,7 @@ const About = ({
                         </div>
 
                         <div className="md:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Video (Optional)</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('about.video_optional')}</label>
                           <DragDropImageUpload
                             value={previewUrls[`valueVideo-${index}`] || value.videoUrl || ''}
                             onChange={(url) => {

@@ -40,6 +40,7 @@ const translations = {
     'common.confirm': 'Confirm',
     'common.error': 'Error',
     'common.success': 'Success',
+    'common.show_more': 'Show More',
     
     // Services
     'services.badge': 'Our Services',
@@ -196,6 +197,9 @@ const translations = {
     'about.unknown_error': 'Unknown error', 
     'about.projects_completed': 'Projects Completed',
     'about.complete_solutions': 'Complete Solutions',
+    'about.our_story_content': 'Our Story Content',
+    'about.values_title': 'Why Choose MECOSO?',
+
 
 
     // Gallery Page
@@ -524,6 +528,7 @@ const translations = {
     'common.confirm': 'Confirmer',
     'common.error': 'Erreur',
     'common.success': 'Succès',
+    'common.show_more': 'Afficher Plus',
     
     // Services
     'services.badge': 'Nos Services',
