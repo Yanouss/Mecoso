@@ -9,7 +9,8 @@ const {
   getHeroHistory,
   restoreHero,
   uploadHeroImage,
-  deleteHeroImage
+  deleteHeroImage,
+  getHeroWithTranslations
 } = require('../controllers/hero.controller');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -243,5 +244,8 @@ router.get('/backup', protect, authorize('admin'), async (req, res) => {
     });
   }
 });
+
+
+router.get('/:lang', getHeroWithTranslations);
 
 module.exports = router;

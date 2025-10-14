@@ -3,6 +3,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');
 const path = require('path');
 const fs = require('fs');
+const Translation = require('../models/Translation.model');
 
 // @desc    Get hero content
 // @route   GET /api/hero
@@ -226,5 +227,196 @@ exports.deleteHeroImage = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: 'Image deleted successfully'
+  });
+});
+
+
+// Add this new method
+// @desc    Get hero content with translations
+// @route   GET /api/hero/:lang?
+// @access  Public
+exports.getHeroWithTranslations = asyncHandler(async (req, res, next) => {
+  const lang = req.params.lang || req.query.lang || 'en';
+  
+  if (!['en', 'fr'].includes(lang)) {
+    return next(new ErrorResponse('Invalid language. Supported: en, fr', 400));
+  }
+
+  let hero = await Hero.findOne({ isActive: true });
+  
+  if (!hero) {
+    hero = await Hero.create({});
+  }
+
+  // Get translations for hero content
+  const translationKeys = [
+    'hero.badge',
+    'hero.heading',
+    'hero.description',
+    'hero.primary_button',
+    'hero.secondary_button'
+  ];
+
+  const translations = await Translation.find({ 
+    key: { $in: translationKeys } 
+  });
+
+  // Build translated response
+  const translatedHero = {
+    _id: hero._id,
+    badge: translations.find(t => t.key === 'hero.badge')?.translations[lang] || hero.badge,
+    heading: translations.find(t => t.key === 'hero.heading')?.translations[lang] || hero.heading,
+    description: translations.find(t => t.key === 'hero.description')?.translations[lang] || hero.description,
+    image: hero.image,
+    buttons: {
+      primary: {
+        text: translations.find(t => t.key === 'hero.primary_button')?.translations[lang] || hero.buttons?.primary?.text,
+        url: hero.buttons?.primary?.url
+      },
+      secondary: {
+        text: translations.find(t => t.key === 'hero.secondary_button')?.translations[lang] || hero.buttons?.secondary?.text,
+        url: hero.buttons?.secondary?.url
+      }
+    },
+    isActive: hero.isActive,
+    lastUpdated: hero.lastUpdated
+  };
+
+  res.status(200).json({
+    success: true,
+    data: translatedHero
+  });
+});
+
+// Update the existing updateHero method to also update translations
+exports.updateHero = asyncHandler(async (req, res, next) => {
+  const {
+    badge,
+    heading,
+    description,
+    imageAlt,
+    primaryButtonText,
+    primaryButtonUrl,
+    secondaryButtonText,
+    secondaryButtonUrl,
+    // New translation fields
+    badgeFr,
+    headingFr,
+    descriptionFr,
+    primaryButtonTextFr,
+    secondaryButtonTextFr
+  } = req.body;
+
+  const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+  let hero = await Hero.findOne({ isActive: true });
+  
+  if (!hero) {
+    hero = new Hero({});
+  }
+  
+  // Update English content in Hero model (keep as base)
+  if (badge !== undefined) hero.badge = badge;
+  if (heading !== undefined) hero.heading = heading;
+  if (description !== undefined) hero.description = description;
+  if (imageAlt !== undefined) hero.image.alt = imageAlt;
+  
+  if (primaryButtonText !== undefined || primaryButtonUrl !== undefined) {
+    if (!hero.buttons) hero.buttons = { primary: {}, secondary: {} };
+    if (!hero.buttons.primary) hero.buttons.primary = {};
+    
+    if (primaryButtonText !== undefined) hero.buttons.primary.text = primaryButtonText;
+    if (primaryButtonUrl !== undefined) hero.buttons.primary.url = primaryButtonUrl;
+  }
+  
+  if (secondaryButtonText !== undefined || secondaryButtonUrl !== undefined) {
+    if (!hero.buttons) hero.buttons = { primary: {}, secondary: {} };
+    if (!hero.buttons.secondary) hero.buttons.secondary = {};
+    
+    if (secondaryButtonText !== undefined) hero.buttons.secondary.text = secondaryButtonText;
+    if (secondaryButtonUrl !== undefined) hero.buttons.secondary.url = secondaryButtonUrl;
+  }
+  
+  // Handle file upload
+  if (req.file) {
+    if (hero.image && hero.image.src && hero.image.src.includes('/uploads/')) {
+      const filename = hero.image.src.split('/').pop();
+      const oldImagePath = path.join(__dirname, '..', 'uploads', filename);
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+    hero.image.src = `${baseUrl}/uploads/${req.file.filename}`;
+  }
+  
+  hero.lastUpdated = Date.now();
+  hero.updatedBy = req.user.id;
+  
+  await hero.save();
+
+  // Update translations in Translation model
+  const translationUpdates = [];
+
+  if (badge !== undefined || badgeFr !== undefined) {
+    translationUpdates.push({
+      key: 'hero.badge',
+      en: badge || hero.badge,
+      fr: badgeFr || badge || hero.badge
+    });
+  }
+
+  if (heading !== undefined || headingFr !== undefined) {
+    translationUpdates.push({
+      key: 'hero.heading',
+      en: heading || hero.heading,
+      fr: headingFr || heading || hero.heading
+    });
+  }
+
+  if (description !== undefined || descriptionFr !== undefined) {
+    translationUpdates.push({
+      key: 'hero.description',
+      en: description || hero.description,
+      fr: descriptionFr || description || hero.description
+    });
+  }
+
+  if (primaryButtonText !== undefined || primaryButtonTextFr !== undefined) {
+    translationUpdates.push({
+      key: 'hero.primary_button',
+      en: primaryButtonText || hero.buttons.primary.text,
+      fr: primaryButtonTextFr || primaryButtonText || hero.buttons.primary.text
+    });
+  }
+
+  if (secondaryButtonText !== undefined || secondaryButtonTextFr !== undefined) {
+    translationUpdates.push({
+      key: 'hero.secondary_button',
+      en: secondaryButtonText || hero.buttons.secondary.text,
+      fr: secondaryButtonTextFr || secondaryButtonText || hero.buttons.secondary.text
+    });
+  }
+
+  // Update all translations
+  for (const update of translationUpdates) {
+    await Translation.findOneAndUpdate(
+      { key: update.key },
+      {
+        key: update.key,
+        translations: {
+          en: update.en,
+          fr: update.fr
+        },
+        category: 'hero',
+        isEditable: true,
+        lastUpdated: Date.now(),
+        updatedBy: req.user.id
+      },
+      { upsert: true, new: true }
+    );
+  }
+  
+  res.status(200).json({
+    success: true,
+    data: hero
   });
 });

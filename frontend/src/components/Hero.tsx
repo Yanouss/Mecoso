@@ -65,6 +65,12 @@ interface HeroFormData {
   secondaryButtonText: string;
   secondaryButtonUrl: string;
   imageFile?: File;
+  // French translations
+  badgeFr?: string;
+  headingFr?: string;
+  descriptionFr?: string;
+  primaryButtonTextFr?: string;
+  secondaryButtonTextFr?: string;
 }
 
 const Hero = ({
@@ -86,6 +92,9 @@ const Hero = ({
   const { user, isAuthenticated } = useAuth();
   const isModerator = initialIsModerator || (isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin'));
 
+  // ADD THIS LINE - Get translation context
+  const { t, currentLanguage } = useTranslation();
+
   const [formData, setFormData] = useState<HeroFormData>({
     badge: "Industrial Excellence",
     heading: initialHeading,
@@ -98,7 +107,6 @@ const Hero = ({
     secondaryButtonUrl: "/portfolio"
   });
 
-  const { t } = useTranslation();
 
   const MAX_FILE_SIZE = 200 * 1024 * 1024;
   const ACCEPTED_TYPES = [
@@ -140,7 +148,8 @@ const Hero = ({
   const fetchHeroData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/hero`);
+      // Fetch hero data with current language
+      const response = await axios.get(`${API_BASE_URL}/hero/${currentLanguage}`);
       const data = response.data.data;
       setHeroData(data);
       
@@ -164,6 +173,14 @@ const Hero = ({
     }
   };
 
+
+  useEffect(() => {
+    if (!loading) {
+      fetchHeroData();
+    }
+  }, [currentLanguage]);
+
+
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     return {
@@ -176,11 +193,24 @@ const Hero = ({
 
   const getImageUrl = (imagePath: string) => {
     if (!imagePath) return '';
+    
+    console.log('Processing image path:', imagePath); // Debug log
+    
+    // If it's already a full URL, return as is
     if (imagePath.startsWith('http')) return imagePath;
     
+    // If it starts with /uploads, construct the backend URL
     if (imagePath.startsWith('/uploads')) {
       const backendUrl = API_BASE_URL.replace('/api', '');
-      return `${backendUrl}${imagePath}`;
+      // Ensure we don't have double slashes
+      const cleanBackendUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
+      const cleanImagePath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+      return `${cleanBackendUrl}${cleanImagePath}`;
+    }
+    
+    // If it's a relative path, ensure it starts with /
+    if (!imagePath.startsWith('/')) {
+      return `/${imagePath}`;
     }
     
     return imagePath;
@@ -283,7 +313,7 @@ const Hero = ({
       setSaving(true);
       const formDataToSend = new FormData();
       
-      // Append text data
+      // Append English data
       formDataToSend.append('badge', formData.badge);
       formDataToSend.append('heading', formData.heading);
       formDataToSend.append('description', formData.description);
@@ -292,6 +322,13 @@ const Hero = ({
       formDataToSend.append('primaryButtonUrl', formData.primaryButtonUrl);
       formDataToSend.append('secondaryButtonText', formData.secondaryButtonText);
       formDataToSend.append('secondaryButtonUrl', formData.secondaryButtonUrl);
+      
+      // Append French translations
+      if (formData.badgeFr) formDataToSend.append('badgeFr', formData.badgeFr);
+      if (formData.headingFr) formDataToSend.append('headingFr', formData.headingFr);
+      if (formData.descriptionFr) formDataToSend.append('descriptionFr', formData.descriptionFr);
+      if (formData.primaryButtonTextFr) formDataToSend.append('primaryButtonTextFr', formData.primaryButtonTextFr);
+      if (formData.secondaryButtonTextFr) formDataToSend.append('secondaryButtonTextFr', formData.secondaryButtonTextFr);
       
       // Append image file if new one is uploaded
       if (formData.imageFile) {
@@ -304,15 +341,7 @@ const Hero = ({
         getAuthHeaders()
       );
       
-      const updatedData = response.data.data;
-      setHeroData(updatedData);
-      
-      // Update form data to reflect saved state
-      setFormData(prev => ({
-        ...prev,
-        imageSrc: updatedData.image?.src || prev.imageSrc,
-        imageFile: undefined
-      }));
+      await fetchHeroData(); // Refetch to get updated translations
       
       toast.success("Hero section updated", {
         description: "Your changes have been saved successfully.",
@@ -763,6 +792,88 @@ const Hero = ({
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* French Translation Section */}
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  French Translations
+                </h3>
+                
+                {/* French Badge */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Badge Text (Français)
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.badgeFr || ''}
+                    onChange={(e) => handleInputChange('badgeFr', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                    placeholder="Texte du badge en français..."
+                  />
+                </div>
+
+                {/* French Heading */}
+                <div className="space-y-3 mt-4">
+                  <div className="flex items-center gap-2">
+                    <Type className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Main Heading (Français)
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.headingFr || ''}
+                    onChange={(e) => handleInputChange('headingFr', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                    placeholder="Titre principal en français..."
+                  />
+                </div>
+
+                {/* French Description */}
+                <div className="space-y-3 mt-4">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      Description (Français)
+                    </label>
+                  </div>
+                  <textarea
+                    value={formData.descriptionFr || ''}
+                    onChange={(e) => handleInputChange('descriptionFr', e.target.value)}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none transition-all duration-200"
+                    placeholder="Description en français..."
+                  />
+                </div>
+
+                {/* French Primary Button */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Primary Button (Français)</h4>
+                  <input
+                    type="text"
+                    value={formData.primaryButtonTextFr || ''}
+                    onChange={(e) => handleInputChange('primaryButtonTextFr', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                    placeholder="Texte du bouton en français..."
+                  />
+                </div>
+
+                {/* French Secondary Button */}
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg mt-4">
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Secondary Button (Français)</h4>
+                  <input
+                    type="text"
+                    value={formData.secondaryButtonTextFr || ''}
+                    onChange={(e) => handleInputChange('secondaryButtonTextFr', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+                    placeholder="Texte du bouton en français..."
+                  />
                 </div>
               </div>
             </div>

@@ -596,6 +596,33 @@ const About = ({
     setSelectedStat(null);
   };
 
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return '';
+    
+    console.log('Processing image path:', imagePath);
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) return imagePath;
+    
+    // If it starts with /uploads, construct the backend URL
+    if (imagePath.startsWith('/uploads')) {
+      const backendUrl = 'http://localhost:5000'; // Adjust to your backend URL
+      // Ensure we don't have double slashes
+      const cleanBackendUrl = backendUrl.endsWith('/') ? backendUrl.slice(0, -1) : backendUrl;
+      const cleanImagePath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+      const fullUrl = `${cleanBackendUrl}${cleanImagePath}`;
+      console.log('Constructed image URL:', fullUrl);
+      return fullUrl;
+    }
+    
+    // If it's a relative path, ensure it starts with /
+    if (!imagePath.startsWith('/')) {
+      return `/${imagePath}`;
+    }
+    
+    return imagePath;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center">
@@ -668,15 +695,32 @@ const About = ({
               {currentData.image ? (
                 <div className="relative overflow-hidden rounded-3xl shadow-2xl dark:shadow-slate-900/50 group">
                   <img 
-                    src={currentData.image} 
+                    src={getImageUrl(currentData.image)} 
                     alt="About us" 
                     className="w-full h-[500px] object-cover group-hover:scale-110 transition-transform duration-700"
                     onError={(e) => {
-                      console.error('Failed to load image:', currentData.image);
-                      // You can set a fallback image here
-                      (e.target as HTMLImageElement).src = '/images/fallback-about.jpg';
+                      const target = e.target as HTMLImageElement;
+                      if (!target.dataset.errorHandled) {
+                        target.dataset.errorHandled = 'true';
+                        console.error('Failed to load image:', currentData.image);
+                        target.style.display = 'none';
+                        const parent = target.closest('.relative');
+                        if (parent) {
+                          const fallback = parent.querySelector('.hidden.text-center') as HTMLElement;
+                          if (fallback) {
+                            fallback.classList.remove('hidden');
+                            fallback.classList.add('flex');
+                          }
+                        }
+                      }
                     }}
                   />
+                  <div className="hidden absolute inset-0 bg-gray-200 dark:bg-slate-700 h-[500px] items-center justify-center text-center text-gray-500 dark:text-slate-400">
+                    <div>
+                      <Image className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p>Image not available</p>
+                    </div>
+                  </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent dark:from-black/70 dark:via-transparent dark:to-transparent" />
                 </div>
               ) : (
