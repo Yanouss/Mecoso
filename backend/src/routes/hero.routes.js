@@ -13,6 +13,10 @@ const {
   getHeroWithTranslations
 } = require('../controllers/hero.controller');
 const { protect, authorize } = require('../middleware/auth');
+const { testGeminiAPI } = require('../utils/translationService');
+const { translateText, detectLanguage } = require('../utils/translationService');
+const Translation = require('../models/Translation.model');
+
 
 const router = express.Router();
 
@@ -244,6 +248,152 @@ router.get('/backup', protect, authorize('admin'), async (req, res) => {
     });
   }
 });
+
+router.get('/test-translation', async (req, res) => {
+  try {
+    const { translateText } = require('../utils/translationService');
+    
+    const testText = 'Hello world';
+    const translation = await translateText(testText, 'fr');
+    
+    res.json({
+      success: true,
+      original: testText,
+      translated: translation,
+      apiKeyPresent: !!process.env.GEMINI_API_KEY,
+      apiKeyLength: process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.length : 0
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      error: error.message,
+      apiKeyPresent: !!process.env.GEMINI_API_KEY
+    });
+  }
+});
+
+
+
+// @desc    Fix all broken translations (swaps EN/FR if wrong, re-translates if needed)
+// @route   POST /api/hero/fix-translations
+// @access  Private (Admin/Moderator)
+router.post('/fix-translations', protect, authorize('moderator', 'admin'), async (req, res) => {
+  try {
+    console.log('\n🔧 ========== FIXING ALL HERO TRANSLATIONS ==========\n');
+    
+    const heroTranslations = await Translation.find({ category: 'hero' });
+    const fixedFields = [];
+    const report = [];
+    
+    for (const trans of heroTranslations) {
+      console.log(`\n📝 Checking: ${trans.key}`);
+      console.log(`   EN: "${trans.translations.en}"`);
+      console.log(`   FR: "${trans.translations.fr}"`);
+      
+      const enLang = detectLanguage(trans.translations.en);
+      const frLang = detectLanguage(trans.translations.fr);
+      
+      console.log(`   EN field detected as: ${enLang.toUpperCase()}`);
+      console.log(`   FR field detected as: ${frLang.toUpperCase()}`);
+      
+      let fixed = false;
+      let action = '';
+      
+      // Case 1: Both are same language (need to translate one)
+      if (enLang === frLang) {
+        console.log(`   ⚠️  Both fields are ${enLang.toUpperCase()}!`);
+        
+        if (enLang === 'fr') {
+          // Both French - translate EN to English
+          console.log(`   🔄 Translating EN field to English...`);
+          const translatedToEn = await translateText(trans.translations.en, 'en');
+          trans.translations.en = translatedToEn;
+          action = 'Translated EN to English';
+          console.log(`   ✅ New EN: "${translatedToEn}"`);
+        } else {
+          // Both English - translate FR to French
+          console.log(`   🔄 Translating FR field to French...`);
+          const translatedToFr = await translateText(trans.translations.fr, 'fr');
+          trans.translations.fr = translatedToFr;
+          action = 'Translated FR to French';
+          console.log(`   ✅ New FR: "${translatedToFr}"`);
+        }
+        fixed = true;
+      }
+      
+      // Case 2: EN contains French and FR contains English (swapped)
+      else if (enLang === 'fr' && frLang === 'en') {
+        console.log(`   🔄 SWAPPING! Fields are reversed!`);
+        const temp = trans.translations.en;
+        trans.translations.en = trans.translations.fr;
+        trans.translations.fr = temp;
+        action = 'Swapped EN ↔ FR';
+        console.log(`   ✅ Swapped successfully!`);
+        fixed = true;
+      }
+      
+      // Case 3: EN is French but FR is correct
+      else if (enLang === 'fr' && frLang === 'fr') {
+        console.log(`   🔄 EN field is French, translating to English...`);
+        const translatedToEn = await translateText(trans.translations.en, 'en');
+        trans.translations.en = translatedToEn;
+        action = 'Fixed EN field';
+        console.log(`   ✅ New EN: "${translatedToEn}"`);
+        fixed = true;
+      }
+      
+      // Case 4: FR is English but EN is correct
+      else if (enLang === 'en' && frLang === 'en') {
+        console.log(`   🔄 FR field is English, translating to French...`);
+        const translatedToFr = await translateText(trans.translations.fr, 'fr');
+        trans.translations.fr = translatedToFr;
+        action = 'Fixed FR field';
+        console.log(`   ✅ New FR: "${translatedToFr}"`);
+        fixed = true;
+      }
+      
+      // Save if fixed
+      if (fixed) {
+        await trans.save();
+        fixedFields.push(trans.key);
+        report.push({
+          key: trans.key,
+          action: action,
+          en: trans.translations.en,
+          fr: trans.translations.fr
+        });
+        console.log(`   💾 Saved!`);
+      } else {
+        console.log(`   ✅ Already correct!`);
+        report.push({
+          key: trans.key,
+          action: 'Already correct',
+          en: trans.translations.en,
+          fr: trans.translations.fr
+        });
+      }
+    }
+    
+    console.log(`\n✅ ========== FIX COMPLETED ==========`);
+    console.log(`Fixed ${fixedFields.length} fields: ${fixedFields.join(', ')}`);
+    
+    res.status(200).json({
+      success: true,
+      message: `Fixed ${fixedFields.length} translation(s)`,
+      fixedFields,
+      report
+    });
+    
+  } catch (error) {
+    console.error('Error fixing translations:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fixing translations',
+      error: error.message
+    });
+  }
+});
+
 
 
 router.get('/:lang', getHeroWithTranslations);

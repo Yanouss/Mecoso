@@ -86,6 +86,7 @@ const Hero = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
   const [heroData, setHeroData] = useState<HeroData | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -145,10 +146,12 @@ const Hero = ({
     };
   }, [isModalOpen]);
 
+
   const fetchHeroData = async () => {
     try {
       setLoading(true);
-      // Fetch hero data with current language
+      
+      // Fetch hero data with translations for current language
       const response = await axios.get(`${API_BASE_URL}/hero/${currentLanguage}`);
       const data = response.data.data;
       setHeroData(data);
@@ -165,6 +168,16 @@ const Hero = ({
         secondaryButtonText: data.buttons?.secondary?.text || "View Portfolio",
         secondaryButtonUrl: data.buttons?.secondary?.url || "/portfolio"
       });
+
+      // Store the fetched translations
+      setTranslations({
+        'hero.badge': data.badge,
+        'hero.heading': data.heading,
+        'hero.description': data.description,
+        'hero.primary_button': data.buttons?.primary?.text,
+        'hero.secondary_button': data.buttons?.secondary?.text,
+      });
+      
     } catch (error) {
       console.error('Error fetching hero data:', error);
       toast.error('Failed to load hero data');
@@ -301,6 +314,7 @@ const Hero = ({
     });
   };
 
+
   const handleSave = async () => {
     if (!isModerator) {
       toast.error("Access denied", {
@@ -313,7 +327,7 @@ const Hero = ({
       setSaving(true);
       const formDataToSend = new FormData();
       
-      // Append English data
+      // Send data in one language - backend will auto-translate
       formDataToSend.append('badge', formData.badge);
       formDataToSend.append('heading', formData.heading);
       formDataToSend.append('description', formData.description);
@@ -323,14 +337,6 @@ const Hero = ({
       formDataToSend.append('secondaryButtonText', formData.secondaryButtonText);
       formDataToSend.append('secondaryButtonUrl', formData.secondaryButtonUrl);
       
-      // Append French translations
-      if (formData.badgeFr) formDataToSend.append('badgeFr', formData.badgeFr);
-      if (formData.headingFr) formDataToSend.append('headingFr', formData.headingFr);
-      if (formData.descriptionFr) formDataToSend.append('descriptionFr', formData.descriptionFr);
-      if (formData.primaryButtonTextFr) formDataToSend.append('primaryButtonTextFr', formData.primaryButtonTextFr);
-      if (formData.secondaryButtonTextFr) formDataToSend.append('secondaryButtonTextFr', formData.secondaryButtonTextFr);
-      
-      // Append image file if new one is uploaded
       if (formData.imageFile) {
         formDataToSend.append('image', formData.imageFile);
       }
@@ -341,10 +347,13 @@ const Hero = ({
         getAuthHeaders()
       );
       
-      await fetchHeroData(); // Refetch to get updated translations
+      await fetchHeroData();
       
+      const translationInfo = response.data.translationInfo;
       toast.success("Hero section updated", {
-        description: "Your changes have been saved successfully.",
+        description: translationInfo 
+          ? `Content saved in ${translationInfo.detectedLanguage} and auto-translated to ${translationInfo.translatedTo}!`
+          : "Your changes have been saved successfully.",
       });
       
       setIsModalOpen(false);
@@ -356,6 +365,7 @@ const Hero = ({
       setSaving(false);
     }
   };
+
 
   const handleCancel = () => {
     if (!heroData) return;
@@ -396,18 +406,19 @@ const Hero = ({
   };
 
   // Use current data or fallback to props/defaults
+// Replace the currentData object
   const currentData = {
-    badge: t('hero.badge'),
-    heading: t('hero.heading'), 
-    description: t('hero.description'),
+    badge: translations['hero.badge'] || heroData?.badge || t('hero.badge'),
+    heading: translations['hero.heading'] || heroData?.heading || t('hero.heading'), 
+    description: translations['hero.description'] || heroData?.description || t('hero.description'),
     image: heroData?.image || initialImage,
     buttons: {
       primary: {
-        text: t('hero.primary_button'),
+        text: translations['hero.primary_button'] || heroData?.buttons?.primary?.text || t('hero.primary_button'),
         url: heroData?.buttons?.primary?.url || "/services"
       },
       secondary: {
-        text: t('hero.secondary_button'),
+        text: translations['hero.secondary_button'] || heroData?.buttons?.secondary?.text || t('hero.secondary_button'),
         url: heroData?.buttons?.secondary?.url || "/portfolio"
       }
     }
@@ -795,87 +806,7 @@ const Hero = ({
                 </div>
               </div>
 
-              {/* French Translation Section */}
-              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  French Translations
-                </h3>
-                
-                {/* French Badge */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Badge Text (Français)
-                    </label>
-                  </div>
-                  <input
-                    type="text"
-                    value={formData.badgeFr || ''}
-                    onChange={(e) => handleInputChange('badgeFr', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
-                    placeholder="Texte du badge en français..."
-                  />
-                </div>
-
-                {/* French Heading */}
-                <div className="space-y-3 mt-4">
-                  <div className="flex items-center gap-2">
-                    <Type className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Main Heading (Français)
-                    </label>
-                  </div>
-                  <input
-                    type="text"
-                    value={formData.headingFr || ''}
-                    onChange={(e) => handleInputChange('headingFr', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
-                    placeholder="Titre principal en français..."
-                  />
-                </div>
-
-                {/* French Description */}
-                <div className="space-y-3 mt-4">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      Description (Français)
-                    </label>
-                  </div>
-                  <textarea
-                    value={formData.descriptionFr || ''}
-                    onChange={(e) => handleInputChange('descriptionFr', e.target.value)}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none transition-all duration-200"
-                    placeholder="Description en français..."
-                  />
-                </div>
-
-                {/* French Primary Button */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mt-4">
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Primary Button (Français)</h4>
-                  <input
-                    type="text"
-                    value={formData.primaryButtonTextFr || ''}
-                    onChange={(e) => handleInputChange('primaryButtonTextFr', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                    placeholder="Texte du bouton en français..."
-                  />
-                </div>
-
-                {/* French Secondary Button */}
-                <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg mt-4">
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Secondary Button (Français)</h4>
-                  <input
-                    type="text"
-                    value={formData.secondaryButtonTextFr || ''}
-                    onChange={(e) => handleInputChange('secondaryButtonTextFr', e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-                    placeholder="Texte du bouton en français..."
-                  />
-                </div>
-              </div>
+              
             </div>
 
             {/* Modal Footer */}

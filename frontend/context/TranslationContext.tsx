@@ -25,8 +25,8 @@ const translations = {
     
     // Hero Section
     'hero.badge': 'Industrial Excellence',
-    'hero.heading': 'Leading Industrial Solutions in Morocco',
-    'hero.description': 'MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we\'ve been delivering excellence in metal structure design, manufacturing, and assembly across all industries.',
+    // 'hero.heading': 'Leading Industrial Solutions in Morocco',
+    // 'hero.description': 'MECOSO is your trusted partner for comprehensive boilermaking and structural steelwork solutions. Since 2005, we\'ve been delivering excellence in metal structure design, manufacturing, and assembly across all industries.',
     'hero.primary_button': 'Our Services',
     'hero.secondary_button': 'Download Portfolio',
     
@@ -513,8 +513,8 @@ const translations = {
     
     // Hero Section
     'hero.badge': 'Excellence Industrielle',
-    'hero.heading': 'Solutions Industrielles de Pointe au Maroc',
-    'hero.description': 'MECOSO est votre partenaire de confiance pour des solutions complètes de chaudronnerie et de structures métalliques. Depuis 2005, nous offrons l\'excellence dans la conception, la fabrication et l\'assemblage de structures métalliques pour toutes les industries.',
+    // 'hero.heading': 'Solutions Industrielles de Pointe au Maroc',
+    // 'hero.description': 'MECOSO est votre partenaire de confiance pour des solutions complètes de chaudronnerie et de structures métalliques. Depuis 2005, nous offrons l\'excellence dans la conception, la fabrication et l\'assemblage de structures métalliques pour toutes les industries.',
     'hero.primary_button': 'Nos Services',
     'hero.secondary_button': 'Télécharger Portfolio',
     

@@ -164,6 +164,11 @@ const defaultTranslations = [
     translations: { en: 'Success', fr: 'Succès' },
     category: 'common'
   },
+  {
+    key: 'common.show_more',
+    translations: { en: 'Show More', fr: 'Afficher Plus' },
+    category: 'common'
+  },
 
   // Services Page - Main Content
   {
@@ -282,6 +287,38 @@ const defaultTranslations = [
   {
     key: 'services.expert_team',
     translations: { en: 'Expert Team', fr: 'Équipe Experte' },
+    category: 'services'
+  },
+  {
+    key: 'services.delete_success_message',
+    translations: { 
+      en: '{serviceName} has been removed from your services.', 
+      fr: '{serviceName} a été supprimé de vos services.' 
+    },
+    category: 'services'
+  },
+  {
+    key: 'services.access_denied_add',
+    translations: { 
+      en: 'You need moderator or admin privileges to add services.', 
+      fr: 'Vous avez besoin de privilèges modérateur ou admin pour ajouter des services.' 
+    },
+    category: 'services'
+  },
+  {
+    key: 'services.access_denied_manage',
+    translations: { 
+      en: 'You need moderator or admin privileges to manage services.', 
+      fr: 'Vous avez besoin de privilèges modérateur ou admin pour gérer les services.' 
+    },
+    category: 'services'
+  },
+  {
+    key: 'services.no_services_available',
+    translations: { 
+      en: 'There are currently no services to display.', 
+      fr: 'Il n\'y a actuellement aucun service à afficher.' 
+    },
     category: 'services'
   },
 
@@ -676,6 +713,23 @@ const defaultTranslations = [
     translations: { en: 'Show Less', fr: 'Afficher Moins' },
     category: 'about'
   },
+  {
+    key: 'about.our_story_content',
+    translations: { 
+      en: 'Our Story Content', 
+      fr: 'Contenu de Notre Histoire' 
+    },
+    category: 'about'
+  },
+  {
+    key: 'about.values_title',
+    translations: { 
+      en: 'Why Choose MECOSO?', 
+      fr: 'Pourquoi Choisir MECOSO?' 
+    },
+    category: 'about'
+  },
+
 
   // Admin Panel
   {
@@ -1683,7 +1737,7 @@ const defaultTranslations = [
   // Contact Page
   {
     key: 'contact.badge',
-    translations: { en: 'Get In Touch', fr: 'Contactez-Nous' },
+    translations: { en: 'Get In Touch', fr: 'Entrer en contact' },
     category: 'contact'
   },
   {
