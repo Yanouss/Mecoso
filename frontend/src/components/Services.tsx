@@ -38,7 +38,7 @@ interface ServiceFormData {
 }
 
 const ServicesCarousel = (props: ServicesCarouselProps) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   
   const {
     heading = t('services.heading'),
@@ -65,6 +65,12 @@ const ServicesCarousel = (props: ServicesCarouselProps) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+
+  const [translations, setTranslations] = useState<Record<string, any>>({});
+
+
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   
@@ -122,15 +128,34 @@ const ServicesCarousel = (props: ServicesCarouselProps) => {
     };
   }, [modalMode]);
 
+
+
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/services`);
+      // Use the translated endpoint with current language
+      
+      const response = await axios.get(`${API_BASE_URL}/services/translated`, {
+        params: { lang: currentLanguage }
+      });
+
       const servicesData = response.data.data.map((service: any) => ({
         ...service,
         id: service._id || service.id
       }));
       setServices(servicesData);
+      
+      // Store translations for reference
+      const translationMap: Record<string, any> = {};
+      servicesData.forEach((service: any) => {
+        translationMap[`service.${service.id}.title`] = service.title;
+        translationMap[`service.${service.id}.description`] = service.description;
+        service.features.forEach((feature: string, index: number) => {
+          translationMap[`service.${service.id}.feature_${index}`] = feature;
+        });
+      });
+      setTranslations(translationMap);
+      
     } catch (error) {
       console.error('Error fetching services:', error);
       toast.error(t('services.fetch_error'));
@@ -138,6 +163,14 @@ const ServicesCarousel = (props: ServicesCarouselProps) => {
       setLoading(false);
     }
   };
+
+
+  useEffect(() => {
+    if (!loading) {
+      fetchServices();
+    }
+  }, [currentLanguage]);
+
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
@@ -329,6 +362,7 @@ const ServicesCarousel = (props: ServicesCarouselProps) => {
     }
   };
 
+
   const handleAdd = async () => {
     if (!isModerator) {
       toast.error(t('common.error'), {
@@ -361,22 +395,23 @@ const ServicesCarousel = (props: ServicesCarouselProps) => {
         getAuthHeaders()
       );
       
-      const newService = response.data.data;
-      setServices(prev => [...prev, {...newService, id: newService._id || newService.id}]);
+      await fetchServices(); // Refetch to get translated data
       
+      const translationInfo = response.data.translationInfo;
       toast.success("Service added successfully", {
-        description: `${formData.title} has been added to your services.`,
+        description: translationInfo?.message || `${formData.title} has been added and translated automatically.`,
       });
       
       closeModal();
     } catch (error: any) {
       console.error('Error adding service:', error);
-      const errorMessage = error.response?.data?.message || error.message ||  t('services.save_service_error');
+      const errorMessage = error.response?.data?.message || error.message || t('services.save_service_error');
       toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
   };
+
 
   const handleEdit = async () => {
     if (!isModerator || !editingService) {
@@ -410,13 +445,11 @@ const ServicesCarousel = (props: ServicesCarouselProps) => {
         getAuthHeaders()
       );
       
-      const updatedService = response.data.data;
-      setServices(prev => prev.map(s => 
-        s.id === editingService.id ? {...updatedService, id: updatedService._id || updatedService.id} : s
-      ));
+      await fetchServices(); // Refetch to get translated data
       
+      const translationInfo = response.data.translationInfo;
       toast.success("Service updated successfully", {
-        description: `${formData.title} has been updated.`,
+        description: translationInfo?.message || `${formData.title} has been updated and translated automatically.`,
       });
       
       closeModal();

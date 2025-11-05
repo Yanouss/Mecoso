@@ -39,6 +39,11 @@ const serviceSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+   translationKeys: {
+    title: { type: String, default: null },
+    description: { type: String, default: null },
+    features: [{ type: String, default: null }]
+  },
   lastUpdated: {
     type: Date,
     default: Date.now
@@ -50,5 +55,12 @@ const serviceSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+serviceSchema.statics.generateTranslationKey = function(serviceId, field, index = null) {
+  if (field === 'features' && index !== null) {
+    return `service.${serviceId}.feature_${index}`;
+  }
+  return `service.${serviceId}.${field}`;
+};
 
 module.exports = mongoose.model('Service', serviceSchema);
