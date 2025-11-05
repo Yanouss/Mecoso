@@ -100,7 +100,7 @@ const Contact = ({
   ]
 
 }: ContactProps) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -157,6 +157,12 @@ const Contact = ({
   }, []);
 
   useEffect(() => {
+    if (!isLoading) {
+      fetchContactData();
+    }
+  }, [currentLanguage]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isEditModalOpen && 
           modalRef.current && 
@@ -174,12 +180,16 @@ const Contact = ({
     };
   }, [isEditModalOpen]);
 
+
+
   const fetchContactData = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/contact`);
+      // Fetch with current language
+      const response = await axios.get(`${API_BASE_URL}/contact/${currentLanguage}`);
       setCurrentData(response.data.data);
     } catch (error) {
       console.error('Error fetching contact data:', error);
+      // Fallback to default
       setCurrentData({
         badge,
         heading,
@@ -195,6 +205,8 @@ const Contact = ({
       setIsLoading(false);
     }
   };
+
+
 
   function getIconTypeFromElement(iconElement: React.ReactNode): 'MapPin' | 'Phone' | 'Mail' | 'Clock' {
     if (React.isValidElement(iconElement)) {
@@ -445,8 +457,11 @@ const Contact = ({
         }
       );
       
-      setCurrentData(response.data.data);
-      toast.success(t('contact.updated_success'));
+      await fetchContactData(); // Refetch with translations
+      
+      const translationInfo = response.data.translationInfo;
+      toast.success(translationInfo?.message || t('contact.updated_success'));
+      
       setIsEditModalOpen(false);
     } catch (error: any) {
       console.error('Error saving contact data:', error);

@@ -2,22 +2,43 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyDKFQmY2waXUSbX-sF-BNM5v3kZkEHzadQ");
 
+
+// --- RATE LIMITER CONFIG ---
+const MAX_REQUESTS_PER_MINUTE = 9; // stay under the 10/min limit
+const RATE_WINDOW_MS = 60_000; // 1 minute
+const recentRequests = []; // timestamps of recent requests
+const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+
 const translateText = async (text, targetLang) => {
   try {
     if (!text || text.trim() === '') {
       console.log('Empty text provided for translation');
       return text;
     }
-    
+
+    // --- SMART RATE LIMIT PROTECTION ---
+    const now = Date.now();
+    // remove old requests
+    while (recentRequests.length && now - recentRequests[0] > RATE_WINDOW_MS) {
+      recentRequests.shift();
+    }
+
+    if (recentRequests.length >= MAX_REQUESTS_PER_MINUTE) {
+      const waitTime = RATE_WINDOW_MS - (now - recentRequests[0]) + 500; // +buffer
+      console.log(`⏳ Gemini rate limit reached. Waiting ${Math.ceil(waitTime / 1000)}s...`);
+      await delay(waitTime);
+    }
+
+    recentRequests.push(Date.now());
+
     console.log(`🔄 Starting translation...`);
     console.log(`   Source text: "${text}"`);
     console.log(`   Target language: ${targetLang}`);
-    
-    // UPDATED: Use the latest Gemini 2.5 Pro model (thanks for the update! 😄)
+
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-    
     const targetLanguageName = targetLang === 'fr' ? 'French' : 'English';
-    
+
     const prompt = `You are a professional translator. Translate the following text to ${targetLanguageName}.
 
 CRITICAL RULES:
@@ -29,44 +50,33 @@ CRITICAL RULES:
 Text to translate: ${text}
 
 Your ${targetLanguageName} translation:`;
-    
-    console.log(`   Calling Gemini API with latest model: gemini-2.0-flash-exp`);
-    
+
     const result = await model.generateContent(prompt);
-    
-    if (!result || !result.response) {
+    if (!result?.response) {
       console.error('❌ No response from Gemini API');
       return text;
     }
-    
-    const response = await result.response;
-    let translation = response.text().trim();
-    
-    // Remove any quotes that Gemini might add
-    translation = translation.replace(/^["']|["']$/g, '');
-    
-    console.log(`✅ Translation completed!`);
-    console.log(`   Original: "${text}"`);
-    console.log(`   Translated: "${translation}"`);
-    
-    // Verify translation actually changed
+
+    let translation = result.response.text().trim().replace(/^["']|["']$/g, '');
+    console.log(`✅ Translation completed: "${translation}"`);
+
     if (translation.toLowerCase() === text.toLowerCase()) {
-      console.warn('⚠️  Warning: Translation is identical to source text - API may have failed');
+      console.warn('⚠️ Translation identical to source — API may have skipped it');
     }
-    
+
     return translation;
-    
+
   } catch (error) {
     console.error('❌ Translation error:', error.message);
-    if (error.message.includes('API key')) {
-      console.error('   Please check your GEMINI_API_KEY');
+
+    if (error.message.includes('429')) {
+      // Retry gracefully on rate limit
+      console.log('⚠️ Gemini API rate limited. Retrying in 20s...');
+      await delay(20_000);
+      return translateText(text, targetLang);
     }
-    if (error.message.includes('quota') || error.message.includes('rate limit')) {
-      console.error('   API quota exceeded or rate limited');
-    }
+
     if (error.message.includes('model')) {
-      console.error('   Model not found - trying gemini-1.5-pro as fallback...');
-      // Fallback to older model if 2.5 not available
       try {
         const fallbackModel = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
         const result = await fallbackModel.generateContent(prompt);
@@ -77,8 +87,9 @@ Your ${targetLanguageName} translation:`;
         console.error('❌ Fallback also failed:', fallbackError.message);
       }
     }
+
     console.error('   Full error:', error);
-    return text;
+    return text; // fallback: return original text
   }
 };
 
