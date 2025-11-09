@@ -1,7 +1,7 @@
 import { API_URL } from '../../config/api';
 
 export const galleryApi = {
-  // Get gallery page data
+  // Get gallery page data (without translations)
   getGalleryPage: async () => {
     const response = await fetch(`${API_URL}/gallery/page`);
     if (!response.ok) {
@@ -10,8 +10,17 @@ export const galleryApi = {
     return response.json();
   },
 
+  // Get gallery page data with translations
+  getGalleryPageTranslated: async (lang: string = 'en') => {
+    const response = await fetch(`${API_URL}/gallery/translated?lang=${lang}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch gallery data');
+    }
+    return response.json();
+  },
+
   // Update gallery page
-  updateGalleryPage: async (data, token) => {
+  updateGalleryPage: async (data: any, token: string) => {
     const response = await fetch(`${API_URL}/gallery/page`, {
       method: 'PUT',
       headers: {
@@ -29,7 +38,7 @@ export const galleryApi = {
   },
 
   // Upload image
-  uploadImage: async (file, token) => {
+  uploadImage: async (file: File, token: string) => {
     const formData = new FormData();
     formData.append('image', file);
 

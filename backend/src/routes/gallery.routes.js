@@ -7,7 +7,8 @@ const {
   createGalleryItem,
   updateGalleryItem,
   deleteGalleryItem,
-  getGalleryCategories
+  getGalleryCategories,
+  getGalleryWithTranslations
 } = require('../controllers/gallery.controller');
 
 const { uploadGalleryImage, handleUploadError } = require('../middleware/upload');
@@ -20,6 +21,7 @@ router.get('/page', getGalleryPage);
 router.get('/categories', getGalleryCategories);
 router.get('/items', getGalleryItems);
 router.get('/items/:id', getGalleryItem);
+router.get('/translated', getGalleryWithTranslations);
 
 // Protected routes (require authentication and moderator role)
 router.use(protect);

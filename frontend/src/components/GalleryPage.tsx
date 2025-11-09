@@ -135,7 +135,7 @@ const GalleryPage = ({
   ],
 }: GalleryPageProps) => {
 
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   
   const { user, isAuthenticated } = useAuth();
   const isModerator = isAuthenticated && user && (user.role === 'moderator' || user.role === 'admin');
@@ -184,16 +184,25 @@ const GalleryPage = ({
     fetchGalleryData();
   }, []);
 
+  useEffect(() => {
+    if (!isLoading) {
+      fetchGalleryData();
+    }
+  }, [currentLanguage]);
+
   const fetchGalleryData = async () => {
     try {
       setIsLoading(true);
-      const response = await galleryApi.getGalleryPage();
+      // Use translated endpoint
+      const response = await galleryApi.getGalleryPageTranslated(currentLanguage);
+      
       setCurrentData({
-        badge: t('gallery.badge'), // Use translation instead of API data
+        badge: t('gallery.badge'),
         heading: t('gallery.heading'),
         description: t('gallery.description'),
         galleryItems: response.data.galleryItems
       });
+      
       setFormData({
         badge: t('gallery.badge'),
         heading: t('gallery.heading'),
@@ -346,14 +355,15 @@ const GalleryPage = ({
 
       const response = await galleryApi.updateGalleryPage(formData, token);
       
-      setCurrentData({
-        badge: response.data.page.badge,
-        heading: response.data.page.heading,
-        description: response.data.page.description,
-        galleryItems: response.data.galleryItems
+      // Refresh with translated data
+      await fetchGalleryData();
+      
+      // Show translation info
+      const translationInfo = response.data.translationInfo;
+      toast.success(t('gallery.updated_success'), {
+        description: translationInfo?.message || "All changes have been saved and translated automatically."
       });
       
-      toast.success(t('gallery.updated_success'));
       setIsEditModalOpen(false);
     } catch (error: any) {
       toast.error(error.message || t('gallery.save_failed'));
