@@ -303,7 +303,7 @@ const DEFAULT_ABOUT_DATA: AboutFormData = {
 const About = ({
   isModerator = false
 }: AboutProps) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   const [activeValue, setActiveValue] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -331,6 +331,13 @@ const About = ({
     fetchAboutData();
   }, []);
 
+
+  useEffect(() => {
+    if (!loading) {
+      fetchAboutData();
+    }
+  }, [currentLanguage]);
+
   const getIconComponent = (iconName: string) => {
     const iconOption = iconOptions.find(option => option.name === iconName);
     return iconOption ? <iconOption.component className="size-6" /> : <Target className="size-6" />;
@@ -341,7 +348,8 @@ const About = ({
     setError(null);
     
     try {
-      const response = await fetch(`${API_URL}/about`);
+      // Use translated endpoint
+      const response = await fetch(`${API_URL}/about/translated?lang=${currentLanguage}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -372,7 +380,6 @@ const About = ({
           aboutData.values = [];
         }
         
-        // Merge with defaults to ensure all fields exist
         const completeData = {
           ...DEFAULT_ABOUT_DATA,
           ...aboutData
@@ -388,7 +395,6 @@ const About = ({
       setError(error instanceof Error ? error.message : 'Failed to load about data');
       toast.error('Failed to load about data from server');
       
-      // Keep the default data as fallback
       setCurrentData(DEFAULT_ABOUT_DATA);
       setFormData(DEFAULT_ABOUT_DATA);
     } finally {
@@ -552,7 +558,12 @@ const About = ({
         setIsEditModalOpen(false);
         setFileUploads({});
         setPreviewUrls({});
-        toast.success("About section updated successfully!");
+        
+        // Show translation info
+        const translationInfo = result.translationInfo;
+        toast.success("About section updated successfully!", {
+          description: translationInfo?.message || "All changes have been saved and translated automatically."
+        });
       } else {
         throw new Error(result.message || "Update failed");
       }

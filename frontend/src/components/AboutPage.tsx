@@ -70,7 +70,7 @@ const iconOptions = [
 ];
 
 const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = false }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   
   // Create default data inside component after hooks
   const defaultData: AboutData = {
@@ -134,6 +134,12 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
   }, []);
 
   useEffect(() => {
+    if (!loading) {
+      fetchAboutData();
+    }
+  }, [currentLanguage]);
+
+  useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -163,7 +169,9 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
 
   const fetchAboutData = async () => {
     try {
-      const response = await fetch(`${API_URL}/about`);
+      setLoading(true);
+      // Use translated endpoint with current language
+      const response = await fetch(`${API_URL}/about/translated?lang=${currentLanguage}`);
       const result = await response.json();
       
       if (result.success) {
@@ -190,6 +198,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
       }
     } catch (error) {
       console.error('Error fetching about data:', error);
+      toast.error('Failed to load about data');
       // Use default data on error
     } finally {
       setLoading(false);
@@ -312,25 +321,62 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
       }
       
       // Process stats (convert icons back to strings)
-      const processedStats = formData.stats.map(stat => ({
-        ...stat,
-        icon: iconOptions.find(opt => opt.component === stat.icon)?.name || 'Target'
-      }));
+      const processedStats = formData.stats.map((stat, index) => {
+        const statData = {
+          ...stat,
+          icon: iconOptions.find(opt => React.isValidElement(stat.icon) && opt.component === stat.icon.type)?.name || 'Target'
+        };
+        return statData;
+      });
       formDataToSend.append('stats', JSON.stringify(processedStats));
       
       // Process values (convert icons back to strings)
-      const processedValues = formData.values.map(value => ({
-        ...value,
-        icon: iconOptions.find(opt => opt.component === value.icon)?.name || 'Target'
-      }));
+      const processedValues = formData.values.map((value, index) => {
+        const valueData = {
+          ...value,
+          icon: iconOptions.find(opt => React.isValidElement(value.icon) && opt.component === value.icon.type)?.name || 'Target'
+        };
+        return valueData;
+      });
       formDataToSend.append('values', JSON.stringify(processedValues));
       
       // Add partners
       formDataToSend.append('partners', JSON.stringify(formData.partners));
       
-      // Add file uploads
+      // Add team members if they exist
+      if (formData.team) {
+        formDataToSend.append('team', JSON.stringify(formData.team));
+      }
+      
+      // Add file uploads with proper field names matching backend expectations
       Object.entries(fileUploads).forEach(([key, file]) => {
-        formDataToSend.append(key, file);
+        // Map keys to backend field names
+        if (key === 'heroImage') {
+          formDataToSend.append('heroImage', file);
+        } else if (key === 'image') {
+          formDataToSend.append('image', file);
+        } else if (key.startsWith('stat_')) {
+          // Extract index and field name for stats
+          const match = key.match(/stat_(\d+)_(backgroundImage|popupImage)/);
+          if (match) {
+            const [, index, fieldName] = match;
+            formDataToSend.append(`stat_${index}_${fieldName}`, file);
+          }
+        } else if (key.startsWith('value_')) {
+          // Extract index for values
+          const match = key.match(/value_(\d+)_video/);
+          if (match) {
+            const [, index] = match;
+            formDataToSend.append(`value_${index}_videoUrl`, file);
+          }
+        } else if (key.startsWith('partner_')) {
+          // Extract index for partners
+          const match = key.match(/partner_(\d+)_src/);
+          if (match) {
+            const [, index] = match;
+            formDataToSend.append(`partner_${index}_src`, file);
+          }
+        }
       });
       
       const token = localStorage.getItem('token');
@@ -345,19 +391,22 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
       const result = await response.json();
       
       if (result.success) {
-        await fetchAboutData(); // Refresh data
+        await fetchAboutData(); // Refresh data with translations
         setIsEditModalOpen(false);
         setFileUploads({});
         setPreviewUrls({});
-        toast.success(t('about.about_page_updated'));
-
+        
+        // Show translation info
+        const translationInfo = result.translationInfo;
+        toast.success(t('about.about_page_updated'), {
+          description: translationInfo?.message || "All changes have been saved and translated automatically."
+        });
       } else {
         throw new Error(result.message || 'Update failed');
       }
     } catch (error) {
       console.error('Error saving about data:', error);
       toast.error(t('about.error_saving_data') + (error instanceof Error ? error.message : t('about.unknown_error')));
-
     } finally {
       setSaving(false);
     }
@@ -1760,7 +1809,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ isModerator: propIsModerator = fa
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    <span>{t('common.loading')}</span>
+                    <span>{t('common.save')}</span>
                   </>
                 )}
               </button>

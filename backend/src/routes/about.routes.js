@@ -2,7 +2,8 @@ const express = require('express');
 const {
   getAbout,
   updateAbout,
-  uploadPortfolio
+  uploadPortfolio,
+  getAboutWithTranslations
 } = require('../controllers/about.controller');
 const { protect, authorize } = require('../middleware/auth');
 const { 
@@ -15,6 +16,8 @@ const router = express.Router();
 
 // Get about content (public)
 router.get('/', getAbout);
+
+router.get('/translated', getAboutWithTranslations);
 
 // Update about content (private - moderator/admin only)
 router.put('/', 

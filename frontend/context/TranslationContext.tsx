@@ -686,6 +686,7 @@ const translations = {
     'about.unknown_error': 'Erreur inconnue',
     'about.projects_completed': 'Projets Terminés',
     'about.complete_solutions': 'Solutions Complètes',
+    'about.our_story_content': 'Contenu de Notre Histoire',
 
 
     // Gallery Page
