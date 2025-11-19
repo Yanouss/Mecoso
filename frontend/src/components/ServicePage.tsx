@@ -27,11 +27,10 @@ import {
   Loader2,
   Shield
 } from 'lucide-react';
-import { Link } from 'react-router';
 import { toast } from 'sonner';
 import axios from 'axios';
-import { useAuth } from '../../context/AuthContext'; // Adjust path as needed
-import { API_URL as API_BASE_URL } from '../../config/api'
+import { useAuth } from '../../context/AuthContext';
+import { API_URL as API_BASE_URL } from '../../config/api';
 import { useTranslation } from '../../context/TranslationContext';
 
 interface Service {
@@ -95,7 +94,6 @@ interface MainContentFormData {
   description: string;
 }
 
-
 const PaginationComponent = ({ 
   currentPage, 
   totalPages, 
@@ -111,7 +109,6 @@ const PaginationComponent = ({
     const delta = 2;
     const range = [];
     const rangeWithDots = [];
-    let l;
 
     for (let i = Math.max(2, currentPage - delta); 
          i <= Math.min(totalPages - 1, currentPage + delta); 
@@ -140,7 +137,6 @@ const PaginationComponent = ({
 
   return (
     <div className="flex items-center justify-center mt-12 space-x-2">
-      {/* Previous button */}
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
@@ -153,7 +149,6 @@ const PaginationComponent = ({
         <ChevronRight className="w-4 h-4 rotate-180" />
       </button>
 
-      {/* Page numbers */}
       {visiblePages.map((page, index) => (
         <button
           key={index}
@@ -171,7 +166,6 @@ const PaginationComponent = ({
         </button>
       ))}
 
-      {/* Next button */}
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
@@ -187,40 +181,37 @@ const PaginationComponent = ({
   );
 };
 
-const ServicePage = (props: ServicePageProps) => {
-  const { t } = useTranslation();
-  const { user, isAuthenticated } = useAuth();
-
-  const {
-    badge = t('services.badge'),
-    heading = t('services.heading'),
-    description = t('services.description'),
-    services = [],
-    testimonials = [],
-    stats = [
+const ServicePage = ({
+  badge: initialBadge,
+  heading: initialHeading,
+  description: initialDescription,
+  services: initialServices = [],
+  testimonials: initialTestimonials = [],
+  stats = [
     {
       number: "50+",
-      label: t('services.projects_completed'),
+      label: "Projects Completed",
       icon: <Target className="size-6" />
     },
     {
       number: "ISO 9001",
-      label: t('services.iso_certified'),
+      label: "2015 certified",
       icon: <Award className="size-6" />
     },
     {
       number: "20+",
-      label: t('services.years_experience'),
+      label: "Years Experience",
       icon: <Clock className="size-6" />
     },
     {
       number: "50+",
-      label: t('services.expert_team'),
+      label: "Expert Team",
       icon: <Users className="size-6" />
     }
   ]
-  } = props;
-  
+}: ServicePageProps) => {
+  const { t, currentLanguage } = useTranslation();
+  const { user, isAuthenticated } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -241,18 +232,18 @@ const ServicePage = (props: ServicePageProps) => {
 
   // Current data states
   const [currentMainContent, setCurrentMainContent] = useState({
-    badge,
-    heading,
-    description
+    badge: t('services.badge'),
+    heading: t('services.heading'),
+    description: t('services.description')
   });
-  const [currentServices, setCurrentServices] = useState<Service[]>(services);
-  const [currentTestimonials, setCurrentTestimonials] = useState(testimonials);
+  const [currentServices, setCurrentServices] = useState<Service[]>([]);
+  const [currentTestimonials, setCurrentTestimonials] = useState<Testimonial[]>([]);
 
   // Form data states
   const [mainContentForm, setMainContentForm] = useState<MainContentFormData>({
-    badge,
-    heading,
-    description
+    badge: t('services.badge'),
+    heading: t('services.heading'),
+    description: t('services.description')
   });
   const [serviceForm, setServiceForm] = useState<ServiceFormData>({
     id: '',
@@ -296,49 +287,53 @@ const ServicePage = (props: ServicePageProps) => {
     name: string;
   } | null>(null);
 
-  const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB in bytes
+  const MAX_FILE_SIZE = 200 * 1024 * 1024;
   const ACCEPTED_TYPES = [
-    // Images
     'image/jpeg',
     'image/jpg',
     'image/png',
     'image/gif',
     'image/webp',
-
-    // Videos
     'video/mp4',
     'video/webm',
     'video/ogg',
-    'video/quicktime',   // .mov
-    'video/x-msvideo',   // .avi
-    'video/x-matroska',  // .mkv
+    'video/quicktime',
+    'video/x-msvideo',
+    'video/x-matroska',
   ];
-
 
   const categories = ['All', ...Array.from(new Set(currentServices.map(s => s.category)))];
 
   const allFilteredServices = selectedCategory === 'All' 
-  ? currentServices 
-  : currentServices.filter(s => s.category === selectedCategory);
+    ? currentServices 
+    : currentServices.filter(s => s.category === selectedCategory);
 
-  // Pagination logic
   const totalPages = Math.ceil(allFilteredServices.length / SERVICES_PER_PAGE);
   const startIndex = (currentPage - 1) * SERVICES_PER_PAGE;
   const filteredServices = allFilteredServices.slice(startIndex, startIndex + SERVICES_PER_PAGE);
 
-  // Check if user is moderator or admin
   const isModerator = isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin');
 
-  // Fetch services on component mount
+  // Fetch services and testimonials on component mount and language change
   useEffect(() => {
     fetchServices();
-    fetchTestimonials(); // Add this line
+    fetchTestimonials();
   }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      fetchServices();
+      fetchTestimonials();
+    }
+  }, [currentLanguage]);
 
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/services`);
+      const response = await axios.get(`${API_BASE_URL}/services/translated`, {
+        params: { lang: currentLanguage }
+      });
+
       const servicesData = response.data.data.map((service: any) => ({
         ...service,
         id: service._id || service.id
@@ -346,9 +341,7 @@ const ServicePage = (props: ServicePageProps) => {
       setCurrentServices(servicesData);
     } catch (error) {
       console.error('Error fetching services:', error);
-      toast.error(t('common.error'), {
-        description: t('services.fetch_error') || 'Failed to load services'
-      });
+      toast.error(t('services.fetch_error'));
     } finally {
       setLoading(false);
     }
@@ -356,17 +349,31 @@ const ServicePage = (props: ServicePageProps) => {
 
   const fetchTestimonials = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/testimonials`);
+      const response = await axios.get(`${API_BASE_URL}/testimonials/translated`, {
+        params: { lang: currentLanguage }
+      });
       setCurrentTestimonials(response.data.data);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
-      toast.error(t('common.error'), {
-        description: t('services.testimonials_fetch_error') || 'Failed to load testimonials'
-      });
+      toast.error(t('services.testimonials_fetch_error'));
     }
   };
 
-  // Get auth token for authenticated requests
+  // Update translations when language changes
+  useEffect(() => {
+    setCurrentMainContent({
+      badge: t('services.badge'),
+      heading: t('services.heading'),
+      description: t('services.description')
+    });
+    
+    setMainContentForm({
+      badge: t('services.badge'),
+      heading: t('services.heading'),
+      description: t('services.description')
+    });
+  }, [t, currentLanguage]);
+
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     return {
@@ -377,7 +384,6 @@ const ServicePage = (props: ServicePageProps) => {
     };
   };
 
-  // Outside click handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isMainContentModalOpen && mainContentModalRef.current && !mainContentModalRef.current.contains(event.target as Node)) {
@@ -404,7 +410,6 @@ const ServicePage = (props: ServicePageProps) => {
     };
   }, [isMainContentModalOpen, isServiceModalOpen, isTestimonialModalOpen, isServiceDetailModalOpen, deleteModalOpen]);
 
-  // Auto-scroll testimonials
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTestimonial((prev) => (prev + 1) % currentTestimonials.length);
@@ -416,15 +421,6 @@ const ServicePage = (props: ServicePageProps) => {
     setCurrentPage(1);
   }, [selectedCategory]);
 
-  useEffect(() => {
-    setCurrentMainContent({
-      badge: t('services.badge'),
-      heading: t('services.heading'),
-      description: t('services.description'),
-    });
-  }, [t]);
-
-
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star 
@@ -434,18 +430,17 @@ const ServicePage = (props: ServicePageProps) => {
     ));
   };
 
-  // File validation function
   const validateFile = (file: File): boolean => {
     if (file.size > MAX_FILE_SIZE) {
-      toast.error(t('common.error'), {
-        description: t('services.file_too_large') || `File size must be less than 200MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
+      toast.error(t('services.file_too_large'), {
+        description: `File size must be less than 200MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
       });
       return false;
     }
 
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      toast.error(t('common.error'), {
-        description: t('services.invalid_file_type') || "Please upload an image (JPEG, PNG, GIF, WebP).",
+      toast.error(t('services.invalid_file_type'), {
+        description: t('services.supported_formats'),
       });
       return false;
     }
@@ -453,18 +448,13 @@ const ServicePage = (props: ServicePageProps) => {
     return true;
   };
 
-  // Service image handlers
   const handleServiceFileSelect = (file: File) => {
     if (!validateFile(file)) return;
-
     setUploadedServiceFile(file);
-    
-    // Create a temporary URL for preview
     const fileUrl = URL.createObjectURL(file);
     setServiceForm(prev => ({ ...prev, image: fileUrl }));
-
-    toast.success(t('common.success'), {
-      description: t('services.file_upload_success') || `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
+    toast.success(t('services.file_upload_success'), {
+      description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
     });
   };
 
@@ -481,7 +471,6 @@ const ServicePage = (props: ServicePageProps) => {
   const handleServiceDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingService(false);
-    
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       handleServiceFileSelect(files[0]);
@@ -495,18 +484,13 @@ const ServicePage = (props: ServicePageProps) => {
     }
   };
 
-  // Testimonial image handlers
   const handleTestimonialFileSelect = (file: File) => {
     if (!validateFile(file)) return;
-
     setUploadedTestimonialFile(file);
-    
-    // Create a temporary URL for preview
     const fileUrl = URL.createObjectURL(file);
     setTestimonialForm(prev => ({ ...prev, image: fileUrl }));
-
-    toast.success(t('common.success'), {
-      description: t('services.file_upload_success') || `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
+    toast.success(t('services.file_upload_success'), {
+      description: `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB) is ready to use.`,
     });
   };
 
@@ -523,7 +507,6 @@ const ServicePage = (props: ServicePageProps) => {
   const handleTestimonialDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDraggingTestimonial(false);
-    
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       handleTestimonialFileSelect(files[0]);
@@ -537,7 +520,6 @@ const ServicePage = (props: ServicePageProps) => {
     }
   };
 
-  // Main Content handlers
   const openMainContentModal = () => {
     setMainContentForm(currentMainContent);
     setIsMainContentModalOpen(true);
@@ -546,9 +528,7 @@ const ServicePage = (props: ServicePageProps) => {
   const saveMainContent = () => {
     setCurrentMainContent(mainContentForm);
     setIsMainContentModalOpen(false);
-    toast.success(t('common.success'), {
-      description: t('services.main_content_updated') || "Main content updated successfully"
-    });
+    toast.success(t('services.main_content_updated'));
   };
 
   const cancelMainContent = () => {
@@ -556,11 +536,10 @@ const ServicePage = (props: ServicePageProps) => {
     setIsMainContentModalOpen(false);
   };
 
-  // Service handlers
   const openServiceModal = (service?: Service) => {
     if (!isModerator) {
       toast.error(t('common.error'), {
-        description: t('services.access_denied_edit') || "You need moderator or admin privileges to edit services."
+        description: t('services.access_denied_edit')
       });
       return;
     }
@@ -595,13 +574,11 @@ const ServicePage = (props: ServicePageProps) => {
     setIsServiceModalOpen(true);
   };
 
-  // Service detail modal handler
   const openServiceDetailModal = (service: Service) => {
     setSelectedService(service);
     setIsServiceDetailModalOpen(true);
   };
 
-  // Delete Confirmation Modal
   const DeleteConfirmationModal = () => (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-60">
       <div ref={deleteModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
@@ -644,7 +621,7 @@ const ServicePage = (props: ServicePageProps) => {
   const saveService = async () => {
     if (!isModerator) {
       toast.error(t('common.error'), {
-        description: t('services.access_denied_edit') || "You need moderator or admin privileges to edit services."
+        description: t('services.access_denied_edit')
       });
       return;
     }
@@ -674,8 +651,10 @@ const ServicePage = (props: ServicePageProps) => {
           formData, 
           getAuthHeaders()
         );
-        toast.success(t('common.success'), {
-          description: t('services.service_updated') || "Service updated successfully"
+        
+        const translationInfo = response.data.translationInfo;
+        toast.success(t('services.service_updated'), {
+          description: translationInfo?.message || "Service updated and translated automatically."
         });
       } else {
         response = await axios.post(
@@ -683,39 +662,27 @@ const ServicePage = (props: ServicePageProps) => {
           formData, 
           getAuthHeaders()
         );
-        toast.success(t('common.success'), {
-          description: t('services.service_added') || "Service added successfully"
+        
+        const translationInfo = response.data.translationInfo;
+        toast.success(t('services.service_added'), {
+          description: translationInfo?.message || "Service added and translated automatically."
         });
       }
       
-      // Update local state with the response data
-      const updatedService = response.data.data;
-      if (editingService) {
-        setCurrentServices(prev => prev.map(s => s.id === editingService.id ? {...updatedService, id: updatedService._id || updatedService.id} : s));
-      } else {
-        setCurrentServices(prev => [...prev, {...updatedService, id: updatedService._id || updatedService.id}]);
-      }
-      
+      await fetchServices();
       setIsServiceModalOpen(false);
       setEditingService(null);
       
-      // Clean up object URL if created
       if (uploadedServiceFile) {
         URL.revokeObjectURL(serviceForm.image);
       }
     } catch (error: any) {
       console.error('Error saving service:', error);
-      const errorMessage = error.response?.data?.message || error.message || t('services.save_service_error') || "Failed to save service";
-      toast.error(t('common.error'), {
-        description: errorMessage
-      });
+      const errorMessage = error.response?.data?.message || error.message || t('services.save_service_error');
+      toast.error(errorMessage);
       
-      // Handle unauthorized access
       if (error.response?.status === 401 || error.response?.status === 403) {
-        toast.error(t('common.error'), {
-          description: t('services.session_expired') || "Session expired or insufficient permissions"
-        });
-        // Optionally trigger logout
+        toast.error(t('services.session_expired'));
       }
     } finally {
       setSaving(false);
@@ -725,30 +692,28 @@ const ServicePage = (props: ServicePageProps) => {
   const deleteService = async (id: string) => {
     if (!isModerator) {
       toast.error(t('common.error'), {
-        description: t('services.access_denied_delete') || "You need moderator or admin privileges to delete services."
+        description: t('services.access_denied_delete')
       });
       return;
     }
 
     try {
       await axios.delete(`${API_BASE_URL}/services/${id}`, getAuthHeaders());
-      setCurrentServices(prev => prev.filter(s => s.id !== id));
-      toast.error(t('common.success'), {
-        description: t('services.service_deleted') || "The service has been permanently removed.",
+      await fetchServices();
+      toast.error(t('services.service_deleted'), {
+        description: "The service has been permanently removed.",
       });
     } catch (error: any) {
       console.error('Error deleting service:', error);
-      const errorMessage = error.response?.data?.message || error.message || t('services.delete_service_error') || "Failed to delete service";
-      toast.error(t('common.error'), {
-        description: errorMessage
-      });
+      const errorMessage = error.response?.data?.message || error.message || t('services.delete_service_error');
+      toast.error(errorMessage);
     }
   };
 
   const confirmDeleteService = (id: string, name: string) => {
     if (!isModerator) {
       toast.error(t('common.error'), {
-        description: t('services.access_denied_delete') || "You need moderator or admin privileges to delete services."
+        description: t('services.access_denied_delete')
       });
       return;
     }
@@ -775,11 +740,10 @@ const ServicePage = (props: ServicePageProps) => {
     }));
   };
 
-  // Testimonial handlers
   const openTestimonialModal = (testimonial?: Testimonial) => {
     if (!isModerator) {
       toast.error(t('common.error'), {
-        description: t('services.access_denied_edit_testimonials') || "You need moderator or admin privileges to edit testimonials."
+        description: t('services.access_denied_edit_testimonials')
       });
       return;
     }
@@ -806,7 +770,7 @@ const ServicePage = (props: ServicePageProps) => {
   const saveTestimonial = async () => {
     if (!isModerator) {
       toast.error(t('common.error'), {
-        description: t('services.access_denied_edit_testimonials') || "You need moderator or admin privileges to edit testimonials."
+        description: t('services.access_denied_edit_testimonials')
       });
       return;
     }
@@ -832,8 +796,10 @@ const ServicePage = (props: ServicePageProps) => {
           formData, 
           getAuthHeaders()
         );
-        toast.success(t('common.success'), {
-          description: t('services.testimonial_updated') || "Testimonial updated successfully"
+        
+        const translationInfo = response.data.translationInfo;
+        toast.success(t('services.testimonial_updated'), {
+          description: translationInfo?.message || "Testimonial updated and translated automatically."
         });
       } else {
         response = await axios.post(
@@ -841,34 +807,24 @@ const ServicePage = (props: ServicePageProps) => {
           formData, 
           getAuthHeaders()
         );
-        toast.success(t('common.success'), {
-          description: t('services.testimonial_added') || "Testimonial added successfully"
+        
+        const translationInfo = response.data.translationInfo;
+        toast.success(t('services.testimonial_added'), {
+          description: translationInfo?.message || "Testimonial added and translated automatically."
         });
       }
       
-      // Update local state
-      const updatedTestimonial = response.data.data;
-      if (editingTestimonial) {
-        setCurrentTestimonials(prev => prev.map(t => 
-          t._id === editingTestimonial._id ? updatedTestimonial : t
-        ));
-      } else {
-        setCurrentTestimonials(prev => [...prev, updatedTestimonial]);
-      }
-      
+      await fetchTestimonials();
       setIsTestimonialModalOpen(false);
       setEditingTestimonial(null);
       
-      // Clean up object URL if created
       if (uploadedTestimonialFile) {
         URL.revokeObjectURL(testimonialForm.image);
       }
     } catch (error: any) {
       console.error('Error saving testimonial:', error);
-      const errorMessage = error.response?.data?.message || error.message || t('services.save_testimonial_error') || "Failed to save testimonial";
-      toast.error(t('common.error'), {
-        description: errorMessage
-      });
+      const errorMessage = error.response?.data?.message || error.message || t('services.save_testimonial_error');
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -877,30 +833,28 @@ const ServicePage = (props: ServicePageProps) => {
   const deleteTestimonial = async (id: string) => {
     if (!isModerator) {
       toast.error(t('common.error'), {
-        description: t('services.access_denied_delete_testimonials') || "You need moderator or admin privileges to delete testimonials."
+        description: t('services.access_denied_delete_testimonials')
       });
       return;
     }
 
     try {
       await axios.delete(`${API_BASE_URL}/testimonials/${id}`, getAuthHeaders());
-      setCurrentTestimonials(prev => prev.filter(t => t._id !== id));
-      toast.error(t('common.success'), {
-        description: t('services.testimonial_deleted') || "The testimonial has been permanently removed.",
+      await fetchTestimonials();
+      toast.error(t('services.testimonial_deleted'), {
+        description: "The testimonial has been permanently removed.",
       });
     } catch (error: any) {
       console.error('Error deleting testimonial:', error);
-      const errorMessage = error.response?.data?.message || error.message || t('services.delete_testimonial_error') || "Failed to delete testimonial";
-      toast.error(t('common.error'), {
-        description: errorMessage
-      });
+      const errorMessage = error.response?.data?.message || error.message || t('services.delete_testimonial_error');
+      toast.error(errorMessage);
     }
   };
 
   const confirmDeleteTestimonial = (id: string, name: string) => {
     if (!isModerator) {
       toast.error(t('common.error'), {
-        description: t('services.access_denied_delete_testimonials') || "You need moderator or admin privileges to delete testimonials."
+        description: t('services.access_denied_delete_testimonials')
       });
       return;
     }
@@ -913,7 +867,6 @@ const ServicePage = (props: ServicePageProps) => {
     if (!imagePath) return '';
     if (imagePath.startsWith('http')) return imagePath;
     
-    // If it's a relative path starting with /uploads, prepend the backend URL
     if (imagePath.startsWith('/uploads')) {
       const backendUrl = API_BASE_URL.replace('/api', '');
       return `${backendUrl}${imagePath}`;
@@ -922,13 +875,10 @@ const ServicePage = (props: ServicePageProps) => {
     return imagePath;
   };
 
-
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-        <span className="ml-2 text-gray-600 dark:text-slate-400">{t('common.loading')}</span>
       </div>
     );
   }
@@ -939,17 +889,15 @@ const ServicePage = (props: ServicePageProps) => {
       
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden">
-        {/* Background Elements */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.15),transparent_50%)]" />
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-purple-400/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-full blur-3xl animate-pulse" />
         
-        {/* Edit Button for Main Content */}
         {isModerator && (
           <button
             onClick={openMainContentModal}
             className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-gray-900 dark:text-white hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl group"
-            title={t('common.edit')}
+            title={t('services.edit_main_content')}
           >
             <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
           </button>
@@ -990,13 +938,12 @@ const ServicePage = (props: ServicePageProps) => {
       <section className="py-20">
         <div className="container px-6 mx-auto">
           
-          {/* Services Header with Add Button */}
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100">{t('services.our_services')}</h2>
             {isModerator && (
               <button
                 onClick={() => openServiceModal()}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 shadow-lg hover:shadow-xl"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 {t('services.add_service')}
@@ -1005,15 +952,15 @@ const ServicePage = (props: ServicePageProps) => {
           </div>
           
           {/* Category Filter */}
-          <div className="flex flex-wrap gap-3 mb-12 justify-center">
+          <div className="flex flex-wrap justify-center gap-4 mb-16">
             {categories.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                className={`px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
                   selectedCategory === category
-                    ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg'
-                    : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 shadow-md hover:shadow-lg border border-gray-200 dark:border-slate-600'
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-lg transform scale-105'
+                    : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-600'
                 }`}
               >
                 {category}
@@ -1022,270 +969,249 @@ const ServicePage = (props: ServicePageProps) => {
           </div>
 
           {/* Services Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {filteredServices.map((service, index) => (
-              <div 
-                key={service.id} 
-                className="group bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-700/50"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="relative overflow-hidden">
-                  <img 
-                    src={getImageUrl(service.image)} 
-                    alt={service.title}
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
-                  {/* Edit/Delete Buttons */}
-                  {isModerator && (
-                    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openServiceModal(service);
-                        }}
-                        className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-700 hover:bg-white transition-colors shadow-lg"
-                        title={t('common.edit')}
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          confirmDeleteService(service.id, service.title);
-                        }}
-                        className="p-2 bg-red-500/90 backdrop-blur-sm rounded-lg text-white hover:bg-red-600 transition-colors shadow-lg"
-                        title={t('common.delete')}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                      {service.title}
-                    </h3>
-                    <ArrowUpRight className="w-5 h-5 text-gray-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300" />
-                  </div>
-                  
-                  <p className="text-gray-600 dark:text-slate-300 mb-4 line-clamp-2">
-                    {service.description}
-                  </p>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-slate-400 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {service.duration}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="w-4 h-4" />
-                      {service.price}
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {service.features.slice(0, 3).map((feature, idx) => (
-                      <span 
-                        key={idx}
-                        className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium"
-                      >
-                        {feature}
-                      </span>
-                    ))}
-                    {service.features.length > 3 && (
-                      <span className="px-3 py-1 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 rounded-full text-xs font-medium">
-                        +{service.features.length - 3} {t('services.more')}
-                      </span>
-                    )}
-                  </div>
-                  
+          <div className="space-y-8">
+            {allFilteredServices.length === 0 ? (
+              <div className="text-center py-16">
+                <Shield className="w-16 h-16 text-gray-400 dark:text-slate-500 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 dark:text-slate-400 mb-2">
+                  {t('services.no_services')}
+                </h3>
+                <p className="text-gray-500 dark:text-slate-500">
+                  {selectedCategory === 'All' 
+                    ? t('services.no_services_available')
+                    : `No services found in the "${selectedCategory}" category.`}
+                </p>
+                {isModerator && (
                   <button
-                    onClick={() => openServiceDetailModal(service)}
-                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-500 dark:to-blue-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-blue-800 dark:hover:from-blue-600 dark:hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    onClick={() => openServiceModal()}
+                    className="mt-4 px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
                   >
-                    {t('services.view_details')}
+                    Add First Service
                   </button>
-                </div>
+                )}
               </div>
-            ))}
-          </div>
+            ) : (
+              <>
+                <div className="grid lg:grid-cols-3 gap-8">
+                  {filteredServices.map((service) => (
+                    <div 
+                      key={service.id}
+                      className="group relative bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-2"
+                    >
+                      {isModerator && (
+                        <div className="absolute top-2 right-2 z-20 flex gap-2">
+                          <button
+                            onClick={() => openServiceModal(service)}
+                            className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-blue-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
+                            title={t('services.edit_service')}
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => confirmDeleteService(service.id, service.title)}
+                            className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-red-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
+                            title="Delete Service"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
 
-          {/* Pagination */}
-          <PaginationComponent 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+                      <div className="relative overflow-hidden">
+                        <img
+                          src={getImageUrl(service.image)}
+                          alt={service.title}
+                          className="w-full h-64 object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                        <div className="absolute bottom-4 left-4">
+                          <span className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded-full">
+                            {service.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">
+                          {service.title}
+                        </h3>
+                        <p className="text-gray-600 dark:text-slate-400 mb-4 line-clamp-2">
+                          {service.description}
+                        </p>
+                        
+                        <div className="space-y-2 mb-6">
+                          {service.features.slice(0, 3).map((feature, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              <span className="text-sm text-gray-600 dark:text-slate-400">{feature}</span>
+                            </div>
+                          ))}
+                          {service.features.length > 3 && (
+                            <div className="text-sm text-gray-500 dark:text-slate-500">
+                              +{service.features.length - 3} {t('services.more')}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="text-gray-600 dark:text-slate-400 text-sm">
+                            <Clock className="w-4 h-4 inline mr-1" />
+                            {service.duration}
+                          </div>
+                          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                            {service.price}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => openServiceDetailModal(service)}
+                          className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                        >
+                          {t('services.view_details')}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <PaginationComponent 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+
+                <div className="text-center text-gray-500 dark:text-slate-400 text-sm">
+                  Showing {startIndex + 1}-{Math.min(startIndex + SERVICES_PER_PAGE, allFilteredServices.length)} of {allFilteredServices.length} services
+                  {selectedCategory !== 'All' && ` in ${selectedCategory}`}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
+      <section className="py-20 bg-gradient-to-br from-slate-100 to-gray-100 dark:from-slate-800 dark:to-slate-900">
         <div className="container px-6 mx-auto">
           
-          {/* Testimonials Header with Add Button */}
-          <div className="flex justify-between items-center mb-12">
+          <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100">{t('services.client_testimonials')}</h2>
             {isModerator && (
               <button
                 onClick={() => openTestimonialModal()}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors duration-200 shadow-lg hover:shadow-xl"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 {t('services.add_testimonial')}
               </button>
             )}
           </div>
-          
-          <div className="max-w-6xl mx-auto">
-            <div 
-              ref={testimonialRef}
-              className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl p-8 lg:p-12"
-            >
-              {/* Background Pattern */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 to-purple-500/10 dark:from-blue-400/20 dark:to-purple-400/20 rounded-bl-3xl" />
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-500/10 to-yellow-500/10 dark:from-green-400/20 dark:to-yellow-400/20 rounded-tr-3xl" />
-              
-              <div className="relative z-10">
-                <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
-                  {/* Testimonial Image */}
-                  <div className="flex-shrink-0">
-                    <div className="relative">
-                      <img 
-                        src={getImageUrl(currentTestimonials[currentTestimonial]?.image)} 
-                        alt={currentTestimonials[currentTestimonial]?.name}
-                        className="w-24 h-24 lg:w-32 lg:h-32 rounded-2xl object-cover shadow-lg border-4 border-white dark:border-slate-700"
-                      />
-                      <div className="absolute -bottom-2 -right-2 bg-blue-600 dark:bg-blue-500 rounded-full p-2 shadow-lg">
-                        <div className="w-6 h-6 bg-white dark:bg-slate-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 dark:text-blue-500 text-lg font-bold">"</span>
+
+          <div className="max-w-4xl mx-auto">
+            <div ref={testimonialRef} className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 min-h-[300px]">
+              {currentTestimonials.length === 0 ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center text-gray-500 dark:text-slate-400">
+                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>{t('services.no_testimonials_available')}</p>
+                    {isModerator && (
+                      <p className="text-sm mt-2">Click "Add Testimonial" to get started</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {currentTestimonials.map((testimonial, index) => (
+                    <div
+                      key={testimonial._id || testimonial.name}
+                      className={`absolute inset-0 p-8 transition-all duration-500 ease-in-out ${
+                        index === currentTestimonial
+                          ? 'opacity-100 translate-y-0 z-10'
+                          : 'opacity-0 translate-y-8 pointer-events-none z-0'
+                      }`}
+                    >
+                      <div className="flex flex-col md:flex-row items-start gap-6 h-full">
+                        <img
+                          src={getImageUrl(testimonial.image)}
+                          alt={testimonial.name}
+                          className="w-16 h-16 rounded-2xl object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-gray-900 dark:text-slate-100 truncate">
+                                {testimonial.name}
+                              </h4>
+                              <p className="text-gray-600 dark:text-slate-400 text-sm truncate">
+                                {testimonial.role}, {testimonial.company}
+                              </p>
+                            </div>
+                            <div className="flex gap-1 flex-shrink-0">
+                              {renderStars(testimonial.rating)}
+                            </div>
+                          </div>
+                          <p className="text-gray-700 dark:text-slate-300 leading-relaxed line-clamp-4">
+                            "{testimonial.content}"
+                          </p>
                         </div>
                       </div>
+                      
+                      {isModerator && (
+                        <div className="absolute top-4 right-4 flex gap-2">
+                          <button
+                            onClick={() => openTestimonialModal(testimonial)}
+                            className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-blue-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
+                            title={t('services.edit_testimonial')}
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => confirmDeleteTestimonial(testimonial._id || '', testimonial.name)}
+                            className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-red-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
+                            title="Delete Testimonial"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  ))}
                   
-                  {/* Testimonial Content */}
-                  <div className="flex-1 text-center lg:text-left">
-                    <div className="flex justify-center lg:justify-start mb-4">
-                      {renderStars(currentTestimonials[currentTestimonial]?.rating || 5)}
-                    </div>
-                    
-                    <blockquote className="text-xl lg:text-2xl text-gray-700 dark:text-slate-300 leading-relaxed mb-6 italic">
-                      "{currentTestimonials[currentTestimonial]?.content || t('services.no_testimonials_available')}"
-                    </blockquote>
-                    
-                    <div>
-                      <div className="font-bold text-gray-900 dark:text-slate-100 text-lg">
-                        {currentTestimonials[currentTestimonial]?.name || t('services.default_client_name')}
-                      </div>
-                      <div className="text-gray-600 dark:text-slate-400">
-                        {currentTestimonials[currentTestimonial]?.role || t('services.default_client_role')} 
-                        {currentTestimonials[currentTestimonial]?.company && (
-                          <> · {currentTestimonials[currentTestimonial]?.company}</>
-                        )}
-                      </div>
-                    </div>
+                  <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
+                    {currentTestimonials.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentTestimonial(index)}
+                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                          index === currentTestimonial
+                            ? 'bg-blue-600 dark:bg-blue-500 scale-125'
+                            : 'bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500'
+                        }`}
+                      />
+                    ))}
                   </div>
-                </div>
-                
-                {/* Testimonial Navigation */}
-                <div className="flex justify-center lg:justify-end mt-8 lg:mt-0 lg:absolute lg:bottom-8 lg:right-8">
-                  <div className="flex items-center gap-4">
-                    {/* Edit/Delete Buttons */}
-                    {isModerator && currentTestimonials.length > 0 && (
-                      <div className="flex gap-2 mr-4">
-                        <button
-                          onClick={() => openTestimonialModal(currentTestimonials[currentTestimonial])}
-                          className="p-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors shadow-lg"
-                          title={t('common.edit')}
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => confirmDeleteTestimonial(
-                            currentTestimonials[currentTestimonial]._id!, 
-                            currentTestimonials[currentTestimonial].name
-                          )}
-                          className="p-2 bg-red-500 dark:bg-red-500 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-600 transition-colors shadow-lg"
-                          title={t('common.delete')}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                    
-                    <div className="flex gap-2">
-                      {currentTestimonials.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentTestimonial(index)}
-                          className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                            index === currentTestimonial
-                              ? 'bg-blue-600 dark:bg-blue-500 scale-125'
-                              : 'bg-gray-300 dark:bg-slate-600 hover:bg-gray-400 dark:hover:bg-slate-500'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="container px-6 mx-auto">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 rounded-3xl p-12 lg:p-16 text-center text-white shadow-2xl">
-            <h2 className="text-4xl lg:text-5xl font-bold mb-6">{t('services.ready_to_start')}</h2>
-            <p className="text-blue-100 text-xl mb-8 max-w-2xl mx-auto">
-              {t('services.cta_description')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/contact"
-                className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 font-bold rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                {t('services.get_in_touch')}
-                <ArrowUpRight className="w-5 h-5 ml-2" />
-              </Link>
-              <a
-                href="tel:+1234567890"
-                className="inline-flex items-center justify-center px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 font-bold rounded-lg hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-              >
-                <Phone className="w-5 h-5 mr-2" />
-                {t('services.call_now')}
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Edit Main Content Modal */}
+      {/* Main Content Modal */}
       {isMainContentModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div ref={mainContentModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {t('services.edit_main_content')}
-                </h3>
-                <button
-                  onClick={cancelMainContent}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+          <div ref={mainContentModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('services.edit_main_content')}</h3>
+              <button
+                onClick={cancelMainContent}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
             
-            <div className="p-6 space-y-6">
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   {t('services.badge_text')}
@@ -1315,26 +1241,25 @@ const ServicePage = (props: ServicePageProps) => {
                   {t('services.description_text')}
                 </label>
                 <textarea
+                  rows={4}
                   value={mainContentForm.description}
                   onChange={(e) => setMainContentForm(prev => ({ ...prev, description: e.target.value }))}
-                  rows={4}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
                 />
               </div>
             </div>
             
-            <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
+            <div className="flex justify-end gap-4 mt-6">
               <button
                 onClick={cancelMainContent}
-                className="px-6 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                className="px-4 py-2 text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={saveMainContent}
-                className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
               >
-                <Save className="w-4 h-4" />
                 {t('common.save')}
               </button>
             </div>
@@ -1342,84 +1267,78 @@ const ServicePage = (props: ServicePageProps) => {
         </div>
       )}
 
-      {/* Edit Service Modal */}
+
+
+
+
+
+      {/* Service Modal - Add/Edit */}
       {isServiceModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div ref={serviceModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {editingService ? t('services.edit_service') : t('services.add_new_service')}
-                </h3>
-                <button
-                  onClick={() => setIsServiceModalOpen(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div ref={serviceModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full p-6 my-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                {editingService ? t('services.edit_service') : t('services.add_new_service')}
+              </h3>
+              <button
+                onClick={() => setIsServiceModalOpen(false)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
             
-            <div className="p-6 space-y-6">
-              {/* Service Image Upload */}
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
                   {t('services.service_image')}
                 </label>
-                
                 <div
+                  className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${
+                    isDraggingService
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500'
+                  }`}
                   onDragOver={handleServiceDragOver}
                   onDragLeave={handleServiceDragLeave}
                   onDrop={handleServiceDrop}
                   onClick={() => serviceFileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-300 ${
-                    isDraggingService
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500'
-                  }`}
                 >
                   <input
-                    type="file"
                     ref={serviceFileInputRef}
-                    onChange={handleServiceFileInputChange}
+                    type="file"
                     className="hidden"
                     accept="image/*,video/*"
+                    onChange={handleServiceFileInputChange}
                   />
                   
                   {serviceForm.image ? (
                     <div className="space-y-4">
-                      <div className="relative mx-auto w-32 h-32 rounded-lg overflow-hidden">
-                        {serviceForm.image.startsWith('blob:') || serviceForm.image.match(/\.(mp4|webm|ogg|mov|avi|mkv)$/i) ? (
-                          <video 
-                            src={serviceForm.image} 
-                            className="w-full h-full object-cover"
-                            controls
-                          />
-                        ) : (
-                          <img 
-                            src={serviceForm.image} 
-                            alt="Service preview"
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                      </div>
+                      <img
+                        src={serviceForm.image}
+                        alt="Preview"
+                        className="w-32 h-32 object-cover rounded-xl mx-auto"
+                      />
                       <p className="text-sm text-gray-600 dark:text-slate-400">
+                        {uploadedServiceFile?.name || 'Current image'}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-slate-500">
                         {t('services.click_to_change')}
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                      <div className="w-16 h-16 mx-auto bg-gray-100 dark:bg-slate-700 rounded-xl flex items-center justify-center">
                         <Upload className="w-8 h-8 text-gray-400 dark:text-slate-500" />
                       </div>
                       <div>
-                        <p className="text-lg font-medium text-gray-900 dark:text-slate-100 mb-2">
-                          {t('services.drop_image_here')}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-slate-400">
-                          {t('services.supported_formats')}
+                        <p className="text-gray-600 dark:text-slate-400">
+                          <span className="text-blue-600 dark:text-blue-400 font-medium">Click to upload</span> or drag and drop
                         </p>
                         <p className="text-xs text-gray-500 dark:text-slate-500 mt-1">
+                          {t('services.supported_formats')}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-500">
                           {t('services.max_file_size')}
                         </p>
                       </div>
@@ -1450,7 +1369,6 @@ const ServicePage = (props: ServicePageProps) => {
                     value={serviceForm.category}
                     onChange={(e) => setServiceForm(prev => ({ ...prev, category: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
-                    placeholder="e.g., Web Development, Marketing"
                   />
                 </div>
               </div>
@@ -1460,9 +1378,9 @@ const ServicePage = (props: ServicePageProps) => {
                   {t('services.description')}
                 </label>
                 <textarea
+                  rows={3}
                   value={serviceForm.description}
                   onChange={(e) => setServiceForm(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
                 />
               </div>
@@ -1477,7 +1395,6 @@ const ServicePage = (props: ServicePageProps) => {
                     value={serviceForm.duration}
                     onChange={(e) => setServiceForm(prev => ({ ...prev, duration: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
-                    placeholder="e.g., 2-4 weeks"
                   />
                 </div>
                 
@@ -1490,30 +1407,17 @@ const ServicePage = (props: ServicePageProps) => {
                     value={serviceForm.price}
                     onChange={(e) => setServiceForm(prev => ({ ...prev, price: e.target.value }))}
                     className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
-                    placeholder="e.g., $1,500 - $3,000"
                   />
                 </div>
               </div>
 
-              {/* Features */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                    {t('services.features')}
-                  </label>
-                  <button
-                    type="button"
-                    onClick={addFeature}
-                    className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    {t('services.add_feature')}
-                  </button>
-                </div>
-                
-                <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  {t('services.features')}
+                </label>
+                <div className="space-y-2">
                   {serviceForm.features.map((feature, index) => (
-                    <div key={index} className="flex gap-3">
+                    <div key={index} className="flex gap-2">
                       <input
                         type="text"
                         value={feature}
@@ -1521,42 +1425,51 @@ const ServicePage = (props: ServicePageProps) => {
                         className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white"
                         placeholder={t('services.feature_placeholder')}
                       />
-                      <button
-                        type="button"
-                        onClick={() => removeFeature(index)}
-                        className="px-3 py-2 bg-red-500 dark:bg-red-500 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-600 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                      {serviceForm.features.length > 1 && (
+                        <button onClick={() => removeFeature(index)}
+                      className="px-3 py-2 bg-red-500 dark:bg-red-500 text-white rounded-lg hover:bg-red-600 dark:hover:bg-red-600 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
-              </div>
-            </div>
-            
-            <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
+              ))}
               <button
-                onClick={() => setIsServiceModalOpen(false)}
-                className="px-6 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                onClick={addFeature}
+                className="flex items-center gap-2 px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
               >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={saveService}
-                disabled={saving}
-                className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                {saving ? t('common.saving') : t('common.save')}
+                <Plus className="w-4 h-4" />
+                {t('services.add_feature')}
               </button>
             </div>
           </div>
         </div>
-      )}
+        
+        <div className="p-6 border-t border-gray-200 dark:border-slate-700 flex justify-end gap-4">
+          <button
+            onClick={() => setIsServiceModalOpen(false)}
+            className="px-6 py-3 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            onClick={saveService}
+            disabled={saving}
+            className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {saving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+
+
 
       {/* Service Detail Modal */}
       {isServiceDetailModalOpen && selectedService && (
@@ -1615,12 +1528,12 @@ const ServicePage = (props: ServicePageProps) => {
               </div>
               
               <div className="flex gap-4">
-                <Link
-                  to="/contact"
+                <button
+                  onClick={() => window.location.href = '/contact'}
                   className="flex-1 py-4 bg-blue-600 dark:bg-blue-500 text-white text-center rounded-lg font-bold hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors shadow-lg hover:shadow-xl"
                 >
                   {t('services.get_started')}
-                </Link>
+                </button>
                 <button className="px-6 py-4 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
                   {t('services.download_brochure')}
                 </button>
@@ -1807,7 +1720,33 @@ const ServicePage = (props: ServicePageProps) => {
           </div>
         </div>
       )}
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700">
+        <div className="container px-6 mx-auto">
+          <div className="max-w-4xl mx-auto text-center text-white">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6">
+              {t('services.ready_to_start')}
+            </h2>
+            <p className="text-xl mb-8 text-blue-100">
+              {t('services.cta_description')}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => window.location.href = '/contact'}
+                className="px-8 py-4 bg-white text-blue-600 rounded-2xl font-semibold hover:bg-blue-50 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                {t('services.get_in_touch')}
+              </button>
+              <button className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-2xl font-semibold hover:bg-white/10 transition-all duration-300">
+                {t('services.call_now')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
+
   );
 };
 

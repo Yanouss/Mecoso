@@ -36,7 +36,7 @@ const translateText = async (text, targetLang) => {
     console.log(`   Source text: "${text}"`);
     console.log(`   Target language: ${targetLang}`);
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const targetLanguageName = targetLang === 'fr' ? 'French' : 'English';
 
     const prompt = `You are a professional translator. Translate the following text to ${targetLanguageName}.
