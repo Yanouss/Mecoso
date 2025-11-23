@@ -1733,6 +1733,96 @@ const defaultTranslations = [
     translations: { en: 'Machine deleted successfully', fr: 'Machine supprimée avec succès' },
     category: 'machines'
   },
+  {
+    key: 'machines.uploading',
+    translations: { en: 'Uploading...', fr: 'Téléchargement...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.click_to_upload',
+    translations: { en: 'Click to upload or drag and drop', fr: 'Cliquer pour télécharger ou glisser-déposer' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.image_formats',
+    translations: { en: 'PNG, JPG, GIF up to 5MB', fr: 'PNG, JPG, GIF jusqu\'à 5MB' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.current_image',
+    translations: { en: 'Current image', fr: 'Image actuelle' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.remove_image',
+    translations: { en: 'Remove image', fr: 'Supprimer l\'image' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.enter_url',
+    translations: { en: 'Or enter image URL...', fr: 'Ou entrer l\'URL de l\'image...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.title_placeholder',
+    translations: { en: 'Enter machine title...', fr: 'Entrez le titre de la machine...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.description_placeholder',
+    translations: { en: 'Enter machine description...', fr: 'Entrez la description de la machine...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.select_category',
+    translations: { en: 'Select category', fr: 'Sélectionner une catégorie' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.select_status',
+    translations: { en: 'Select status', fr: 'Sélectionner un statut' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.model_placeholder',
+    translations: { en: 'Enter model number...', fr: 'Entrez le numéro de modèle...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.year_placeholder',
+    translations: { en: 'Enter year (YYYY)...', fr: 'Entrez l\'année (AAAA)...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.capacity_placeholder',
+    translations: { en: 'Enter capacity (e.g., 200mm max thickness)...', fr: 'Entrez la capacité (ex. : épaisseur max 200mm)...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.power_placeholder',
+    translations: { en: 'Enter power requirement (e.g., 380V, 200A)...', fr: 'Entrez les besoins en énergie (ex. : 380V, 200A)...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.spec_placeholder',
+    translations: { en: 'Enter specification...', fr: 'Entrez la spécification...' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.remove_spec',
+    translations: { en: 'Remove specification', fr: 'Supprimer la spécification' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.required_field',
+    translations: { en: 'Required field', fr: 'Champ requis' },
+    category: 'machines'
+  },
+  {
+    key: 'machines.optional_field',
+    translations: { en: 'Optional', fr: 'Optionnel' },
+    category: 'machines'
+  },
 
   // Contact Page
   {
@@ -2184,6 +2274,11 @@ const defaultTranslations = [
     key: 'contact.info.sunday_closed',
     translations: { en: 'Sunday: Closed', fr: 'Dimanche : Fermé' },
     category: 'contact'
+  },
+    {
+    key: 'common.update',
+    translations: { en: 'Update', fr: 'Mise à Jour' },
+    category: 'common'
   },
 
 ];

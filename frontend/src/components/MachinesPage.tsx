@@ -1081,7 +1081,7 @@ const MachinesPage = () => {
               disabled={isSaving}
               className="px-6 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('machines.cancel')}
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleSaveMachine}
@@ -1096,7 +1096,7 @@ const MachinesPage = () => {
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  {editingMachine ? t('machines.update') : t('machines.save')}
+                  {editingMachine ? t('common.update') : t('common.save')}
                 </>
               )}
             </button>

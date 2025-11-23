@@ -41,6 +41,7 @@ const translations = {
     'common.error': 'Error',
     'common.success': 'Success',
     'common.show_more': 'Show More',
+    'common.update': 'Update',
     
     // Services
     'services.badge': 'Our Services',
@@ -552,6 +553,7 @@ const translations = {
     'common.error': 'Erreur',
     'common.success': 'Succès',
     'common.show_more': 'Afficher Plus',
+    'common.update': 'Mise à Jour',
     
     // Services
     'services.badge': 'Nos Services',
