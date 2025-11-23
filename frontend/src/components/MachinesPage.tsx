@@ -30,8 +30,10 @@ import {
   Loader
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../context/TranslationContext';
 import { API_URL } from '../../config/api';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 interface Machine {
   id: string;
@@ -106,6 +108,7 @@ interface MachinesPageData {
 
 const MachinesPage = () => {
   const { user, isAuthenticated } = useAuth();
+  const { t, currentLanguage } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -141,28 +144,28 @@ const MachinesPage = () => {
 
   // Form data state
   const [formData, setFormData] = useState<MachinesFormData>({
-    badge: "Our Equipment",
-    heading: "Industrial Machinery Fleet", 
-    description: "MECOSO operates state-of-the-art industrial machinery for manufacturing, fabrication, and assembly operations. Our equipment fleet ensures precision, efficiency, and reliability in every project we undertake.",
+    badge: t('machines.badge'),
+    heading: t('machines.heading'),
+    description: t('machines.description'),
     stats: [
-      { number: "25+", label: "Active Machines" },
-      { number: "99.5%", label: "Uptime Rate" },
-      { number: "15+", label: "Years Service" },
-      { number: "24/7", label: "Operations" }
+      { number: "25+", label: t('machines.stats.active_machines') },
+      { number: "99.5%", label: t('machines.stats.uptime_rate') },
+      { number: "15+", label: t('machines.stats.years_service') },
+      { number: "24/7", label: t('machines.stats.operations') }
     ],
     machines: []
   });
 
   // Current data state (what's displayed)
   const [currentData, setCurrentData] = useState<MachinesFormData>({
-    badge: "Our Equipment",
-    heading: "Industrial Machinery Fleet", 
-    description: "MECOSO operates state-of-the-art industrial machinery for manufacturing, fabrication, and assembly operations. Our equipment fleet ensures precision, efficiency, and reliability in every project we undertake.",
+    badge: t('machines.badge'),
+    heading: t('machines.heading'),
+    description: t('machines.description'),
     stats: [
-      { number: "25+", label: "Active Machines" },
-      { number: "99.5%", label: "Uptime Rate" },
-      { number: "15+", label: "Years Service" },
-      { number: "24/7", label: "Operations" }
+      { number: "25+", label: t('machines.stats.active_machines') },
+      { number: "99.5%", label: t('machines.stats.uptime_rate') },
+      { number: "15+", label: t('machines.stats.years_service') },
+      { number: "24/7", label: t('machines.stats.operations') }
     ],
     machines: []
   });
@@ -172,29 +175,31 @@ const MachinesPage = () => {
     loadMachinesPageData();
   }, []);
 
+  // Reload when language changes
+  useEffect(() => {
+    if (!isLoading) {
+      loadMachinesPageData();
+    }
+  }, [currentLanguage]);
+
   const loadMachinesPageData = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_URL}/machines/page`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await axios.get(`${API_URL}/machines/translated`, {
+        params: { lang: currentLanguage }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to load machines page data');
-      }
-
-      const result = await response.json();
-      const data: MachinesPageData = result.data;
-      
       const loadedData = {
-        badge: data.page.badge,
-        heading: data.page.heading,
-        description: data.page.description,
-        stats: data.page.stats,
-        machines: data.machines
+        badge: t('machines.badge'),
+        heading: t('machines.heading'),
+        description: t('machines.description'),
+        stats: [
+          { number: "25+", label: t('machines.stats.active_machines') },
+          { number: "99.5%", label: t('machines.stats.uptime_rate') },
+          { number: "15+", label: t('machines.stats.years_service') },
+          { number: "24/7", label: t('machines.stats.operations') }
+        ],
+        machines: response.data.data
       };
 
       setCurrentData(loadedData);
@@ -224,7 +229,6 @@ const MachinesPage = () => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isModalOpen && event.target && !(event.target as Element).closest('.edit-modal')) {
-        // Don't close if clicking inside the edit modal
         return;
       }
       if (isMachineDetailModalOpen && machineDetailModalRef.current && !machineDetailModalRef.current.contains(event.target as Node)) {
@@ -250,13 +254,26 @@ const MachinesPage = () => {
 
   // Icon mapping for stats
   const getIconForStat = (label: string) => {
-    switch (label.toLowerCase()) {
-      case 'active machines': return <Cog className="size-6" />;
-      case 'uptime rate': return <Gauge className="size-6" />;
-      case 'years service': return <Clock className="size-6" />;
-      case 'operations': return <Zap className="size-6" />;
-      default: return <Settings className="size-6" />;
-    }
+    const lowerLabel = label.toLowerCase();
+    if (lowerLabel.includes('active') || lowerLabel.includes('machines') || lowerLabel.includes('actives')) return <Cog className="size-6" />;
+    if (lowerLabel.includes('uptime') || lowerLabel.includes('fonctionnement')) return <Gauge className="size-6" />;
+    if (lowerLabel.includes('years') || lowerLabel.includes('service') || lowerLabel.includes('années')) return <Clock className="size-6" />;
+    if (lowerLabel.includes('operations') || lowerLabel.includes('opérations')) return <Zap className="size-6" />;
+    return <Settings className="size-6" />;
+  };
+
+  // Get translated category label
+  const getCategoryLabel = (category: string) => {
+    const categoryKey = `machines.categories.${category.toLowerCase()}`;
+    const translated = t(categoryKey);
+    return translated !== categoryKey ? translated : category;
+  };
+
+  // Get translated status label
+  const getStatusLabel = (status: string) => {
+    const statusKey = `machines.status.${status.toLowerCase().replace(' ', '_')}`;
+    const translated = t(statusKey);
+    return translated !== statusKey ? translated : status;
   };
 
   // File upload handler
@@ -266,7 +283,7 @@ const MachinesPage = () => {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        throw new Error('Authentication required');
+        throw new Error(t('machines.error.auth_required'));
       }
 
       const formData = new FormData();
@@ -282,15 +299,15 @@ const MachinesPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Upload failed');
+        throw new Error(errorData.message || t('machines.error.upload_failed'));
       }
 
       const result = await response.json();
-      toast.success('Image uploaded successfully');
+      toast.success(t('machines.success.upload'));
       return result.data.url;
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error(error instanceof Error ? error.message : 'Upload failed');
+      toast.error(error instanceof Error ? error.message : t('machines.error.upload_failed'));
       throw error;
     } finally {
       setIsUploading(false);
@@ -315,7 +332,7 @@ const MachinesPage = () => {
 
   const addStat = () => {
     if (formData.stats.length >= 10) {
-      toast.error('Maximum 10 stats allowed');
+      toast.error(t('machines.error.max_stats'));
       return;
     }
     setFormData(prev => ({
@@ -326,7 +343,7 @@ const MachinesPage = () => {
 
   const removeStat = (index: number) => {
     if (formData.stats.length <= 1) {
-      toast.error('At least one stat is required');
+      toast.error(t('machines.error.min_stats'));
       return;
     }
     setFormData(prev => ({
@@ -415,18 +432,18 @@ const MachinesPage = () => {
 
   const validateForm = (): boolean => {
     if (!formData.badge.trim() || !formData.heading.trim() || !formData.description.trim()) {
-      toast.error('Badge, heading, and description are required');
+      toast.error(t('machines.error.required_fields'));
       return false;
     }
 
     if (formData.stats.length === 0) {
-      toast.error('At least one statistic is required');
+      toast.error(t('machines.error.min_stats'));
       return false;
     }
 
     for (let i = 0; i < formData.stats.length; i++) {
       if (!formData.stats[i].number.trim() || !formData.stats[i].label.trim()) {
-        toast.error(`Stat ${i + 1} must have both number and label`);
+        toast.error(t('machines.error.stat_required').replace('{number}', (i + 1).toString()));
         return false;
       }
     }
@@ -434,12 +451,12 @@ const MachinesPage = () => {
     for (let i = 0; i < formData.machines.length; i++) {
       const machine = formData.machines[i];
       if (!machine.title.trim() || !machine.category.trim()) {
-        toast.error(`Machine ${i + 1}: Title and Category are required`);
+        toast.error(t('machines.error.machine_required').replace('{number}', (i + 1).toString()));
         return false;
       }
 
       if (machine.specifications.filter(spec => spec.trim() !== '').length === 0) {
-        toast.error(`Machine ${i + 1} must have at least one specification`);
+        toast.error(t('machines.error.specs_required').replace('{number}', (i + 1).toString()));
         return false;
       }
     }
@@ -449,7 +466,7 @@ const MachinesPage = () => {
 
   const handleSave = async () => {
     if (!isModerator) {
-      toast.error('Unauthorized: Admin access required');
+      toast.error(t('machines.error.unauthorized'));
       return;
     }
 
@@ -462,7 +479,7 @@ const MachinesPage = () => {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        throw new Error('Authentication token not found');
+        throw new Error(t('machines.error.token_not_found'));
       }
 
       const response = await fetch(`${API_URL}/machines/page`, {
@@ -482,34 +499,32 @@ const MachinesPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update machines page');
+        throw new Error(errorData.message || t('machines.error.update_failed'));
       }
 
       const result = await response.json();
       
-      // Update current data with the response
-      const updatedData = {
-        badge: result.data.page.badge,
-        heading: result.data.page.heading,
-        description: result.data.page.description,
-        stats: result.data.page.stats,
-        machines: result.data.machines
-      };
-
-      setCurrentData(updatedData);
-      setFormData(updatedData);
+      // Show translation info if available
+      if (result.translationInfo) {
+        toast.success(t('machines.success.update'), {
+          description: result.translationInfo.message || 'Machines updated and translated automatically!'
+        });
+      } else {
+        toast.success(t('machines.success.update'));
+      }
+      
+      // Reload data with translations
+      await loadMachinesPageData();
       setIsModalOpen(false);
-      toast.success('Machines page updated successfully');
     } catch (error) {
       console.error('Error saving machines page:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save changes');
+      toast.error(error instanceof Error ? error.message : t('machines.error.update_failed'));
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleCancel = () => {
-    // Reset form data to current data
     setFormData({
       badge: currentData.badge,
       heading: currentData.heading,
@@ -520,8 +535,6 @@ const MachinesPage = () => {
     setIsModalOpen(false);
   };
 
-
-    // Machine detail modal handler
   const openMachineDetailModal = (machine: Machine) => {
     setSelectedMachine(machine);
     setIsMachineDetailModalOpen(true);
@@ -529,8 +542,8 @@ const MachinesPage = () => {
 
   const deleteMachine = async (id: string) => {
     if (!isModerator) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to delete machines."
+      toast.error(t('common.error'), {
+        description: t('machines.error.unauthorized')
       });
       return;
     }
@@ -539,7 +552,7 @@ const MachinesPage = () => {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        throw new Error('Authentication token not found');
+        throw new Error(t('machines.error.token_not_found'));
       }
 
       const response = await fetch(`${API_URL}/machines/${id}`, {
@@ -551,34 +564,26 @@ const MachinesPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete machine');
+        throw new Error(errorData.message || t('machines.error.machine_delete_failed'));
       }
 
-      // Update current data by removing the deleted machine
-      setCurrentData(prev => ({
-        ...prev,
-        machines: prev.machines.filter(m => m.id !== id)
-      }));
+      // Reload data
+      await loadMachinesPageData();
       
-      setFormData(prev => ({
-        ...prev,
-        machines: prev.machines.filter(m => m.id !== id)
-      }));
-
-      toast.error("Machine deleted", {
+      toast.error(t('machines.success.machine_delete'), {
         description: "The machine has been permanently removed.",
       });
     } catch (error: any) {
       console.error('Error deleting machine:', error);
-      const errorMessage = error.message || "Failed to delete machine";
+      const errorMessage = error.message || t('machines.error.machine_delete_failed');
       toast.error(errorMessage);
     }
   };
 
   const confirmDeleteMachine = (id: string, name: string) => {
     if (!isModerator) {
-      toast.error("Access denied", {
-        description: "You need moderator or admin privileges to delete machines."
+      toast.error(t('common.error'), {
+        description: t('machines.error.unauthorized')
       });
       return;
     }
@@ -587,17 +592,15 @@ const MachinesPage = () => {
     setDeleteModalOpen(true);
   };
 
-  // Delete Confirmation Modal Component
   const DeleteConfirmationModal = () => (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-60">
       <div ref={deleteModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-          Confirm Deletion
+          {t('machines.delete.confirm')}
         </h3>
         
         <p className="text-gray-600 dark:text-gray-300 mb-6">
-          Are you sure you want to delete {itemToDelete?.name || 'this machine'}? 
-          This action cannot be undone.
+          {t('machines.delete.message').replace('{name}', itemToDelete?.name || 'this machine')}
         </p>
         
         <div className="flex justify-end gap-4">
@@ -605,7 +608,7 @@ const MachinesPage = () => {
             onClick={() => setDeleteModalOpen(false)}
             className="px-4 py-2 rounded-lg border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
           >
-            Cancel
+            {t('common.cancel')}
           </button>
           <button
             onClick={() => {
@@ -616,13 +619,12 @@ const MachinesPage = () => {
             }}
             className="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors"
           >
-            Delete
+            {t('common.delete')}
           </button>
         </div>
       </div>
     </div>
   );
-
 
   const openEditMachineModal = (machine: Machine) => {
     setEditingMachine(machine);
@@ -653,7 +655,7 @@ const MachinesPage = () => {
 
   const removeMachineSpec = (specIndex: number) => {
     if (!machineFormData || machineFormData.specifications.length <= 1) {
-      toast.error('At least one specification is required');
+      toast.error(t('machines.error.spec_required'));
       return;
     }
     setMachineFormData(prev => prev ? {
@@ -666,12 +668,12 @@ const MachinesPage = () => {
     if (!machineFormData) return false;
     
     if (!machineFormData.title.trim() || !machineFormData.category.trim()) {
-      toast.error('Title and Category are required');
+      toast.error(t('machines.error.machine_required').replace('{number}', ''));
       return false;
     }
 
     if (machineFormData.specifications.filter(spec => spec.trim() !== '').length === 0) {
-      toast.error('At least one specification is required');
+      toast.error(t('machines.error.spec_required'));
       return false;
     }
 
@@ -680,7 +682,7 @@ const MachinesPage = () => {
 
   const handleSaveMachine = async () => {
     if (!isModerator || !machineFormData || !editingMachine) {
-      toast.error('Unauthorized: Admin access required');
+      toast.error(t('machines.error.unauthorized'));
       return;
     }
 
@@ -693,7 +695,7 @@ const MachinesPage = () => {
       const token = localStorage.getItem('token');
       
       if (!token) {
-        throw new Error('Authentication token not found');
+        throw new Error(t('machines.error.token_not_found'));
       }
 
       const response = await fetch(`${API_URL}/machines/${editingMachine.id}`, {
@@ -707,30 +709,29 @@ const MachinesPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update machine');
+        throw new Error(errorData.message || t('machines.error.machine_update_failed'));
       }
 
       const result = await response.json();
       
-      // Update both current data and form data
-      const updatedMachine = result.data;
-      setCurrentData(prev => ({
-        ...prev,
-        machines: prev.machines.map(m => m.id === updatedMachine.id ? updatedMachine : m)
-      }));
+      // Show translation info if available
+      if (result.translationInfo) {
+        toast.success(t('machines.success.machine_update'), {
+          description: result.translationInfo.message || 'Machine updated and translated automatically!'
+        });
+      } else {
+        toast.success(t('machines.success.machine_update'));
+      }
       
-      setFormData(prev => ({
-        ...prev,
-        machines: prev.machines.map(m => m.id === updatedMachine.id ? updatedMachine : m)
-      }));
+      // Reload data with translations
+      await loadMachinesPageData();
 
       setIsEditMachineModalOpen(false);
       setEditingMachine(null);
       setMachineFormData(null);
-      toast.success('Machine updated successfully');
     } catch (error) {
       console.error('Error saving machine:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save changes');
+      toast.error(error instanceof Error ? error.message : t('machines.error.machine_update_failed'));
     } finally {
       setIsSaving(false);
     }
@@ -746,15 +747,13 @@ const MachinesPage = () => {
     const file = event.target.files?.[0];
     if (!file || !machineFormData) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+      toast.error(t('machines.error.invalid_file_type'));
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
+      toast.error(t('machines.error.file_too_large'));
       return;
     }
 
@@ -762,7 +761,7 @@ const MachinesPage = () => {
       const imageUrl = await handleImageUpload(file);
       handleMachineFormChange('image', imageUrl);
     } catch (error) {
-      // Error is already handled in handleImageUpload
+      // Error handled in handleImageUpload
     }
   };
   
@@ -771,15 +770,13 @@ const MachinesPage = () => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
+      toast.error(t('machines.error.invalid_file_type'));
       return;
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 50 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
+      toast.error(t('machines.error.file_too_large'));
       return;
     }
 
@@ -787,7 +784,7 @@ const MachinesPage = () => {
       const imageUrl = await handleImageUpload(file);
       handleMachineChange(machineIndex, 'image', imageUrl);
     } catch (error) {
-      // Error is already handled in handleImageUpload
+      // Error handled in handleImageUpload
     }
   };
 
@@ -809,18 +806,755 @@ const MachinesPage = () => {
     }
   };
 
+
+
+
+  const EditMachineModal = () => {
+    if (!isEditMachineModalOpen || !machineFormData) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div 
+          ref={editMachineModalRef}
+          className="edit-modal bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        >
+          {/* Header */}
+          <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between z-10">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+              {editingMachine ? t('machines.edit_machine') : t('machines.add_machine')}
+            </h2>
+            <button
+              onClick={handleCancelMachineEdit}
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-6">
+            {/* Machine Image */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {t('machines.machine_image')}
+              </label>
+              <div className="space-y-4">
+                {/* Current Image Preview */}
+                {machineFormData.image && (
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden border-2 border-slate-200 dark:border-slate-600">
+                    <img
+                      src={machineFormData.image}
+                      alt={t('machines.current_image')}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&h=600&fit=crop';
+                      }}
+                    />
+                    <button
+                      onClick={() => handleMachineFormChange('image', '')}
+                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      title={t('machines.remove_image')}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Upload Area */}
+                <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6">
+                  <div className="text-center">
+                    <Upload className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500 mb-3" />
+                    <div className="flex text-sm text-slate-600 dark:text-slate-400 justify-center">
+                      <label className="relative cursor-pointer rounded-md font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 focus-within:outline-none">
+                        <span>{t('machines.click_to_upload')}</span>
+                        <input
+                          type="file"
+                          className="sr-only"
+                          accept="image/*"
+                          onChange={handleMachineFileUpload}
+                          disabled={isUploading}
+                        />
+                      </label>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                      {t('machines.image_formats')}
+                    </p>
+                    {isUploading && (
+                      <div className="mt-3 flex items-center justify-center gap-2">
+                        <Loader className="w-4 h-4 animate-spin text-blue-600" />
+                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                          {t('machines.uploading')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* URL Input */}
+                <input
+                  type="text"
+                  value={machineFormData.image}
+                  onChange={(e) => handleMachineFormChange('image', e.target.value)}
+                  placeholder={t('machines.enter_url')}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {t('machines.machine_title')} *
+              </label>
+              <input
+                type="text"
+                value={machineFormData.title}
+                onChange={(e) => handleMachineFormChange('title', e.target.value)}
+                placeholder={t('machines.title_placeholder')}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                required
+              />
+            </div>
+
+            {/* Category and Status Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Category */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  {t('machines.machine_category')} *
+                </label>
+                <select
+                  value={machineFormData.category}
+                  onChange={(e) => handleMachineFormChange('category', e.target.value)}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  required
+                >
+                  <option value="">{t('machines.select_category')}</option>
+                  <option value="Cutting">{getCategoryLabel('Cutting')}</option>
+                  <option value="Forming">{getCategoryLabel('Forming')}</option>
+                  <option value="Handling">{getCategoryLabel('Handling')}</option>
+                  <option value="Welding">{getCategoryLabel('Welding')}</option>
+                  <option value="Assembly">{getCategoryLabel('Assembly')}</option>
+                  <option value="Testing">{getCategoryLabel('Testing')}</option>
+                  <option value="Other">{getCategoryLabel('Other')}</option>
+                </select>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  {t('machines.status')}
+                </label>
+                <select
+                  value={machineFormData.status}
+                  onChange={(e) => handleMachineFormChange('status', e.target.value as Machine['status'])}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                >
+                  <option value="">{t('machines.select_status')}</option>
+                  <option value="Available">{getStatusLabel('Available')}</option>
+                  <option value="In Use">{getStatusLabel('In Use')}</option>
+                  <option value="Maintenance">{getStatusLabel('Maintenance')}</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                {t('machines.machine_description')}
+              </label>
+              <textarea
+                value={machineFormData.description}
+                onChange={(e) => handleMachineFormChange('description', e.target.value)}
+                placeholder={t('machines.description_placeholder')}
+                rows={3}
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+              />
+            </div>
+
+            {/* Model and Year Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Model */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  {t('machines.model')}
+                </label>
+                <input
+                  type="text"
+                  value={machineFormData.model}
+                  onChange={(e) => handleMachineFormChange('model', e.target.value)}
+                  placeholder={t('machines.model_placeholder')}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              {/* Year Manufactured */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  {t('machines.year_manufactured')}
+                </label>
+                <input
+                  type="text"
+                  value={machineFormData.yearManufactured}
+                  onChange={(e) => handleMachineFormChange('yearManufactured', e.target.value)}
+                  placeholder={t('machines.year_placeholder')}
+                  maxLength={4}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Capacity and Power Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Capacity */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  {t('machines.capacity')}
+                </label>
+                <input
+                  type="text"
+                  value={machineFormData.capacity}
+                  onChange={(e) => handleMachineFormChange('capacity', e.target.value)}
+                  placeholder={t('machines.capacity_placeholder')}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              {/* Power Requirement */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  {t('machines.power_requirement')}
+                </label>
+                <input
+                  type="text"
+                  value={machineFormData.powerRequirement}
+                  onChange={(e) => handleMachineFormChange('powerRequirement', e.target.value)}
+                  placeholder={t('machines.power_placeholder')}
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Specifications */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  {t('machines.specifications')} *
+                </label>
+                <button
+                  type="button"
+                  onClick={addMachineSpec}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  {t('machines.add_spec')}
+                </button>
+              </div>
+              <div className="space-y-3">
+                {machineFormData.specifications.map((spec, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={spec}
+                      onChange={(e) => handleMachineSpecChange(index, e.target.value)}
+                      placeholder={t('machines.spec_placeholder')}
+                      className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeMachineSpec(index)}
+                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                      title={t('machines.remove_spec')}
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="sticky bottom-0 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 px-6 py-4 flex justify-end gap-3">
+            <button
+              onClick={handleCancelMachineEdit}
+              disabled={isSaving}
+              className="px-6 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {t('machines.cancel')}
+            </button>
+            <button
+              onClick={handleSaveMachine}
+              disabled={isSaving}
+              className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  {t('common.saving')}
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  {editingMachine ? t('machines.update') : t('machines.save')}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Main Edit Modal (Page Content) Component
+  const MainEditModal = () => {
+    if (!isModalOpen) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="edit-modal bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+              {t('machines.edit_page')}
+            </h2>
+            <button
+              onClick={handleCancel}
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-slate-200 dark:border-slate-700 px-6">
+            <button
+              onClick={() => setActiveTab('general')}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'general'
+                  ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              {t('machines.general')}
+            </button>
+            <button
+              onClick={() => setActiveTab('stats')}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'stats'
+                  ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              {t('machines.statistics')}
+            </button>
+            <button
+              onClick={() => setActiveTab('machines')}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'machines'
+                  ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              {t('machines.machines_list')}
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* General Tab */}
+            {activeTab === 'general' && (
+              <div className="space-y-6 max-w-3xl">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    {t('machines.badge_text')}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.badge}
+                    onChange={(e) => handleInputChange('badge', e.target.value)}
+                    placeholder={t('machines.placeholder.badge')}
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    {t('machines.main_heading')}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.heading}
+                    onChange={(e) => handleInputChange('heading', e.target.value)}
+                    placeholder={t('machines.placeholder.heading')}
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    {t('machines.description_text')}
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder={t('machines.placeholder.description')}
+                    rows={4}
+                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Stats Tab */}
+            {activeTab === 'stats' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    {t('machines.statistics')}
+                  </h3>
+                  <button
+                    onClick={addStat}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('machines.add_stat')}
+                  </button>
+                </div>
+
+                <div className="grid gap-4">
+                  {formData.stats.map((stat, index) => (
+                    <div
+                      key={index}
+                      className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1 space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                              {t('machines.stat_number')}
+                            </label>
+                            <input
+                              type="text"
+                              value={stat.number}
+                              onChange={(e) => handleStatChange(index, 'number', e.target.value)}
+                              placeholder={t('machines.placeholder.stat_number')}
+                              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                              {t('machines.stat_label')}
+                            </label>
+                            <input
+                              type="text"
+                              value={stat.label}
+                              onChange={(e) => handleStatChange(index, 'label', e.target.value)}
+                              placeholder={t('machines.placeholder.stat_label')}
+                              className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+                            />
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => removeStat(index)}
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                          title={t('common.delete')}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Machines Tab */}
+            {activeTab === 'machines' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    {t('machines.machines_list')}
+                  </h3>
+                  <button
+                    onClick={addMachine}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {t('machines.add_machine')}
+                  </button>
+                </div>
+
+                {formData.machines.length === 0 ? (
+                  <div className="text-center py-12 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg">
+                    <Cog className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto mb-3" />
+                    <p className="text-slate-600 dark:text-slate-400">
+                      {t('machines.no_machines_added')}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {formData.machines.map((machine, machineIndex) => (
+                      <div
+                        key={machine.id}
+                        className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900"
+                      >
+                        <div className="flex items-start gap-4">
+                          {/* Machine preview image */}
+                          <div className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-700">
+                            {machine.image ? (
+                              <img
+                                src={machine.image}
+                                alt={machine.title}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=200&h=200&fit=crop';
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Image className="w-8 h-8 text-slate-400 dark:text-slate-500" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Machine info */}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-slate-900 dark:text-white truncate">
+                              {machine.title || t('machines.placeholder.machine_title')}
+                            </h4>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                              {getCategoryLabel(machine.category)} • {getStatusLabel(machine.status)}
+                            </p>
+                            <p className="text-sm text-slate-500 dark:text-slate-500 mt-1 line-clamp-2">
+                              {machine.description || t('machines.placeholder.machine_description')}
+                            </p>
+                          </div>
+
+                          {/* Action buttons */}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingMachine(machine);
+                                setMachineFormData({...machine});
+                                setIsEditMachineModalOpen(true);
+                              }}
+                              className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                              title={t('common.edit')}
+                            >
+                              <Edit3 className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => removeMachine(machineIndex)}
+                              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                              title={t('common.delete')}
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="border-t border-slate-200 dark:border-slate-700 px-6 py-4 flex justify-end gap-3 bg-slate-50 dark:bg-slate-900">
+            <button
+              onClick={handleCancel}
+              disabled={isSaving}
+              className="px-6 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  {t('common.saving')}
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  {t('common.save')}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Machine Detail Modal Component
+  const MachineDetailModal = () => {
+    if (!isMachineDetailModalOpen || !selectedMachine) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div 
+          ref={machineDetailModalRef}
+          className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+        >
+          {/* Header with Image */}
+          <div className="relative h-80 overflow-hidden">
+            <img
+              src={selectedMachine.image}
+              alt={selectedMachine.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=1200&h=800&fit=crop';
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+            
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setIsMachineDetailModalOpen(false);
+                setSelectedMachine(null);
+              }}
+              className="absolute top-4 right-4 p-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+
+            {/* Status badge */}
+            <div className="absolute top-4 left-4">
+              <span className={`px-4 py-2 backdrop-blur-sm text-sm font-medium rounded-full ${getStatusColor(selectedMachine.status)}`}>
+                {getStatusLabel(selectedMachine.status)}
+              </span>
+            </div>
+
+            {/* Title and Category */}
+            <div className="absolute bottom-6 left-6 right-6">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded-full">
+                  {getCategoryLabel(selectedMachine.category)}
+                </span>
+                {selectedMachine.model && (
+                  <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-sm rounded-full">
+                    {t('machines.model')}: {selectedMachine.model}
+                  </span>
+                )}
+                {selectedMachine.yearManufactured && (
+                  <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-sm rounded-full">
+                    {selectedMachine.yearManufactured}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-2">
+                {selectedMachine.title}
+              </h2>
+              {selectedMachine.description && (
+                <p className="text-white/90 text-lg">
+                  {selectedMachine.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-20rem)]">
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              {/* Capacity */}
+              {selectedMachine.capacity && (
+                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-500/20 rounded-lg">
+                      <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="font-semibold text-slate-900 dark:text-white">
+                      {t('machines.capacity')}
+                    </h3>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 ml-11">
+                    {selectedMachine.capacity}
+                  </p>
+                </div>
+              )}
+
+              {/* Power Requirement */}
+              {selectedMachine.powerRequirement && (
+                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-yellow-100 dark:bg-yellow-500/20 rounded-lg">
+                      <Zap className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                    </div>
+                    <h3 className="font-semibold text-slate-900 dark:text-white">
+                      {t('machines.power_requirement')}
+                    </h3>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-400 ml-11">
+                    {selectedMachine.powerRequirement}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Technical Specifications */}
+            {selectedMachine.specifications && selectedMachine.specifications.length > 0 && (
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  {t('machines.technical_specifications')}
+                </h3>
+                <div className="grid gap-3">
+                  {selectedMachine.specifications.filter(spec => spec.trim() !== '').map((spec, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700"
+                    >
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-700 dark:text-slate-300">{spec}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Button */}
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => {
+                  setIsMachineDetailModalOpen(false);
+                  setSelectedMachine(null);
+                  // Navigate to contact page or open contact modal
+                  window.location.href = '/contact';
+                }}
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2"
+              >
+                {t('machines.request_access')}
+                <ArrowUpRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+
+
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center">
         <div className="flex items-center gap-3">
           <Loader className="w-6 h-6 animate-spin text-blue-600" />
-          <span className="text-slate-600 dark:text-slate-300">Loading machines...</span>
+          <span className="text-slate-600 dark:text-slate-300">{t('machines.loading')}</span>
         </div>
       </div>
     );
   }
 
-  {deleteModalOpen && <DeleteConfirmationModal />}
   return (
     
     <div className="min-h-screen bg-white dark:bg-slate-900 transition-colors duration-300">
@@ -829,17 +1563,15 @@ const MachinesPage = () => {
 
       {/* Hero Section */}
       <section className="relative py-32 overflow-hidden bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950 dark:via-blue-900 dark:to-slate-900">
-        {/* Background Elements */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.1),transparent_40%)] dark:bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.15),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.05),transparent_40%)] dark:bg-[radial-gradient(circle_at_80%_70%,rgba(168,85,247,0.1),transparent_50%)]" />
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-200/30 to-purple-200/20 dark:from-blue-400/20 dark:to-purple-400/15 rounded-full blur-3xl animate-pulse" />
         
-        {/* Edit Button for Moderators - Only show if authenticated and authorized */}
         {isModerator && (
           <button
             onClick={() => setIsModalOpen(true)}
             className="absolute top-4 right-4 z-20 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-slate-900 dark:text-white hover:bg-white/20 transition-all duration-300 shadow-lg hover:shadow-xl group"
-            title="Edit Machines Page"
+            title={t('machines.edit_page')}
           >
             <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
           </button>
@@ -892,7 +1624,7 @@ const MachinesPage = () => {
                     : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600'
                 }`}
               >
-                {category}
+                {getCategoryLabel(category)}
               </button>
             ))}
           </div>
@@ -903,12 +1635,12 @@ const MachinesPage = () => {
               <div className="text-center py-16">
                 <Cog className="w-16 h-16 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                  No machines available
+                  {t('machines.no_machines')}
                 </h3>
                 <p className="text-slate-500 dark:text-slate-500">
                   {selectedCategory === 'All' 
-                    ? 'No machines have been added yet.' 
-                    : `No machines found in the "${selectedCategory}" category.`}
+                    ? t('machines.no_machines_added')
+                    : t('machines.no_machines_category').replace('{category}', getCategoryLabel(selectedCategory))}
                 </p>
               </div>
             ) : (
@@ -921,27 +1653,25 @@ const MachinesPage = () => {
                         key={machine.id}
                         className="group relative bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-blue-500/10 transition-all duration-500 transform hover:-translate-y-2"
                       >
-                        {/* Edit Controls */}
                         {isModerator && (
                           <div className="absolute top-2 right-2 z-20 flex gap-2">
                             <button
                               onClick={() => openEditMachineModal(machine)}
                               className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-blue-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                              title="Edit Machine"
+                              title={t('machines.edit_machine')}
                             >
                               <Edit3 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => confirmDeleteMachine(machine.id, machine.title)}
                               className="p-2 bg-white/90 backdrop-blur-sm rounded-lg text-gray-600 hover:text-red-600 hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl"
-                              title="Delete Machine"
+                              title={t('common.delete')}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         )}
 
-                        {/* Machine Image */}
                         <div className="relative overflow-hidden">
                           <img
                             src={machine.image}
@@ -954,17 +1684,16 @@ const MachinesPage = () => {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                           <div className="absolute bottom-4 left-4">
                             <span className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded-full">
-                              {machine.category}
+                              {getCategoryLabel(machine.category)}
                             </span>
                           </div>
                           <div className="absolute top-4 right-4">
                             <span className={`px-3 py-1 backdrop-blur-sm text-sm font-medium rounded-full ${getStatusColor(machine.status)}`}>
-                              {machine.status}
+                              {getStatusLabel(machine.status)}
                             </span>
                           </div>
                         </div>
 
-                        {/* Machine Content */}
                         <div className="p-6">
                           <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-3">
                             {machine.title}
@@ -973,7 +1702,6 @@ const MachinesPage = () => {
                             {machine.description}
                           </p>
                           
-                          {/* Specifications */}
                           <div className="space-y-2 mb-6">
                             {machine.specifications.filter(spec => spec.trim() !== '').slice(0, 3).map((spec, i) => (
                               <div key={i} className="flex items-center gap-2">
@@ -983,12 +1711,11 @@ const MachinesPage = () => {
                             ))}
                             {machine.specifications.filter(spec => spec.trim() !== '').length > 3 && (
                               <div className="text-sm text-gray-500 dark:text-slate-500">
-                                +{machine.specifications.filter(spec => spec.trim() !== '').length - 3} more specifications
+                                +{machine.specifications.filter(spec => spec.trim() !== '').length - 3} {t('services.more')}
                               </div>
                             )}
                           </div>
 
-                          {/* Footer */}
                           <div className="flex items-center justify-between">
                             <div className="text-gray-600 dark:text-slate-400 text-sm">
                               <Target className="w-4 h-4 inline mr-1" />
@@ -1000,12 +1727,11 @@ const MachinesPage = () => {
                             </div>
                           </div>
 
-                          {/* Action Button */}
                           <button
                             onClick={() => openMachineDetailModal(machine)}
                             className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                           >
-                            View Details
+                            {t('machines.view_details')}
                           </button>
                         </div>
                       </div>
@@ -1021,7 +1747,7 @@ const MachinesPage = () => {
                       onClick={() => setShowAllMachines(true)}
                       className="relative z-20 px-8 py-4 bg-white dark:bg-slate-800/50 border-2 border-blue-500 dark:border-cyan-500 text-blue-600 dark:text-cyan-300 rounded-2xl font-semibold hover:bg-blue-50 dark:hover:bg-cyan-600 hover:text-blue-700 dark:hover:text-white transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-blue-500/20 dark:hover:shadow-cyan-500/25 flex items-center gap-3 backdrop-blur-sm"
                     >
-                      Show More Machines
+                      {t('machines.show_more')}
                       <ChevronDown className="size-5 animate-bounce" />
                       <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 dark:bg-cyan-500/20 dark:text-cyan-300 text-xs rounded-full border border-blue-200 dark:border-cyan-500/30">
                         +{filteredMachines.length - initialMachineCount}
@@ -1036,7 +1762,7 @@ const MachinesPage = () => {
                       onClick={() => setShowAllMachines(false)}
                       className="px-8 py-4 bg-white dark:bg-slate-800/50 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-2xl font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-3"
                     >
-                      Show Less
+                      {t('machines.show_less')}
                       <ChevronRight className="size-5 rotate-90 transform" />
                     </button>
                   </div>
@@ -1047,852 +1773,14 @@ const MachinesPage = () => {
         </div>
       </section>
 
-
-      {/* Edit Modal - Only accessible to moderators/admins */}
-      {isModalOpen && isModerator && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                  <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Machines Page</h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Logged in as: {user?.name} ({user?.role})
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleCancel}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                disabled={isSaving}
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
-
-            {/* Modal Tabs */}
-            <div className="flex border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
-              {[
-                { key: 'general', label: 'General', icon: Type },
-                { key: 'stats', label: 'Statistics', icon: Hash },
-                { key: 'machines', label: 'Machines', icon: Cog }
-              ].map(({ key, label, icon: Icon }) => (
-                <button
-                  key={key}
-                  onClick={() => setActiveTab(key as any)}
-                  disabled={isSaving}
-                  className={`flex items-center gap-2 px-6 py-4 font-medium transition-all duration-200 ${
-                    activeTab === key
-                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                  } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-              {activeTab === 'general' && (
-                <div className="space-y-6">
-                  {/* Badge Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Type className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Badge Text
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      value={formData.badge}
-                      onChange={(e) => handleInputChange('badge', e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="Enter badge text..."
-                    />
-                  </div>
-
-                  {/* Heading Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Type className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Main Heading
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      value={formData.heading}
-                      onChange={(e) => handleInputChange('heading', e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="Enter main heading..."
-                    />
-                  </div>
-
-                  {/* Description Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Description
-                      </label>
-                    </div>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => handleInputChange('description', e.target.value)}
-                      rows={4}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="Enter description..."
-                    />
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'stats' && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Statistics</h3>
-                    <button
-                      onClick={addStat}
-                      disabled={isSaving || formData.stats.length >= 10}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Stat
-                    </button>
-                  </div>
-
-                  <div className="grid gap-4">
-                    {formData.stats.map((stat, index) => (
-                      <div key={index} className="p-4 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-medium text-gray-900 dark:text-white">Stat {index + 1}</h4>
-                          {formData.stats.length > 1 && (
-                            <button
-                              onClick={() => removeStat(index)}
-                              disabled={isSaving}
-                              className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                              Number/Value
-                            </label>
-                            <input
-                              type="text"
-                              value={stat.number}
-                              onChange={(e) => handleStatChange(index, 'number', e.target.value)}
-                              disabled={isSaving}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                              placeholder="e.g., 25+, 99.5%, 24/7"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                              Label
-                            </label>
-                            <input
-                              type="text"
-                              value={stat.label}
-                              onChange={(e) => handleStatChange(index, 'label', e.target.value)}
-                              disabled={isSaving}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                              placeholder="e.g., Active Machines, Uptime Rate"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'machines' && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Machines</h3>
-                    <button
-                      onClick={addMachine}
-                      disabled={isSaving}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Machine
-                    </button>
-                  </div>
-
-                  <div className="space-y-8">
-                    {formData.machines.map((machine, machineIndex) => (
-                      <div key={machine.id} className="p-6 border border-gray-200 dark:border-slate-600 rounded-lg bg-gray-50 dark:bg-slate-700/50">
-                        <div className="flex items-center justify-between mb-6">
-                          <h4 className="font-semibold text-gray-900 dark:text-white">
-                            Machine {machineIndex + 1}: {machine.title || 'Untitled'}
-                          </h4>
-                          {formData.machines.length > 0 && (
-                            <button
-                              onClick={() => removeMachine(machineIndex)}
-                              disabled={isSaving}
-                              className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-
-                        <div className="grid gap-4">
-                          {/* Basic Info */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Title *
-                              </label>
-                              <input
-                                type="text"
-                                value={machine.title}
-                                onChange={(e) => handleMachineChange(machineIndex, 'title', e.target.value)}
-                                disabled={isSaving}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                placeholder="Machine title..."
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Category *
-                              </label>
-                              <select
-                                value={machine.category}
-                                onChange={(e) => handleMachineChange(machineIndex, 'category', e.target.value)}
-                                disabled={isSaving}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <option value="">Select category</option>
-                                <option value="Cutting">Cutting</option>
-                                <option value="Forming">Forming</option>
-                                <option value="Handling">Handling</option>
-                                <option value="Welding">Welding</option>
-                                <option value="Assembly">Assembly</option>
-                                <option value="Testing">Testing</option>
-                                <option value="Other">Other</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          {/* Description */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                              Description
-                            </label>
-                            <textarea
-                              value={machine.description}
-                              onChange={(e) => handleMachineChange(machineIndex, 'description', e.target.value)}
-                              rows={3}
-                              disabled={isSaving}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-                              placeholder="Machine description..."
-                            />
-                          </div>
-
-                          {/* Image Upload */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                              Machine Image
-                            </label>
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="url"
-                                  value={machine.image}
-                                  onChange={(e) => handleMachineChange(machineIndex, 'image', e.target.value)}
-                                  disabled={isSaving}
-                                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                  placeholder="https://example.com/image.jpg or upload a file"
-                                />
-                                <div className="relative">
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => handleFileUpload(e, machineIndex)}
-                                    disabled={isSaving || isUploading}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                                  />
-                                  <button
-                                    type="button"
-                                    disabled={isSaving || isUploading}
-                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    {isUploading ? (
-                                      <Loader className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <Upload className="w-4 h-4" />
-                                    )}
-                                    Upload
-                                  </button>
-                                </div>
-                              </div>
-                              
-                              {machine.image && (
-                                <div className="mt-2">
-                                  <img
-                                    src={machine.image}
-                                    alt="Preview"
-                                    className="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-slate-600"
-                                    onError={(e) => {
-                                      e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&h=600&fit=crop';
-                                    }}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Technical Details */}
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Model
-                              </label>
-                              <input
-                                type="text"
-                                value={machine.model}
-                                onChange={(e) => handleMachineChange(machineIndex, 'model', e.target.value)}
-                                disabled={isSaving}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                placeholder="Model number..."
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Year Manufactured
-                              </label>
-                              <input
-                                type="text"
-                                value={machine.yearManufactured}
-                                onChange={(e) => handleMachineChange(machineIndex, 'yearManufactured', e.target.value)}
-                                disabled={isSaving}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                placeholder="YYYY"
-                                pattern="\d{4}"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Status
-                              </label>
-                              <select
-                                value={machine.status}
-                                onChange={(e) => handleMachineChange(machineIndex, 'status', e.target.value)}
-                                disabled={isSaving}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <option value="Available">Available</option>
-                                <option value="In Use">In Use</option>
-                                <option value="Maintenance">Maintenance</option>
-                              </select>
-                            </div>
-                          </div>
-
-                        {/* Capacity and Power */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Capacity
-                              </label>
-                              <input
-                                type="text"
-                                value={machine.capacity}
-                                onChange={(e) => handleMachineChange(machineIndex, 'capacity', e.target.value)}
-                                disabled={isSaving}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                placeholder="e.g., 200mm max thickness"
-                              />
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                Power Requirement
-                              </label>
-                              <input
-                                type="text"
-                                value={machine.powerRequirement}
-                                onChange={(e) => handleMachineChange(machineIndex, 'powerRequirement', e.target.value)}
-                                disabled={isSaving}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                placeholder="e.g., 380V, 200A"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Specifications */}
-                          <div>
-                            <div className="flex items-center justify-between mb-3">
-                              <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
-                                Specifications *
-                              </label>
-                              <button
-                                onClick={() => addSpecification(machineIndex)}
-                                disabled={isSaving}
-                                className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <Plus className="w-3 h-3" />
-                                Add Spec
-                              </button>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              {machine.specifications.map((spec, specIndex) => (
-                                <div key={specIndex} className="flex gap-2">
-                                  <input
-                                    type="text"
-                                    value={spec}
-                                    onChange={(e) => handleSpecificationChange(machineIndex, specIndex, e.target.value)}
-                                    disabled={isSaving}
-                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                                    placeholder="Specification..."
-                                  />
-                                  {machine.specifications.length > 1 && (
-                                    <button
-                                      onClick={() => removeSpecification(machineIndex, specIndex)}
-                                      disabled={isSaving}
-                                      className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
-              <button
-                onClick={handleCancel}
-                disabled={isSaving}
-                className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <Loader className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Machine Detail Modal */}
-      {isMachineDetailModalOpen && selectedMachine && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div ref={machineDetailModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full p-6 my-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{selectedMachine.title}</h3>
-              <button
-                onClick={() => {
-                  setIsMachineDetailModalOpen(false);
-                  setSelectedMachine(null);
-                }}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <img
-                  src={selectedMachine.image}
-                  alt={selectedMachine.title}
-                  className="w-full h-96 object-cover rounded-2xl shadow-lg"
-                  onError={(e) => {
-                    e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&h=600&fit=crop';
-                  }}
-                />
-              </div>
-              
-              <div>
-                <div className="mb-6 flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm rounded-full">
-                    {selectedMachine.category}
-                  </span>
-                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(selectedMachine.status)}`}>
-                    {selectedMachine.status}
-                  </span>
-                  <span className="px-3 py-1 bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200 text-sm font-medium rounded-full border border-slate-200 dark:border-slate-600/50">
-                    {selectedMachine.model}
-                  </span>
-                </div>
-                
-                <p className="text-gray-600 dark:text-slate-400 mb-6 leading-relaxed">
-                  {selectedMachine.description}
-                </p>
-                
-                <div className="space-y-4 mb-8">
-                  <h4 className="font-bold text-gray-900 dark:text-slate-100">Technical Specifications</h4>
-                  <div className="space-y-2">
-                    {selectedMachine.specifications.filter(spec => spec.trim() !== '').map((spec, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                        <span className="text-gray-600 dark:text-slate-400">{spec}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
-                    <Target className="w-6 h-6 text-blue-600 dark:text-blue-400 mb-2" />
-                    <div className="text-sm text-gray-600 dark:text-slate-400">Capacity</div>
-                    <div className="font-semibold text-gray-900 dark:text-slate-100">{selectedMachine.capacity}</div>
-                  </div>
-                  
-                  <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
-                    <Zap className="w-6 h-6 text-green-600 dark:text-green-400 mb-2" />
-                    <div className="text-sm text-gray-600 dark:text-slate-400">Power Requirement</div>
-                    <div className="font-semibold text-gray-900 dark:text-slate-100">{selectedMachine.powerRequirement}</div>
-                  </div>
-                  
-                  <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
-                    <Calendar className="w-6 h-6 text-purple-600 dark:text-purple-400 mb-2" />
-                    <div className="text-sm text-gray-600 dark:text-slate-400">Year Manufactured</div>
-                    <div className="font-semibold text-gray-900 dark:text-slate-100">{selectedMachine.yearManufactured}</div>
-                  </div>
-                  
-                  <div className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-4">
-                    <Settings className="w-6 h-6 text-orange-600 dark:text-orange-400 mb-2" />
-                    <div className="text-sm text-gray-600 dark:text-slate-400">Status</div>
-                    <div className="font-semibold text-gray-900 dark:text-slate-100">{selectedMachine.status}</div>
-                  </div>
-                </div>
-                
-                <button className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  Request Access
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-      {/* Individual Machine Edit Modal */}
-      {isEditMachineModalOpen && editingMachine && machineFormData && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div ref={editMachineModalRef} className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                  <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Machine</h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {editingMachine.title}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleCancelMachineEdit}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                disabled={isSaving}
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-              <div className="space-y-6">
-                {/* Basic Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Title *
-                    </label>
-                    <input
-                      type="text"
-                      value={machineFormData.title}
-                      onChange={(e) => handleMachineFormChange('title', e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="Machine title..."
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Category *
-                    </label>
-                    <select
-                      value={machineFormData.category}
-                      onChange={(e) => handleMachineFormChange('category', e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="">Select category</option>
-                      <option value="Cutting">Cutting</option>
-                      <option value="Forming">Forming</option>
-                      <option value="Handling">Handling</option>
-                      <option value="Welding">Welding</option>
-                      <option value="Assembly">Assembly</option>
-                      <option value="Testing">Testing</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={machineFormData.description}
-                    onChange={(e) => handleMachineFormChange('description', e.target.value)}
-                    rows={4}
-                    disabled={isSaving}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white resize-none disabled:opacity-50 disabled:cursor-not-allowed"
-                    placeholder="Machine description..."
-                  />
-                </div>
-
-                {/* Image Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                    Machine Image
-                  </label>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="url"
-                        value={machineFormData.image}
-                        onChange={(e) => handleMachineFormChange('image', e.target.value)}
-                        disabled={isSaving}
-                        className="flex-1 px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                        placeholder="https://example.com/image.jpg or upload a file"
-                      />
-                      <div className="relative">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleMachineFileUpload}
-                          disabled={isSaving || isUploading}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                        />
-                        <button
-                          type="button"
-                          disabled={isSaving || isUploading}
-                          className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isUploading ? (
-                            <Loader className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Upload className="w-4 h-4" />
-                          )}
-                          Upload
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {machineFormData.image && (
-                      <div className="mt-3">
-                        <img
-                          src={machineFormData.image}
-                          alt="Preview"
-                          className="w-full h-48 object-cover rounded-lg border border-gray-200 dark:border-slate-600"
-                          onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&h=600&fit=crop';
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Technical Details */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Model
-                    </label>
-                    <input
-                      type="text"
-                      value={machineFormData.model}
-                      onChange={(e) => handleMachineFormChange('model', e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="Model number..."
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Year Manufactured
-                    </label>
-                    <input
-                      type="text"
-                      value={machineFormData.yearManufactured}
-                      onChange={(e) => handleMachineFormChange('yearManufactured', e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="YYYY"
-                      pattern="\d{4}"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Status
-                    </label>
-                    <select
-                      value={machineFormData.status}
-                      onChange={(e) => handleMachineFormChange('status', e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <option value="Available">Available</option>
-                      <option value="In Use">In Use</option>
-                      <option value="Maintenance">Maintenance</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Capacity and Power */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Capacity
-                    </label>
-                    <input
-                      type="text"
-                      value={machineFormData.capacity}
-                      onChange={(e) => handleMachineFormChange('capacity', e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="e.g., 200mm max thickness"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Power Requirement
-                    </label>
-                    <input
-                      type="text"
-                      value={machineFormData.powerRequirement}
-                      onChange={(e) => handleMachineFormChange('powerRequirement', e.target.value)}
-                      disabled={isSaving}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                      placeholder="e.g., 380V, 200A"
-                    />
-                  </div>
-                </div>
-
-                {/* Specifications */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Specifications *
-                    </label>
-                    <button
-                      onClick={addMachineSpec}
-                      disabled={isSaving}
-                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Plus className="w-3 h-3" />
-                      Add Spec
-                    </button>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {machineFormData.specifications.map((spec, specIndex) => (
-                      <div key={specIndex} className="flex gap-2">
-                        <input
-                          type="text"
-                          value={spec}
-                          onChange={(e) => handleMachineSpecChange(specIndex, e.target.value)}
-                          disabled={isSaving}
-                          className="flex-1 px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                          placeholder="Specification..."
-                        />
-                        {machineFormData.specifications.length > 1 && (
-                          <button
-                            onClick={() => removeMachineSpec(specIndex)}
-                            disabled={isSaving}
-                            className="p-3 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
-              <button
-                onClick={handleCancelMachineEdit}
-                disabled={isSaving}
-                className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-600 border border-gray-300 dark:border-slate-500 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-500 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveMachine}
-                disabled={isSaving}
-                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all duration-200 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <Loader className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                {isSaving ? 'Saving...' : 'Save Machine'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-
+      {/* Edit Modals */}
+    {isModalOpen && <MainEditModal />}
+    {isEditMachineModalOpen && <EditMachineModal />}
+    {isMachineDetailModalOpen && <MachineDetailModal />}
+    {deleteModalOpen && <DeleteConfirmationModal />}
+  
     </div>
+
   );
 };
 

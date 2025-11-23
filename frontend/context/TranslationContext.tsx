@@ -332,6 +332,29 @@ const translations = {
     'machines.placeholder.capacity': 'e.g., 200mm max thickness',
     'machines.placeholder.power': 'e.g., 380V, 200A',
     'machines.placeholder.specification': 'Specification...',
+    // Machines Edit Modal - All keys needed
+    'machines.uploading': 'Uploading...',
+    'machines.click_to_upload': 'Click to upload or drag and drop',
+    'machines.image_formats': 'PNG, JPG, GIF up to 5MB',
+    'machines.current_image': 'Current image',
+    'machines.remove_image': 'Remove image',
+    'machines.enter_url': 'Or enter image URL...',
+    'machines.title_placeholder': 'Enter machine title...',
+    'machines.description_placeholder': 'Enter machine description...',
+    'machines.select_category': 'Select category',
+    'machines.select_status': 'Select status',
+    'machines.model_placeholder': 'Enter model number...',
+    'machines.year_placeholder': 'Enter year (YYYY)...',
+    'machines.capacity_placeholder': 'Enter capacity (e.g., 200mm max thickness)...',
+    'machines.power_placeholder': 'Enter power requirement (e.g., 380V, 200A)...',
+    'machines.spec_placeholder': 'Enter specification...',
+    'machines.remove_spec': 'Remove specification',
+    
+    
+    // Form labels that might be missing
+    'machines.required_field': 'Required field',
+    'machines.optional_field': 'Optional',
+
 
 
     // Contact Page
@@ -848,6 +871,27 @@ const translations = {
     'machines.success.update': 'Page des machines mise à jour avec succès',
     'machines.success.machine_update': 'Machine mise à jour avec succès',
     'machines.success.machine_delete': 'Machine supprimée avec succès',
+    // Machines Edit Modal - All keys needed
+    'machines.uploading': 'Téléchargement...',
+    'machines.click_to_upload': 'Cliquer pour télécharger ou glisser-déposer',
+    'machines.image_formats': 'PNG, JPG, GIF jusqu\'à 5MB',
+    'machines.current_image': 'Image actuelle',
+    'machines.remove_image': 'Supprimer l\'image',
+    'machines.enter_url': 'Ou entrer l\'URL de l\'image...',
+    'machines.title_placeholder': 'Entrez le titre de la machine...',
+    'machines.description_placeholder': 'Entrez la description de la machine...',
+    'machines.select_category': 'Sélectionner une catégorie',
+    'machines.select_status': 'Sélectionner un statut',
+    'machines.model_placeholder': 'Entrez le numéro de modèle...',
+    'machines.year_placeholder': 'Entrez l\'année (AAAA)...',
+    'machines.capacity_placeholder': 'Entrez la capacité (ex. : épaisseur max 200mm)...',
+    'machines.power_placeholder': 'Entrez les besoins en énergie (ex. : 380V, 200A)...',
+    'machines.spec_placeholder': 'Entrez la spécification...',
+    'machines.remove_spec': 'Supprimer la spécification',
+    
+    // Form labels that might be missing
+    'machines.required_field': 'Champ requis',
+    'machines.optional_field': 'Optionnel',
 
 
     // Contact Page

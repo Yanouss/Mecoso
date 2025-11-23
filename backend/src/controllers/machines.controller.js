@@ -2,6 +2,8 @@ const Machine = require('../models/Machines.model');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const { deleteFile } = require('../utils/fileUtils');
+const Translation = require('../models/Translation.model');
+const { translateText, detectLanguage } = require('../utils/translationService');
 
 // Default page data
 const defaultPageData = {
@@ -14,6 +16,109 @@ const defaultPageData = {
     { number: "15+", label: "Years Service" },
     { number: "24/7", label: "Operations" }
   ]
+};
+
+// 🧠 INTELLIGENT AUTO-TRANSLATION for Machines
+const handleMachineTranslations = async (machineId, machineData, userId) => {
+  console.log(`\n📄 ========== MACHINE TRANSLATION START ==========`);
+  
+  const fieldsToTranslate = [
+    { key: `machine.${machineId}.title`, value: machineData.title },
+    { key: `machine.${machineId}.description`, value: machineData.description },
+    ...machineData.specifications.map((spec, index) => ({
+      key: `machine.${machineId}.spec_${index}`,
+      value: spec
+    })),
+    { key: `machine.${machineId}.capacity`, value: machineData.capacity },
+    { key: `machine.${machineId}.powerRequirement`, value: machineData.powerRequirement },
+    { key: `machine.${machineId}.model`, value: machineData.model }
+  ];
+
+  let correctedFields = [];
+
+  for (const field of fieldsToTranslate) {
+    if (!field.value || field.value.trim() === '') continue;
+    
+    console.log(`\n🔍 Processing: ${field.key}`);
+    console.log(`   Input: "${field.value}"`);
+    
+    // Detect language
+    const inputLang = detectLanguage(field.value);
+    console.log(`   Detected input language: ${inputLang.toUpperCase()}`);
+    
+    const targetLang = inputLang === 'en' ? 'fr' : 'en';
+    console.log(`   Will translate to: ${targetLang.toUpperCase()}`);
+    
+    // Check existing translation
+    let existingTranslation = await Translation.findOne({ key: field.key });
+    
+    if (existingTranslation) {
+      const existingEnLang = detectLanguage(existingTranslation.translations.en);
+      const existingFrLang = detectLanguage(existingTranslation.translations.fr);
+      
+      // Auto-fix swapped fields
+      if (existingEnLang === 'fr' && existingFrLang === 'en') {
+        console.log(`   🔄 SWAPPING! EN and FR fields are reversed!`);
+        const temp = existingTranslation.translations.en;
+        existingTranslation.translations.en = existingTranslation.translations.fr;
+        existingTranslation.translations.fr = temp;
+        correctedFields.push(`${field.key} (swapped)`);
+      }
+      
+      // Auto-fix both French
+      if (existingEnLang === 'fr' && existingFrLang === 'fr') {
+        console.log(`   🔄 Both fields are French! Translating one to English...`);
+        const translatedToEn = await translateText(existingTranslation.translations.en, 'en');
+        existingTranslation.translations.en = translatedToEn;
+        correctedFields.push(`${field.key} (fixed EN)`);
+      }
+      
+      // Auto-fix both English
+      if (existingEnLang === 'en' && existingFrLang === 'en') {
+        console.log(`   🔄 Both fields are English! Translating one to French...`);
+        const translatedToFr = await translateText(existingTranslation.translations.fr, 'fr');
+        existingTranslation.translations.fr = translatedToFr;
+        correctedFields.push(`${field.key} (fixed FR)`);
+      }
+      
+      await existingTranslation.save();
+    }
+    
+    // Translate new input
+    console.log(`   🌍 Translating new input to ${targetLang.toUpperCase()}...`);
+    const translatedValue = await translateText(field.value, targetLang);
+    console.log(`   ✅ Translation: "${translatedValue}"`);
+    
+    // Save translation
+    await Translation.findOneAndUpdate(
+      { key: field.key },
+      {
+        key: field.key,
+        translations: {
+          [inputLang]: field.value,
+          [targetLang]: translatedValue
+        },
+        category: 'machines',
+        isEditable: true,
+        lastUpdated: Date.now(),
+        updatedBy: userId
+      },
+      { upsert: true, new: true }
+    );
+  }
+  
+  console.log(`\n✅ ========== TRANSLATION COMPLETED ==========`);
+  if (correctedFields.length > 0) {
+    console.log(`🔧 Auto-corrected fields: ${correctedFields.join(', ')}`);
+  }
+  
+  return {
+    autoTranslated: true,
+    correctedFields: correctedFields.length > 0 ? correctedFields : undefined,
+    message: correctedFields.length > 0 
+      ? `Successfully translated and auto-corrected ${correctedFields.length} field(s)!`
+      : 'Successfully translated all fields!'
+  };
 };
 
 // @desc    Get machines page content
@@ -70,7 +175,7 @@ exports.updateMachinesPage = asyncHandler(async (req, res, next) => {
       await Machine.findByIdAndDelete(machine._id);
     }
 
-    // Update or create machines
+    // Update or create machines with translations
     for (let machineData of machines) {
       const { id, title, description, image, specifications, capacity, powerRequirement, category, model, yearManufactured, status } = machineData;
 
@@ -85,9 +190,10 @@ exports.updateMachinesPage = asyncHandler(async (req, res, next) => {
         continue; // Skip machines without specifications
       }
 
+      let savedMachine;
       if (existingMachineIds.has(id)) {
         // Update existing machine
-        await Machine.findOneAndUpdate(
+        savedMachine = await Machine.findOneAndUpdate(
           { id: id },
           {
             title,
@@ -105,7 +211,7 @@ exports.updateMachinesPage = asyncHandler(async (req, res, next) => {
         );
       } else {
         // Create new machine
-        await Machine.create({
+        savedMachine = await Machine.create({
           id,
           title,
           description: description || '',
@@ -119,6 +225,20 @@ exports.updateMachinesPage = asyncHandler(async (req, res, next) => {
           status: status || 'Available'
         });
       }
+
+      // 🧠 INTELLIGENT AUTO-TRANSLATION
+      await handleMachineTranslations(
+        savedMachine._id,
+        {
+          title: savedMachine.title,
+          description: savedMachine.description,
+          specifications: savedMachine.specifications,
+          capacity: savedMachine.capacity,
+          powerRequirement: savedMachine.powerRequirement,
+          model: savedMachine.model
+        },
+        req.user.id
+      );
     }
   }
 
@@ -226,10 +346,25 @@ exports.createMachine = asyncHandler(async (req, res, next) => {
     status: status || 'Available'
   });
 
+  // 🧠 INTELLIGENT AUTO-TRANSLATION
+  const translationInfo = await handleMachineTranslations(
+    machine._id,
+    {
+      title: machine.title,
+      description: machine.description,
+      specifications: machine.specifications,
+      capacity: machine.capacity,
+      powerRequirement: machine.powerRequirement,
+      model: machine.model
+    },
+    req.user.id
+  );
+
   res.status(201).json({
     success: true,
     message: 'Machine created successfully',
-    data: machine
+    data: machine,
+    translationInfo
   });
 });
 
@@ -285,10 +420,25 @@ exports.updateMachine = asyncHandler(async (req, res, next) => {
     deleteFile(oldImage);
   }
 
+  // 🧠 INTELLIGENT AUTO-TRANSLATION
+  const translationInfo = await handleMachineTranslations(
+    machine._id,
+    {
+      title: req.body.title || machine.title,
+      description: req.body.description || machine.description,
+      specifications: req.body.specifications || machine.specifications,
+      capacity: req.body.capacity || machine.capacity,
+      powerRequirement: req.body.powerRequirement || machine.powerRequirement,
+      model: req.body.model || machine.model
+    },
+    req.user.id
+  );
+
   res.status(200).json({
     success: true,
     message: 'Machine updated successfully',
-    data: machine
+    data: machine,
+    translationInfo
   });
 });
 
@@ -374,5 +524,106 @@ exports.getMachineStatistics = asyncHandler(async (req, res, next) => {
       maintenance: maintenanceMachines,
       categories: categoryCounts
     }
+  });
+});
+
+// @desc    Get single machine with translations
+// @route   GET /api/machines/:id/:lang
+// @access  Public
+exports.getMachineWithTranslations = asyncHandler(async (req, res, next) => {
+  const lang = req.params.lang || req.query.lang || 'en';
+  const machineId = req.params.id;
+  
+  if (!['en', 'fr'].includes(lang)) {
+    return next(new ErrorResponse('Invalid language. Supported: en, fr', 400));
+  }
+
+  const machine = await Machine.findOne({ id: machineId });
+  
+  if (!machine) {
+    return next(new ErrorResponse(`Machine not found with id of ${machineId}`, 404));
+  }
+
+  // Get translations
+  const translationKeys = [
+    `machine.${machine._id}.title`,
+    `machine.${machine._id}.description`,
+    ...machine.specifications.map((_, index) => `machine.${machine._id}.spec_${index}`),
+    `machine.${machine._id}.capacity`,
+    `machine.${machine._id}.powerRequirement`,
+    `machine.${machine._id}.model`
+  ];
+
+  const translations = await Translation.find({ 
+    key: { $in: translationKeys } 
+  });
+
+  // Build translated response
+  const translatedMachine = {
+    ...machine.toObject(),
+    title: translations.find(t => t.key === `machine.${machine._id}.title`)?.translations[lang] || machine.title,
+    description: translations.find(t => t.key === `machine.${machine._id}.description`)?.translations[lang] || machine.description,
+    specifications: machine.specifications.map((spec, index) => {
+      const trans = translations.find(t => t.key === `machine.${machine._id}.spec_${index}`);
+      return trans?.translations[lang] || spec;
+    }),
+    capacity: translations.find(t => t.key === `machine.${machine._id}.capacity`)?.translations[lang] || machine.capacity,
+    powerRequirement: translations.find(t => t.key === `machine.${machine._id}.powerRequirement`)?.translations[lang] || machine.powerRequirement,
+    model: translations.find(t => t.key === `machine.${machine._id}.model`)?.translations[lang] || machine.model
+  };
+
+  res.status(200).json({
+    success: true,
+    data: translatedMachine
+  });
+});
+
+// @desc    Get all machines with translations
+// @route   GET /api/machines/translated
+// @access  Public
+exports.getMachinesWithTranslations = asyncHandler(async (req, res, next) => {
+  const lang = req.query.lang || 'en';
+  
+  if (!['en', 'fr'].includes(lang)) {
+    return next(new ErrorResponse('Invalid language. Supported: en, fr', 400));
+  }
+
+  const machines = await Machine.find().sort({ createdAt: -1 });
+  
+  // Get all translation keys for all machines
+  const allTranslationKeys = machines.flatMap(machine => [
+    `machine.${machine._id}.title`,
+    `machine.${machine._id}.description`,
+    ...machine.specifications.map((_, index) => `machine.${machine._id}.spec_${index}`),
+    `machine.${machine._id}.capacity`,
+    `machine.${machine._id}.powerRequirement`,
+    `machine.${machine._id}.model`
+  ]);
+
+  const translations = await Translation.find({ 
+    key: { $in: allTranslationKeys } 
+  });
+
+  // Build translated machines
+  const translatedMachines = machines.map(machine => {
+    const machineId = machine._id;
+    return {
+      ...machine.toObject(),
+      title: translations.find(t => t.key === `machine.${machineId}.title`)?.translations[lang] || machine.title,
+      description: translations.find(t => t.key === `machine.${machineId}.description`)?.translations[lang] || machine.description,
+      specifications: machine.specifications.map((spec, index) => {
+        const trans = translations.find(t => t.key === `machine.${machineId}.spec_${index}`);
+        return trans?.translations[lang] || spec;
+      }),
+      capacity: translations.find(t => t.key === `machine.${machineId}.capacity`)?.translations[lang] || machine.capacity,
+      powerRequirement: translations.find(t => t.key === `machine.${machineId}.powerRequirement`)?.translations[lang] || machine.powerRequirement,
+      model: translations.find(t => t.key === `machine.${machineId}.model`)?.translations[lang] || machine.model
+    };
+  });
+
+  res.status(200).json({
+    success: true,
+    count: translatedMachines.length,
+    data: translatedMachines
   });
 });
