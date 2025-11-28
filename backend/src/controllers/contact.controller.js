@@ -3,6 +3,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const ErrorResponse = require('../utils/errorResponse');
 const Translation = require('../models/Translation.model');
 const { translateText, detectLanguage } = require('../utils/translationService');
+const sendEmail = require('../utils/sendEmail');
 
 
 // @desc    Get contact information
@@ -256,4 +257,135 @@ exports.getContactWithTranslations = asyncHandler(async (req, res, next) => {
     success: true,
     data: translatedContact
   });
+});
+
+
+// @desc    Submit contact form
+// @route   POST /api/contact/submit
+// @access  Public
+exports.submitContactForm = asyncHandler(async (req, res, next) => {
+  const {
+    name,
+    email,
+    company,
+    phone,
+    service,
+    projectType,
+    budget,
+    timeline,
+    message
+  } = req.body;
+
+  // Validation
+  if (!name || !email || !service) {
+    return next(new ErrorResponse('Please provide name, email, and service', 400));
+  }
+
+  // --- 1. Admin Email Content (Professional Table Layout) ---
+  const adminEmailContent = `
+    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; max-width: 600px; margin: 20px auto;">
+      <h2 style="color: #1a202c; border-bottom: 2px solid #3182ce; padding-bottom: 10px;">New High-Priority Contact Inquiry</h2>
+      
+      <p style="color: #4a5568; margin-bottom: 20px;">A new prospect has submitted an inquiry via the corporate contact form. Please review the details below and assign for follow-up.</p>
+
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background-color: #f7fafc;">
+            <th style="border: 1px solid #e2e8f0; padding: 10px; text-align: left; color: #2d3748; width: 30%;">Field</th>
+            <th style="border: 1px solid #e2e8f0; padding: 10px; text-align: left; color: #2d3748; width: 70%;">Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="border: 1px solid #e2e8f0; padding: 10px; color: #4a5568; font-weight: bold;">Name</td><td style="border: 1px solid #e2e8f0; padding: 10px;">${name}</td></tr>
+          <tr><td style="border: 1px solid #e2e8f0; padding: 10px; color: #4a5568; font-weight: bold;">Email</td><td style="border: 1px solid #e2e8f0; padding: 10px;"><a href="mailto:${email}" style="color: #3182ce;">${email}</a></td></tr>
+          ${company ? `<tr><td style="border: 1px solid #e2e8f0; padding: 10px; color: #4a5568; font-weight: bold;">Company</td><td style="border: 1px solid #e2e8f0; padding: 10px;">${company}</td></tr>` : ''}
+          ${phone ? `<tr><td style="border: 1px solid #e2e8f0; padding: 10px; color: #4a5568; font-weight: bold;">Phone</td><td style="border: 1px solid #e2e8f0; padding: 10px;">${phone}</td></tr>` : ''}
+          <tr style="background-color: #edf2f7;"><td style="border: 1px solid #e2e8f0; padding: 10px; color: #4a5568; font-weight: bold;">Service Requested</td><td style="border: 1px solid #e2e8f0; padding: 10px;"><strong>${service}</strong></td></tr>
+          ${projectType ? `<tr><td style="border: 1px solid #e2e8f0; padding: 10px; color: #4a5568; font-weight: bold;">Project Type</td><td style="border: 1px solid #e2e8f0; padding: 10px;">${projectType}</td></tr>` : ''}
+          ${budget ? `<tr><td style="border: 1px solid #e2e8f0; padding: 10px; color: #4a5568; font-weight: bold;">Budget Range</td><td style="border: 1px solid #e2e8f0; padding: 10px;">${budget}</td></tr>` : ''}
+          ${timeline ? `<tr><td style="border: 1px solid #e2e8f0; padding: 10px; color: #4a5568; font-weight: bold;">Target Timeline</td><td style="border: 1px solid #e2e8f0; padding: 10px;">${timeline}</td></tr>` : ''}
+        </tbody>
+      </table>
+      
+      ${message ? `
+        <h3 style="color: #1a202c; margin-top: 25px; border-top: 1px dashed #e2e8f0; padding-top: 15px;">Prospect Message:</h3>
+        <p style="white-space: pre-wrap; background-color: #f7fafc; padding: 15px; border-left: 3px solid #3182ce; color: #4a5568;">${message}</p>
+      ` : ''}
+      
+      <p style="margin-top: 20px; font-size: 14px; color: #718096;">Please initiate contact within one business day to maintain service quality standards.</p>
+    </div>
+  `;
+
+  // --- 2. User Confirmation Email Content (Modern Branded Template) ---
+  const userConfirmationContent = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden;">
+      <div style="background-color: #3182ce; padding: 30px; text-align: center; border-bottom: 5px solid #2b6cb0;">
+        <h1 style="color: white; margin: 0; font-size: 28px; letter-spacing: 1.5px;">MECOSO</h1>
+        <p style="color: #e2e8f0; margin-top: 5px; font-size: 16px;">Architectural & Industrial Solutions</p>
+      </div>
+      
+      <div style="padding: 40px; background-color: white;">
+        <h2 style="color: #1a202c; margin-top: 0; font-size: 24px;">Inquiry Successfully Received!</h2>
+        <p style="color: #4a5568; line-height: 1.7;">Dear ${name},</p>
+        <p style="color: #4a5568; line-height: 1.7;">
+          Thank you for reaching out to **MECOSO**. Your detailed inquiry has been successfully logged into our system. 
+          A dedicated project manager will review your requirements for **${service}** and will be in contact with you shortly.
+        </p>
+        
+        <div style="background: #f7fafc; padding: 25px; border-radius: 8px; margin: 30px 0; border: 1px solid #e2e8f0;">
+          <h3 style="color: #2d3748; margin-top: 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">Key Submission Details</h3>
+          <table style="width: 100%; color: #4a5568; font-size: 14px;">
+            <tr><td style="padding: 5px 0; width: 40%; font-weight: bold;">Service Focus:</td><td style="padding: 5px 0;">${service}</td></tr>
+            ${projectType ? `<tr><td style="padding: 5px 0; width: 40%; font-weight: bold;">Project Type:</td><td style="padding: 5px 0;">${projectType}</td></tr>` : ''}
+            ${budget ? `<tr><td style="padding: 5px 0; width: 40%; font-weight: bold;">Estimated Budget:</td><td style="padding: 5px 0;">${budget}</td></tr>` : ''}
+            <tr><td style="padding: 5px 0; width: 40%; font-weight: bold;">Response Time:</td><td style="padding: 5px 0;">1-2 Business Days</td></tr>
+          </table>
+        </div>
+        
+        <p style="color: #4a5568; line-height: 1.7;">
+          While we process your request, you can explore our portfolio or learn more about our process by visiting our website.
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="[Your Company Website Link]" style="display: inline-block; padding: 12px 25px; background-color: #3182ce; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(49, 130, 206, 0.3);">
+            View Our Portfolio
+          </a>
+        </div>
+        
+        <p style="color: #4a5568; line-height: 1.7; margin-top: 30px;">
+          For immediate assistance, please call our corporate line at <strong>+212 603301313</strong>.
+        </p>
+        <p style="color: #4a5568; line-height: 1.7;">Sincerely,<br/>The MECOSO Executive Team</p>
+      </div>
+      
+      <div style="padding: 20px; text-align: center; background-color: #edf2f7; color: #718096; font-size: 12px; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0;">MECOSO | [Your Company Address/Location]</p>
+        <p style="margin: 5px 0 0 0;">© ${new Date().getFullYear()} MECOSO. All rights reserved. | <a href="[Unsubscribe Link]" style="color: #718096;">Unsubscribe</a></p>
+      </div>
+    </div>
+  `;
+
+  try {
+    // Send email to admin
+    await sendEmail({
+      email: process.env.EMAIL_USER, // Your admin email
+      subject: `[High Priority] New Lead: ${name} (${service})`, // More professional subject
+      html: adminEmailContent
+    });
+
+    // Send confirmation email to user
+    await sendEmail({
+      email: email,
+      subject: 'Thank You for Contacting MECOSO - Your Inquiry',
+      html: userConfirmationContent
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Your message has been sent successfully! A confirmation email has been sent to your inbox.'
+    });
+  } catch (error) {
+    console.error('Email sending error:', error);
+    return next(new ErrorResponse('An internal error occurred. Failed to send email.', 500));
+  }
 });

@@ -147,6 +147,10 @@ const Contact = ({
   });
 
   const [isLoading, setIsLoading] = useState(true);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+
   const { user, isAuthenticated } = useAuth();
   const isModerator = isAuthenticated && (user?.role === 'moderator' || user?.role === 'admin');
 
@@ -507,22 +511,46 @@ const Contact = ({
     }));
   };
 
-  const handleSubmit = () => {
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        company: '',
-        phone: '',
-        service: '',
-        projectType: '',
-        budget: '',
-        timeline: '',
-        message: ''
-      });
-    }, 3000);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!formData.name || !formData.email || !formData.service) {
+      toast.error(t('contact.required_fields'));
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/contact/submit`, formData);
+      
+      if (response.data.success) {
+        setIsSubmitted(true);
+        toast.success(t('contact.message_sent_success'));
+        
+        setTimeout(() => {
+          setIsSubmitted(false);
+          setFormData({
+            name: '',
+            email: '',
+            company: '',
+            phone: '',
+            service: '',
+            projectType: '',
+            budget: '',
+            timeline: '',
+            message: ''
+          });
+        }, 3000);
+      }
+    } catch (error: any) {
+      console.error('Error submitting contact form:', error);
+      const errorMessage = error.response?.data?.message || t('contact.submission_failed');
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getCardStyles = (index: number, isAccent: boolean) => {
@@ -861,11 +889,21 @@ const Contact = ({
                       <div className="pt-6">
                         <button
                           onClick={handleSubmit}
-                          className="w-full group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3"
+                          disabled={isSubmitting}
+                          className="w-full group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                         >
-                          <Send className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
-                          {t('contact.send_message')}
-                          <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
+                          {isSubmitting ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                              {t('contact.sending')}
+                            </>
+                          ) : (
+                            <>
+                              <Send className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
+                              {t('contact.send_message')}
+                              <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform duration-300" />
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>

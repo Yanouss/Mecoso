@@ -458,6 +458,10 @@ const translations = {
     'contact.info.business_hours': 'Business Hours',
     'contact.info.hours_detail': 'Mon - Sat: 9:00 AM - 6:00 PM',
     'contact.info.sunday_closed': 'Sunday: Closed',
+    'contact.required_fields': 'Please fill in all required fields',
+    'contact.message_sent_success': 'Your message has been sent successfully!',
+    'contact.submission_failed': 'Failed to send message. Please try again.',
+    'contact.sending': 'Sending...',
 
 
     // Delete Modal
@@ -996,7 +1000,10 @@ const translations = {
     'contact.info.business_hours': 'Horaires d’ouverture',
     'contact.info.hours_detail': 'Lun - Sam : 9h00 - 18h00',
     'contact.info.sunday_closed': 'Dimanche : Fermé',
-
+    'contact.required_fields': 'Veuillez remplir tous les champs obligatoires',
+    'contact.message_sent_success': 'Votre message a été envoyé avec succès!',
+    'contact.submission_failed': 'Échec de l\'envoi du message. Veuillez réessayer.',
+    'contact.sending': 'Envoi en cours...',
 
     // Footer
     'footer.newsletter.title': 'Restez Informé',

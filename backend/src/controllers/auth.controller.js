@@ -268,3 +268,114 @@ const sendTokenResponse = (user, statusCode, res) => {
       data: user
     });
 };
+
+
+// Add this to your existing auth.controller.js
+
+// @desc    Forgot password
+// @route   POST /api/auth/forgotpassword
+// @access  Public
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  
+  if (!user) {
+    return next(new ErrorResponse('There is no user with that email', 404));
+  }
+  
+  // Check if user has moderator or admin role
+  if (user.role !== 'moderator' && user.role !== 'admin') {
+    return next(new ErrorResponse('Password reset not available for this account type', 403));
+  }
+  
+  // Get reset token
+  const resetToken = user.getResetPasswordToken();
+  
+  await user.save({ validateBeforeSave: false });
+  
+  // Create reset url - This should point to your frontend
+  const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+  
+  const message = `
+    You are receiving this email because you (or someone else) has requested to reset your password.
+    
+    Please click the link below or copy and paste it into your browser to complete the process:
+    
+    ${resetUrl}
+    
+    This link will expire in 10 minutes.
+    
+    If you did not request this, please ignore this email and your password will remain unchanged.
+  `;
+
+  const htmlMessage = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+        <h1 style="color: white; margin: 0;">Password Reset Request</h1>
+      </div>
+      <div style="padding: 30px; background-color: #f7fafc;">
+        <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          <p style="color: #4a5568; line-height: 1.6; margin-bottom: 20px;">
+            Hello <strong>${user.name}</strong>,
+          </p>
+          <p style="color: #4a5568; line-height: 1.6; margin-bottom: 20px;">
+            You are receiving this email because you (or someone else) has requested to reset your password.
+          </p>
+          <p style="color: #4a5568; line-height: 1.6; margin-bottom: 30px;">
+            Please click the button below to reset your password:
+          </p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" 
+               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                      color: white; 
+                      padding: 15px 40px; 
+                      text-decoration: none; 
+                      border-radius: 8px; 
+                      display: inline-block;
+                      font-weight: bold;">
+              Reset Password
+            </a>
+          </div>
+          <p style="color: #718096; font-size: 14px; margin-top: 30px;">
+            Or copy and paste this link into your browser:
+          </p>
+          <p style="color: #4299e1; font-size: 14px; word-break: break-all;">
+            ${resetUrl}
+          </p>
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+            <p style="color: #e53e3e; font-size: 14px; margin: 0;">
+              ⚠️ This link will expire in 10 minutes.
+            </p>
+          </div>
+          <p style="color: #718096; font-size: 14px; margin-top: 20px;">
+            If you did not request this password reset, please ignore this email and your password will remain unchanged.
+          </p>
+        </div>
+      </div>
+      <div style="padding: 20px; text-align: center; color: #718096; font-size: 12px;">
+        <p>© ${new Date().getFullYear()} MECOSO. All rights reserved.</p>
+      </div>
+    </div>
+  `;
+  
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Password Reset Request - MECOSO',
+      message: message,
+      html: htmlMessage
+    });
+    
+    res.status(200).json({ 
+      success: true, 
+      data: 'Password reset email sent successfully' 
+    });
+  } catch (err) {
+    console.error('Email error:', err);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    
+    await user.save({ validateBeforeSave: false });
+    
+    return next(new ErrorResponse('Email could not be sent. Please check email configuration.', 500));
+  }
+});

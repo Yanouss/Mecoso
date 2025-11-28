@@ -2,7 +2,8 @@ const express = require('express');
 const {
   getContact,
   updateContact,
-  getContactWithTranslations
+  getContactWithTranslations,
+  submitContactForm  // Add this
 } = require('../controllers/contact.controller');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -13,6 +14,8 @@ router
   .get(getContact)
   .put(protect, authorize('moderator', 'admin'), updateContact);
 
+// Add this new route
+router.post('/submit', submitContactForm);
 
 router.get('/:lang', getContactWithTranslations);
 

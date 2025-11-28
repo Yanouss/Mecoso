@@ -13,6 +13,7 @@ import ServicePage from "./components/ServicePage";
 import GalleryPage from "./components/GalleryPage";
 import MachinesPage from "./components/MachinesPage";
 import { Toaster } from "sonner";
+import PasswordReset from './components/PasswordReset';
 
 function Home() {
   return (
@@ -54,6 +55,8 @@ function App() {
                 <Route path="/services" element={<ServicePage />} />
                 <Route path="/gallery" element={<GalleryPage />} />
                 <Route path="/machines" element={<MachinesPage />} />
+                <Route path="/reset-password/:token" element={<PasswordReset />} />
+
               </Routes>
               <Footer />
               <Toaster 
